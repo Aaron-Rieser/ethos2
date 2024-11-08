@@ -1,0 +1,19 @@
+ethos2 is functional !! YAS !
+
+database = postgresql://postgres:vKXvcmZdIzhIqGRxdOLWTvAXCeZyagJl@junction.proxy.rlwy.net:50368/railway
+using DATABASE_PUBLIC_URL varialbe - 
+- pull from postgres database
+- then CALL it in the code tab
+- and MAKE SURE the code itself actually uses it
+
+Then using the db.js format and other js formats
+Loading all the pacakge json's into the repo with the right repo creation
+
+Look over all code, back it up, and look over all Ai assistants
+
+This is the base to start off
+
+NEXT: Create an OUTPUT PAGE
+!!! 
+
+THEN: ALl styling and launch
