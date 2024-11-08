@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neighbourhood Posts</title>
+</head>
+<body>
+    <h1>Create a New Post</h1>
+    <form id="postForm">
+        <div>
+            <label for="neighbourhood">Neighbourhood:</label>
+            <input type="text" id="neighbourhood" name="neighbourhood" required>
+        </div>
+        <div>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="post">Post:</label>
+            <textarea id="post" name="post" required></textarea>
+        </div>
+        <button type="submit">Submit Post</button>
+    </form>
+
+    <script src="db.js"></script>
+    <script src="form.js"></script>
+</body>
+</html>
