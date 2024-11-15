@@ -3,9 +3,9 @@ const pool = require('./db');
 const app = express();
 
 app.use(express.json());
-app.use(express.static('public')); // Serve static files from 'public' directory
+app.use(express.static('public'));
 
-// API endpoint to handle post creation
+// POST endpoint for creating posts
 app.post('/api/posts', async (req, res) => {
     try {
         const { neighbourhood, username, post } = req.body;
@@ -20,14 +20,17 @@ app.post('/api/posts', async (req, res) => {
     }
 });
 
+// GET endpoint for retrieving posts
 app.get('/api/posts', async (req, res) => {
     try {
+        console.log('Fetching posts from database...'); // Debug log
         const allPosts = await pool.query(
             'SELECT * FROM posts ORDER BY created_at DESC'
         );
+        console.log('Posts retrieved:', allPosts.rows); // Debug log
         res.json(allPosts.rows);
     } catch (err) {
-        console.error(err.message);
+        console.error('Error fetching posts:', err.message);
         res.status(500).send('Server Error');
     }
 });
