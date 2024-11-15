@@ -23,11 +23,9 @@ app.post('/api/posts', async (req, res) => {
 // GET endpoint for retrieving posts
 app.get('/api/posts', async (req, res) => {
     try {
-        console.log('Fetching posts from database...'); // Debug log
-        const allPosts = await pool.query(
-            'SELECT * FROM posts ORDER BY created_at DESC'
-        );
-        console.log('Posts retrieved:', allPosts.rows); // Debug log
+        console.log('Fetching posts from database...');
+        const allPosts = await pool.query('SELECT * FROM posts');  // <-- MAKE CHANGE HERE
+        console.log('Posts retrieved:', allPosts.rows);
         res.json(allPosts.rows);
     } catch (err) {
         console.error('Error fetching posts:', err.message);
