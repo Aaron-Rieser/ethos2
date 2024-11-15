@@ -20,6 +20,18 @@ app.post('/api/posts', async (req, res) => {
     }
 });
 
+app.get('/api/posts', async (req, res) => {
+    try {
+        const allPosts = await pool.query(
+            'SELECT * FROM posts ORDER BY created_at DESC'
+        );
+        res.json(allPosts.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
