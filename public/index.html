@@ -15,8 +15,10 @@
     <form id="postForm">
         <div>
             <label for="neighbourhood">Neighbourhood:</label>
-            <input type="text" id="neighbourhood" name="neighbourhood" required>
-        </div>
+            <select id="neighbourhood" name="neighbourhood" required>
+                <option value="">Select a neighbourhood</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>        </div>
         <div>
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
@@ -28,7 +30,7 @@
         <button type="submit">Submit Post</button>
     </form>
 
-    <script src="db.js"></script>
+    <script src="neighborhoods.js"></script>
     <script src="form.js"></script>
 </body>
 </html>
