@@ -24,7 +24,7 @@ app.post('/api/posts', async (req, res) => {
 app.get('/api/posts', async (req, res) => {
     try {
         console.log('Fetching posts from database...');
-        const allPosts = await pool.query('SELECT * FROM posts');  // <-- MAKE CHANGE HERE
+        const allPosts = await pool.query('SELECT * FROM posts ORDER BY id DESC');  // Changed this line
         console.log('Posts retrieved:', allPosts.rows);
         res.json(allPosts.rows);
     } catch (err) {

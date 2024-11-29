@@ -17,3 +17,5 @@ NEXT: Create an OUTPUT PAGE
 !!! 
 
 THEN: ALl styling and launch
+
+Note - handling SSL locally to database vs railway, modify db.js.. not now but in the future.

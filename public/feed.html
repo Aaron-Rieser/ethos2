@@ -16,16 +16,34 @@
         }
         .neighbourhood {
             color: #666;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .filter-info {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            display: none;
+        }
+        .clear-filter {
+            margin-left: 10px;
+            color: blue;
+            cursor: pointer;
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <h1>Neighbourhood Feed</h1>
-    <!-- Add a link back to the post form -->
     <nav>
         <a href="/index.html">Create New Post</a>
     </nav>
     
+    <div id="filter-info" class="filter-info">
+        Showing posts from: <span id="current-filter"></span>
+        <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
+    </div>
+
     <div id="posts-container">
         <!-- Posts will be inserted here -->
     </div>
