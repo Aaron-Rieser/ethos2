@@ -4,7 +4,7 @@ async function loadNeighborhoods() {
         const data = await response.json();
         
         const neighborhoods = data.features.map(feature => 
-            feature.properties.AREA_NAME
+            feature.properties.name
         ).sort();
 
         const select = document.getElementById('neighbourhood');
@@ -16,6 +16,8 @@ async function loadNeighborhoods() {
         });
     } catch (error) {
         console.error('Error loading neighborhoods:', error);
+        console.log('Response:', error.response);
+        console.log('Data:', error.data);
     }
 }
 
