@@ -6,25 +6,31 @@
     <title>Neighbourhood Deals</title>
 </head>
 <body>
+    <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+        <div style="text-align: center;">
     <h1>Neighbourhood Deals</h1>
     <h2>Create a New Post</h2>
     <!-- Add a link to the feed page -->
     <nav>
+        <div style="margin-bottom: 20px;">
         <a href="/feed.html">View All Posts</a>
     </nav>
 
     <form id="postForm">
         <div>
+            <div style="margin-bottom: 20px;">
             <label for="neighbourhood">Neighbourhood:</label>
             <select id="neighbourhood" name="neighbourhood" required>
                 <option value="">Select a neighbourhood</option>
                 <!-- Options will be populated by JavaScript -->
             </select>        </div>
         <div>
+            <div style="margin-bottom: 20px;">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
         </div>
         <div>
+            <div style="margin-bottom: 20px;">
             <label for="post">Post:</label>
             <textarea id="post" name="post" required></textarea>
         </div>
