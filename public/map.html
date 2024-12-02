@@ -65,7 +65,7 @@
                     },
                     onEachFeature: function(feature, layer) {
                         // Add popup that appears on hover
-                        layer.bindTooltip(feature.properties.AREA_NAME, {
+                        layer.bindTooltip(feature.properties.name, {
                             permanent: false,
                             direction: 'center',
                             className: 'neighbourhood-tooltip'
@@ -89,7 +89,7 @@
 
                         // Click handler
                         layer.on('click', function() {
-                            window.location.href = `feed.html?neighbourhood=${encodeURIComponent(feature.properties.AREA_NAME)}`;
+                            window.location.href = `feed.html?neighbourhood=${encodeURIComponent(feature.properties.name)}`;
                         });
                     }
                 }).addTo(map);
@@ -123,7 +123,7 @@
 
                     neighborhoodsLayer.eachLayer(function(layer) {
                         if (turf.booleanPointInPolygon(userPoint, layer.feature)) {
-                            const neighborhoodName = layer.feature.properties.AREA_NAME;
+                            const neighborhoodName = layer.feature.properties.name;
                             userMarker.bindPopup(
                                 `<div class="neighborhood-popup">
                                     You are in ${neighborhoodName}.<br>
