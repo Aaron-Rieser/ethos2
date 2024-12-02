@@ -18,6 +18,17 @@
             text-decoration: underline;
             color: #0066cc;
         }
+        .neighbourhood-tooltip {
+            background: none;
+            border: none;
+            box-shadow: none;
+            font-size: 14px;
+            font-weight: bold;
+            color: #3388ff;
+        }
+        .leaflet-tooltip-top:before {
+            border-top-color: transparent;
+        }
     </style>
 </head>
 <body>
@@ -53,6 +64,30 @@
                         fillOpacity: 0.1
                     },
                     onEachFeature: function(feature, layer) {
+                        // Add popup that appears on hover
+                        layer.bindTooltip(feature.properties.AREA_NAME, {
+                            permanent: false,
+                            direction: 'center',
+                            className: 'neighbourhood-tooltip'
+                        });
+
+                        // Change style on hover
+                        layer.on('mouseover', function () {
+                            layer.setStyle({
+                                fillOpacity: 0.3,
+                                fillColor: '#3388ff'
+                            });
+                        });
+
+                        // Reset style when mouse leaves
+                        layer.on('mouseout', function () {
+                            layer.setStyle({
+                                fillOpacity: 0.1,
+                                fillColor: '#3388ff'
+                            });
+                        });
+
+                        // Click handler
                         layer.on('click', function() {
                             window.location.href = `feed.html?neighbourhood=${encodeURIComponent(feature.properties.AREA_NAME)}`;
                         });
