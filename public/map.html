@@ -54,7 +54,7 @@
                     },
                     onEachFeature: function(feature, layer) {
                         layer.on('click', function() {
-                            window.location.href = `feed.html?neighborhood=${encodeURIComponent(feature.properties.AREA_NAME)}`;
+                            window.location.href = `feed.html?neighbourhood=${encodeURIComponent(feature.properties.AREA_NAME)}`;
                         });
                     }
                 }).addTo(map);

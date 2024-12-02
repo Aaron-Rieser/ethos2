@@ -31,26 +31,120 @@
             cursor: pointer;
             text-decoration: underline;
         }
+        .no-posts-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        .filter-info {
+            margin: 10px 0;
+        }
+        .clear-filter {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div style="display: flex; justify-content: center; min-height: 100vh;">
         <div style="text-align: left;">
-    <h1>Neighbourhood Deals</h1>
-    <nav>
-        <a href="/index.html">Create New Post</a>
-        <a href="/map.html">Choose my location</a>
-    </nav>
-    
-    <div id="filter-info" class="filter-info">
-        Showing posts from: <span id="current-filter"></span>
-        <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
+            <h1>Neighbourhood Deals</h1>
+            <nav>
+                <a href="/index.html">Create New Post</a>
+            </nav>
+            
+            <div id="filter-info" class="filter-info">
+                Showing posts from: <span id="current-filter"></span>
+                <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
+            </div>
+
+            <div id="posts-container">
+                <!-- Posts will be inserted here -->
+            </div>
+        </div>
     </div>
 
-    <div id="posts-container">
-        <!-- Posts will be inserted here -->
-    </div>
+    <script>
+        // Function to parse URL parameters
+        function getNeighbourhoodFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('neighbourhood');
+        }
 
-    <script src="feed.js"></script>
+        // Update the filter info display
+        function updateFilterDisplay() {
+            const neighbourhood = getNeighbourhoodFromURL();
+            const currentFilterSpan = document.getElementById('current-filter');
+            const filterInfo = document.getElementById('filter-info');
+            
+            if (neighbourhood) {
+                currentFilterSpan.textContent = neighbourhood;
+                filterInfo.style.display = 'block';
+            } else {
+                currentFilterSpan.textContent = 'All Neighbourhoods';
+                filterInfo.style.display = 'block';
+            }
+        }
+
+        // Function to show all posts
+        function showAllPosts() {
+            window.location.href = 'feed.html';
+        }
+
+        // Load posts function
+        async function loadPosts() {
+            try {
+                const neighbourhood = getNeighbourhoodFromURL();
+                updateFilterDisplay();
+                
+                // Modify the fetch URL to include neighbourhood filter if present
+                const url = neighbourhood 
+                    ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
+                    : '/api/posts';
+                
+                const response = await fetch(url);
+                const posts = await response.json();
+                
+                const postsContainer = document.querySelector('#posts-container');
+                postsContainer.innerHTML = ''; // Clear existing posts
+                
+                if (posts.length === 0) {
+                    postsContainer.innerHTML = `
+                        <div class="no-posts-message">
+                            ${neighbourhood 
+                                ? `No posts yet from ${neighbourhood}. Be the first to post!` 
+                                : 'No posts yet.'}
+                        </div>`;
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const postElement = createPostElement(post);
+                    postsContainer.appendChild(postElement);
+                });
+            } catch (error) {
+                console.error('Error loading posts:', error);
+            }
+        }
+
+        // Create post element function
+        function createPostElement(post) {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post';
+            postDiv.innerHTML = `
+                <div class="post-content">
+                    <p>${post.post}</p>
+                    <small>Posted by ${post.username} in ${post.neighbourhood}</small>
+                </div>
+            `;
+            return postDiv;
+        }
+
+        // Load posts when page loads
+        document.addEventListener('DOMContentLoaded', loadPosts);
+    </script>
 </body>
 </html>

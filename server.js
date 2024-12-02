@@ -24,7 +24,20 @@ app.post('/api/posts', async (req, res) => {
 app.get('/api/posts', async (req, res) => {
     try {
         console.log('Fetching posts from database...');
-        const allPosts = await pool.query('SELECT * FROM posts ORDER BY id DESC');  // Changed this line
+        const { neighbourhood } = req.query;
+        
+        let query = 'SELECT * FROM posts';
+        let values = [];
+
+        if (neighbourhood) {
+            query += ' WHERE neighbourhood = $1';
+            values = [neighbourhood];
+            console.log(`Filtering posts for neighbourhood: ${neighbourhood}`);
+        }
+
+        query += ' ORDER BY id DESC';  // Keeping your existing ORDER BY id DESC
+
+        const allPosts = await pool.query(query, values);
         console.log('Posts retrieved:', allPosts.rows);
         res.json(allPosts.rows);
     } catch (err) {
