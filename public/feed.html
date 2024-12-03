@@ -46,6 +46,36 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 15px;
+            text-align: center;  /* Centers the text */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;      /* Added for better centering */
+            justify-content: center;  /* Centers flex items */
+            align-items: center;      /* Centers vertically */
+        }
+
+        .bottom-nav a {
+            color: #3388ff;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 0 15px;  /* Adds space between multiple links */
+        }
+
+        .bottom-nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* Adjust main content to not get hidden behind the nav */
+        #posts-container {
+            margin-bottom: 60px;  /* Adds space above the nav bar */
+        }
     </style>
 </head>
 <body>
@@ -54,6 +84,7 @@
             <h1>Neighbourhood Deals</h1>
             <nav>
                 <a href="/index.html">Create New Post</a>
+                <a href="/map.html">Choose my location</a>        
             </nav>
             
             <div id="filter-info" class="filter-info">
@@ -146,5 +177,8 @@
         // Load posts when page loads
         document.addEventListener('DOMContentLoaded', loadPosts);
     </script>
+        <div class="bottom-nav">
+            <a href="index.html">Home</a>
+        </div>
 </body>
 </html>
