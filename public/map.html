@@ -29,6 +29,33 @@
         .leaflet-tooltip-top:before {
             border-top-color: transparent;
         }
+        .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: white;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    .bottom-nav a {
+        color: #3388ff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .bottom-nav a:hover {
+        text-decoration: underline;
+    }
+
+    /* Adjust map height to account for nav bar */
+    #map {
+        height: calc(100vh - 50px);
+        width: 100%;
+    }
     </style>
 </head>
 <body>
@@ -43,7 +70,7 @@
         let userMarker;
 
         // Initialize the map centered on Toronto
-        map = L.map('map').setView([43.7001, -79.4163], 11);
+        map = L.map('map').setView([43.66, -79.4460], 12.5);
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -123,17 +150,19 @@
 
                     neighborhoodsLayer.eachLayer(function(layer) {
                         if (turf.booleanPointInPolygon(userPoint, layer.feature)) {
-                            const neighborhoodName = layer.feature.properties.name;
-                            userMarker.bindPopup(
-                                `<div class="neighborhood-popup">
-                                    You are in ${neighborhoodName}.<br>
-                                    Click here to see local posts!
-                                </div>`
-                            ).openPopup();
-
-                            userMarker.on('click', function() {
-                                window.location.href = `feed.html?neighborhood=${encodeURIComponent(neighborhoodName)}`;
+                            const neighbourhoodName = layer.feature.properties.name;
+                            
+                            // Create a clickable popup
+                            const popupContent = document.createElement('div');
+                            popupContent.className = 'neighborhood-popup';
+                            popupContent.innerHTML = `You are in ${neighbourhoodName}.<br>Click here to see local posts!`;
+                            
+                            // Add click handler to the popup content
+                            popupContent.addEventListener('click', function() {
+                                window.location.href = `feed.html?neighbourhood=${encodeURIComponent(neighbourhoodName)}`;
                             });
+
+                            userMarker.bindPopup(popupContent).openPopup();
                         }
                     });
 
@@ -159,5 +188,9 @@
 
     <!-- Turf.js for spatial analysis -->
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+    <div class="bottom-nav">
+        <a href="index.html">Home</a>
+        <a href="feed.html">View all posts</a>
+    </div>
 </body>
 </html>

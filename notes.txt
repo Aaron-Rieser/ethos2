@@ -1,3 +1,26 @@
+Ethos2 with a map and choosing of neighbourhoods function is also live. DEC 2nd:
+
+- BACKUP on dec 1 was just prior to implementing most of these
+- NOW map is initialized and you can click to feed, with pages showing just those posts from correct neighbourhood
+- these are pulled with a custom URL for the neighbourhood name
+- "name" is the field from GEOJSON file not AREA_NAME
+- Custom URL has lots of feed.html code running it as well as server.js code 
+- Need to update the click function and look into location detection but PICKING your neighbourhood from a map is going well
+
+MUST DO : 
+
+Add and fix buttons so all things are accessible 
+Make default location clickable... its not
+Make neighbourhood names clickable in the "ALL POSTS" feed 
+Change post design 
+Add images 
+Add neighbourhoods in geojson
+Add payment function for service
+Add ads 
+Create demand
+
+OLD NOTES: 
+
 ethos2 is functional !! YAS !
 
 database = postgresql://postgres:vKXvcmZdIzhIqGRxdOLWTvAXCeZyagJl@junction.proxy.rlwy.net:50368/railway
