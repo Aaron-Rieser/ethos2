@@ -17,20 +17,50 @@ const FEEDS = [
         url: 'https://weather.gc.ca/rss/city/on-143_e.xml',
         source: 'Environment Canada',
         type: 'atom',
-        transform: (item) => ({
-            type: 'feed',
-            source: 'Toronto Weather',
-            title: 'Current Conditions',
-            content: item.description || item.content,
-            link: item.link,
-            date: new Date(item.pubDate || item.isoDate),
-            weather: {
-                temperature: item.description?.match(/Temperature:\s*([-\d.]+)°C/)?.[1] || 'N/A',
-                conditions: item.description?.match(/Condition:\s*([^<\n]+)/)?.[1] || 'N/A'
-            }
-        })
+        transform: (item) => {
+            console.log('Raw feed item:', item);
+            console.log('Description:', item.description);
+            
+            // Only transform the first (most recent) item
+            const transformedItem = {
+                type: 'feed',
+                source: 'Toronto Weather',
+                title: 'Current Conditions',
+                content: item.description || item.content,
+                link: item.link,
+                date: new Date(item.pubDate || item.isoDate),
+                weather: {
+                    temperature: item.description?.match(/Temperature:\s*([-\d.]+)°C/)?.[1] || 'N/A',
+                    conditions: item.description?.match(/Condition:\s*([^<\n]+)/)?.[1] || 'N/A'
+                }
+            };
+
+            console.log('Transformed item:', transformedItem);
+            return transformedItem;
+        }
     }
 ];
+
+// In your fetchAllFeeds function, add this filter
+async function fetchAllFeeds() {
+    try {
+        const feedPromises = FEEDS.map(async feed => {
+            try {
+                const parsedFeed = await parser.parseURL(feed.url);
+                // Only take the first item from weather feed
+                const items = parsedFeed.items.slice(0, 1);
+                return items.map(item => feed.transform(item)).filter(item => item !== null);
+            } catch (error) {
+                console.error(`Error fetching ${feed.source}:`, error);
+                return [];
+            }
+        });
+        return (await Promise.all(feedPromises)).flat();
+    } catch (error) {
+        console.error('Error fetching feeds:', error);
+        return [];
+    }
+}
 
 // Function to fetch and parse feeds
 async function fetchAllFeeds() {
