@@ -14,83 +14,44 @@ app.use(express.static('public'));
 // Define feeds
 const FEEDS = [
     {
-        url: 'https://weather.gc.ca/rss/city/on-143_cc_e.xml',  // Current conditions feed
+        url: 'https://weather.gc.ca/rss/city/on-143_e.xml',  // Changed back to main feed
         source: 'Environment Canada',
         type: 'atom',
         transform: (item) => {
             console.log('Raw feed item:', item);
-            console.log('Summary:', item.summary);
             
-            const transformedItem = {
-                type: 'feed',
-                source: 'Toronto Weather',
-                title: 'Current Conditions',
-                content: item.summary,
-                link: item.link,
-                date: new Date(item.pubDate || item.isoDate),
-                weather: {
-                    temperature: item.summary?.match(/Temperature:\s*([-\d.]+)/)?.[1] || 'N/A',
-                    conditions: item.summary?.match(/Condition:\s*([^,\n]+)/)?.[1] || 'N/A'
-                }
-            };
+            // Only transform if it's a current conditions item
+            if (item.title && item.title.includes('Current Conditions')) {
+                const transformedItem = {
+                    type: 'feed',
+                    source: 'Toronto Weather',
+                    title: 'Current Conditions',
+                    content: item.summary,
+                    link: item.link,
+                    date: new Date(item.pubDate || item.isoDate),
+                    weather: {
+                        temperature: item.summary?.match(/Temperature:\s*([-\d.]+)/)?.[1] || 'N/A',
+                        conditions: item.summary?.match(/Condition:\s*([^,\n]+)/)?.[1] || 'N/A'
+                    }
+                };
 
-            console.log('Transformed item:', transformedItem);
-            return transformedItem;
+                console.log('Transformed item:', transformedItem);
+                return transformedItem;
+            }
+            return null;  // Skip non-current condition items
         }
     }
 ];
 
-// Modify fetchAllFeeds to only return one weather item
 async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
             try {
                 const parsedFeed = await parser.parseURL(feed.url);
-                // Filter for current conditions and take only the first item
-                const transformedItems = parsedFeed.items
+                // transform will return null for non-current condition items
+                return parsedFeed.items
                     .map(item => feed.transform(item))
-                    .filter(item => item !== null);
-                return transformedItems.slice(0, 1);  // Only take the first valid item
-            } catch (error) {
-                console.error(`Error fetching ${feed.source}:`, error);
-                return [];
-            }
-        });
-        return (await Promise.all(feedPromises)).flat();
-    } catch (error) {
-        console.error('Error fetching feeds:', error);
-        return [];
-    }
-}
-
-// In your fetchAllFeeds function, add this filter
-async function fetchAllFeeds() {
-    try {
-        const feedPromises = FEEDS.map(async feed => {
-            try {
-                const parsedFeed = await parser.parseURL(feed.url);
-                // Only take the first item from weather feed
-                const items = parsedFeed.items.slice(0, 1);
-                return items.map(item => feed.transform(item)).filter(item => item !== null);
-            } catch (error) {
-                console.error(`Error fetching ${feed.source}:`, error);
-                return [];
-            }
-        });
-        return (await Promise.all(feedPromises)).flat();
-    } catch (error) {
-        console.error('Error fetching feeds:', error);
-        return [];
-    }
-}
-
-// Function to fetch and parse feeds
-async function fetchAllFeeds() {
-    try {
-        const feedPromises = FEEDS.map(async feed => {
-            try {
-                const parsedFeed = await parser.parseURL(feed.url);
-                return parsedFeed.items.map(item => feed.transform(item));
+                    .filter(item => item !== null);  // Remove null items
             } catch (error) {
                 console.error(`Error fetching ${feed.source}:`, error);
                 return [];
