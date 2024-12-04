@@ -76,6 +76,68 @@
         #posts-container {
             margin-bottom: 60px;  /* Adds space above the nav bar */
         }
+        .feed-item {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .source-tag {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        
+        .feed-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+        
+        .feed-content {
+            margin: 10px 0;
+        }
+        
+        .feed-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        
+        .feed-media img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+        }
+        .weather-card {
+            background-color: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3388ff;
+        }
+
+        .weather-info {
+            font-size: 1.1em;
+            line-height: 1.4;
+            margin: 8px 0;
+        }
+
+        .temperature {
+            font-weight: bold;
+            color: #3388ff;
+        }
+        .weather-attribution {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -125,8 +187,8 @@
             window.location.href = 'feed.html';
         }
 
-        // Load posts function
-        async function loadPosts() {
+        // Load combined feed function
+        async function loadCombinedFeed() {
             try {
                 const neighbourhood = getNeighbourhoodFromURL();
                 updateFilterDisplay();
@@ -134,17 +196,17 @@
                 // Modify the fetch URL to include neighbourhood filter if present
                 const url = neighbourhood 
                     ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
-                    : '/api/posts';
+                    : '/api/posts';  // This endpoint now returns combined content
                 
                 const response = await fetch(url);
-                const posts = await response.json();
+                const combinedContent = await response.json();
                 
                 const postsContainer = document.querySelector('#posts-container');
-                postsContainer.innerHTML = ''; // Clear existing posts
+                postsContainer.innerHTML = '';
                 
-                if (posts.length === 0) {
+                if (combinedContent.length === 0) {
                     postsContainer.innerHTML = `
-                        <div class="no-posts-message">
+                        <div class="post-card">
                             ${neighbourhood 
                                 ? `No posts yet from ${neighbourhood}. Be the first to post!` 
                                 : 'No posts yet.'}
@@ -152,12 +214,14 @@
                     return;
                 }
 
-                posts.forEach(post => {
-                    const postElement = createPostElement(post);
-                    postsContainer.appendChild(postElement);
+                combinedContent.forEach(item => {
+                    const element = item.type === 'post' 
+                        ? createPostElement(item) 
+                        : createFeedElement(item);
+                    postsContainer.appendChild(element);
                 });
             } catch (error) {
-                console.error('Error loading posts:', error);
+                console.error('Error loading combined feed:', error);
             }
         }
 
@@ -174,8 +238,51 @@
             return postDiv;
         }
 
+        function createFeedElement(item) {
+            const feedDiv = document.createElement('div');
+            feedDiv.className = 'feed-item';
+            
+            if (item.source === 'Toronto Weather') {
+                feedDiv.className = 'weather-card post-card';
+                feedDiv.innerHTML = `
+                    <div class="source-tag">${item.source}</div>
+                    <div class="weather-info">
+                        <strong>Temperature:</strong> ${item.weather.temperature}°C<br>
+                        <strong>Conditions:</strong> ${item.weather.conditions}
+                    </div>
+                    <div class="feed-footer">
+                        <a href="${item.link}" target="_blank">Full Forecast</a>
+                        <small>Updated: ${new Date(item.date).toLocaleTimeString()}</small>
+                        <div class="weather-attribution">Data provided by Environment Canada</div>
+                    </div>
+                `;
+            } else {
+                // Handle any other feed types we might add later
+                let mediaHtml = '';
+                if (item.media && item.media.url) {
+                    mediaHtml = `
+                        <div class="feed-media">
+                            <img src="${item.media.url}" alt="Feed media">
+                        </div>
+                    `;
+                }
+                
+                feedDiv.innerHTML = `
+                    <div class="source-tag">${item.source}</div>
+                    <div class="feed-title">${item.title}</div>
+                    ${mediaHtml}
+                    <div class="feed-content">${item.content}</div>
+                    <div class="feed-footer">
+                        <a href="${item.link}" target="_blank">Read more</a>
+                        <span>${new Date(item.date).toLocaleDateString()}</span>
+                    </div>
+                `;
+            }
+            
+            return feedDiv;
+        }
         // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', loadPosts);
+        document.addEventListener('DOMContentLoaded', loadCombinedFeed);
     </script>
         <div class="bottom-nav">
             <a href="index.html">Home</a>

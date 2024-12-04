@@ -1,3 +1,16 @@
+MUST DO : 
+
+RSS feed research
+Change post design and account for more styles
+RSS integrate
+map funcionality, full geo json file
+Add images 
+Add payment function for service
+Add ads 
+architecture costing 
+pitch
+launch
+
 Ethos2 with a map and choosing of neighbourhoods function is also live. DEC 2nd:
 
 - BACKUP on dec 1 was just prior to implementing most of these
@@ -7,19 +20,8 @@ Ethos2 with a map and choosing of neighbourhoods function is also live. DEC 2nd:
 - Custom URL has lots of feed.html code running it as well as server.js code 
 - Need to update the click function and look into location detection but PICKING your neighbourhood from a map is going well
 
-MUST DO : 
 
-Add and fix buttons so all things are accessible 
-Make default location clickable... its not
-Make neighbourhood names clickable in the "ALL POSTS" feed 
-Change post design 
-Add images 
-Add neighbourhoods in geojson
-Add payment function for service
-Add ads 
-Create demand
-
-OLD NOTES: 
+OLD NOTES: NOV 30 and before
 
 ethos2 is functional !! YAS !
 
