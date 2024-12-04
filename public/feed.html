@@ -138,6 +138,30 @@
             color: #666;
             margin-top: 8px;
         }
+        .road-alerts-card {
+            background-color: #fff8f8;
+            border-left: 4px solid #ff4444;
+        }
+
+        .alerts-count {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .road-alert {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .road-alert:last-child {
+            border-bottom: none;
+        }
+
+        .alerts-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -256,7 +280,30 @@
                         <div class="weather-attribution">Data provided by Environment Canada</div>
                     </div>
                 `;
-            } else {
+            } 
+            else if (item.source === 'Toronto Road Alerts') {
+                feedDiv.className = 'road-alerts-card post-card';
+                const alertsList = item.roadAlerts.events
+                    .map(event => `
+                        <div class="road-alert">
+                            <strong>${event.RoadwayName}</strong>
+                            <p>${event.Description}</p>
+                        </div>
+                    `).join('');
+
+                feedDiv.innerHTML = `
+                    <div class="source-tag">${item.source}</div>
+                    <div class="alerts-count">${item.roadAlerts.count} Active Alerts</div>
+                    <div class="alerts-list">
+                        ${alertsList}
+                    </div>
+                    <div class="feed-footer">
+                        <a href="${item.link}" target="_blank">View on 511 Ontario</a>
+                        <small>Updated: ${new Date(item.date).toLocaleTimeString()}</small>
+                    </div>
+                `;
+            }
+            else {
                 // Handle any other feed types we might add later
                 let mediaHtml = '';
                 if (item.media && item.media.url) {

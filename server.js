@@ -13,8 +13,9 @@ app.use(express.static('public'));
 
 // Define feeds
 const FEEDS = [
+    // Weather Feed
     {
-        url: 'https://weather.gc.ca/rss/city/on-143_e.xml',  // Changed back to main feed
+        url: 'https://weather.gc.ca/rss/city/on-143_e.xml',
         source: 'Environment Canada',
         type: 'atom',
         transform: (item) => {
@@ -40,6 +41,50 @@ const FEEDS = [
             }
             return null;  // Skip non-current condition items
         }
+    },
+    // Road Alerts Feed
+    {
+        url: 'https://511on.ca/api/v2/get/event',
+        source: '511 Ontario',
+        type: 'json',
+        transform: (events) => {
+            // Toronto approximate boundaries
+            const TORONTO_BOUNDS = {
+                north: 43.855,
+                south: 43.581,
+                east: -79.116,
+                west: -79.639
+            };
+
+            // Filter for Toronto events
+            const torontoEvents = events.filter(event => {
+                const lat = parseFloat(event.Latitude);
+                const lon = parseFloat(event.Longitude);
+                
+                return lat >= TORONTO_BOUNDS.south 
+                    && lat <= TORONTO_BOUNDS.north
+                    && lon >= TORONTO_BOUNDS.west
+                    && lon <= TORONTO_BOUNDS.east;
+            });
+
+            if (torontoEvents.length === 0) return null;
+
+            // Combine all events into a single feed item
+            return {
+                type: 'feed',
+                source: 'Toronto Road Alerts',
+                title: 'Current Road Alerts',
+                content: torontoEvents.map(event => 
+                    `${event.RoadwayName}: ${event.Description}`
+                ).join('\n\n'),
+                link: 'https://511on.ca',
+                date: new Date(),
+                roadAlerts: {
+                    count: torontoEvents.length,
+                    events: torontoEvents
+                }
+            };
+        }
     }
 ];
 
@@ -47,11 +92,18 @@ async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
             try {
-                const parsedFeed = await parser.parseURL(feed.url);
-                // transform will return null for non-current condition items
-                return parsedFeed.items
-                    .map(item => feed.transform(item))
-                    .filter(item => item !== null);  // Remove null items
+                if (feed.type === 'json') {
+                    // Handle JSON feeds (511 traffic)
+                    const response = await fetch(feed.url);
+                    const data = await response.json();
+                    return [feed.transform(data)].filter(item => item !== null);
+                } else {
+                    // Handle RSS/ATOM feeds (weather)
+                    const parsedFeed = await parser.parseURL(feed.url);
+                    return parsedFeed.items
+                        .map(item => feed.transform(item))
+                        .filter(item => item !== null);
+                }
             } catch (error) {
                 console.error(`Error fetching ${feed.source}:`, error);
                 return [];
