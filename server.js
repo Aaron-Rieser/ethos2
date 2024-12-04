@@ -12,26 +12,25 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Define feeds
-const FEEDS = [
+cconst FEEDS = [
     {
-        url: 'https://weather.gc.ca/rss/city/on-143_e.xml',
+        url: 'https://weather.gc.ca/rss/city/on-143_cc_e.xml',  // Current conditions feed
         source: 'Environment Canada',
         type: 'atom',
         transform: (item) => {
             console.log('Raw feed item:', item);
-            console.log('Description:', item.description);
+            console.log('Summary:', item.summary);
             
-            // Only transform the first (most recent) item
             const transformedItem = {
                 type: 'feed',
                 source: 'Toronto Weather',
                 title: 'Current Conditions',
-                content: item.description || item.content,
+                content: item.summary,
                 link: item.link,
                 date: new Date(item.pubDate || item.isoDate),
                 weather: {
-                    temperature: item.description?.match(/Temperature:\s*([-\d.]+)°C/)?.[1] || 'N/A',
-                    conditions: item.description?.match(/Condition:\s*([^<\n]+)/)?.[1] || 'N/A'
+                    temperature: item.summary?.match(/Temperature:\s*([-\d.]+)/)?.[1] || 'N/A',
+                    conditions: item.summary?.match(/Condition:\s*([^,\n]+)/)?.[1] || 'N/A'
                 }
             };
 
@@ -40,6 +39,29 @@ const FEEDS = [
         }
     }
 ];
+
+// Modify fetchAllFeeds to only return one weather item
+async function fetchAllFeeds() {
+    try {
+        const feedPromises = FEEDS.map(async feed => {
+            try {
+                const parsedFeed = await parser.parseURL(feed.url);
+                // Filter for current conditions and take only the first item
+                const transformedItems = parsedFeed.items
+                    .map(item => feed.transform(item))
+                    .filter(item => item !== null);
+                return transformedItems.slice(0, 1);  // Only take the first valid item
+            } catch (error) {
+                console.error(`Error fetching ${feed.source}:`, error);
+                return [];
+            }
+        });
+        return (await Promise.all(feedPromises)).flat();
+    } catch (error) {
+        console.error('Error fetching feeds:', error);
+        return [];
+    }
+}
 
 // In your fetchAllFeeds function, add this filter
 async function fetchAllFeeds() {
