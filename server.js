@@ -87,36 +87,41 @@ const FEEDS = [
         }
     },
     // toronto public library 10 most recent toronot item results 
-    // Add to your FEEDS array
     {
         url: 'https://www.torontopubliclibrary.ca/rss.jsp?N=&Ns=p_date_acquired_sort&Nso=1&Ntt=Toronto',
         source: 'Toronto Public Library',
         type: 'atom',
-        transform: (data) => {
-            if (!data) return null;
-            
-            // Get first 10 items
-            const items = data.items?.slice(0, 10) || [];
-            
-            if (items.length === 0) return null;
-
-            return {
-                type: 'feed',
-                source: 'TPL New Toronto Books',
-                title: 'New at the Library',
-                content: items.map(item => item.title).join('\n'),
-                link: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=Toronto&sort=newest',
-                date: new Date(),
-                books: {
-                    count: items.length,
-                    items: items.map(item => ({
-                        title: item.title,
-                        link: item.link,
-                        date: new Date(item.pubDate || item.isoDate),
-                        type: item.contentSnippet?.match(/Book|DVD|CD/i)?.[0] || 'Item'
-                    }))
+        transform: (item) => {  // Changed from 'data' to 'item' to match other transforms
+            console.log('TPL Raw feed item:', item);  // Debug line
+    
+            try {
+                // Check if we have valid item data
+                if (!item || !item.title) {
+                    console.log('Invalid TPL item format');
+                    return null;
                 }
-            };
+    
+                return {
+                    type: 'feed',
+                    source: 'TPL New Toronto Books',
+                    title: item.title,
+                    content: item.summary || item.contentSnippet || '',
+                    link: item.link,
+                    date: new Date(item.pubDate || item.isoDate),
+                    books: {
+                        count: 1,
+                        items: [{
+                            title: item.title,
+                            link: item.link,
+                            date: new Date(item.pubDate || item.isoDate),
+                            type: item.contentSnippet?.match(/Book|DVD|CD/i)?.[0] || 'Item'
+                        }]
+                    }
+                };
+            } catch (error) {
+                console.error('Error transforming TPL item:', error);
+                return null;
+            }
         }
     }
 ];
@@ -125,18 +130,12 @@ async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
             try {
-                if (feed.type === 'json') {
-                    // Handle JSON feeds (511 traffic)
-                    const response = await fetch(feed.url);
-                    const data = await response.json();
-                    return [feed.transform(data)].filter(item => item !== null);
-                } else {
-                    // Handle RSS/ATOM feeds (weather)
-                    const parsedFeed = await parser.parseURL(feed.url);
-                    return parsedFeed.items
-                        .map(item => feed.transform(item))
-                        .filter(item => item !== null);
-                }
+                console.log(`Fetching feed from: ${feed.source}`);  // Add this line
+                const parsedFeed = await parser.parseURL(feed.url);
+                console.log(`Successfully fetched ${feed.source}`);  // Add this line
+                return parsedFeed.items
+                    .map(item => feed.transform(item))
+                    .filter(item => item !== null);
             } catch (error) {
                 console.error(`Error fetching ${feed.source}:`, error);
                 return [];
