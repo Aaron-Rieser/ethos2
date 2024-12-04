@@ -254,10 +254,6 @@
                 const neighbourhood = getNeighbourhoodFromURL();
                 updateFilterDisplay();
                 
-                // Set loading state
-                const postsContainer = document.querySelector('#posts-container');
-                postsContainer.innerHTML = '<div class="post-card">Loading...</div>';
-                
                 // Modify the fetch URL to include neighbourhood filter if present
                 const url = neighbourhood 
                     ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
@@ -266,7 +262,8 @@
                 const response = await fetch(url);
                 const combinedContent = await response.json();
                 
-                postsContainer.innerHTML = '';  // Clear loading state
+                const postsContainer = document.querySelector('#posts-container');
+                postsContainer.innerHTML = '';
                 
                 if (combinedContent.length === 0) {
                     postsContainer.innerHTML = `
