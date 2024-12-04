@@ -85,6 +85,39 @@ const FEEDS = [
                 }
             };
         }
+    },
+    // toronto public library 10 most recent toronot item results 
+    // Add to your FEEDS array
+    {
+        url: 'https://www.torontopubliclibrary.ca/rss.jsp?N=&Ns=p_date_acquired_sort&Nso=1&Ntt=Toronto',
+        source: 'Toronto Public Library',
+        type: 'atom',
+        transform: (data) => {
+            if (!data) return null;
+            
+            // Get first 10 items
+            const items = data.items?.slice(0, 10) || [];
+            
+            if (items.length === 0) return null;
+
+            return {
+                type: 'feed',
+                source: 'TPL New Toronto Books',
+                title: 'New at the Library',
+                content: items.map(item => item.title).join('\n'),
+                link: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=Toronto&sort=newest',
+                date: new Date(),
+                books: {
+                    count: items.length,
+                    items: items.map(item => ({
+                        title: item.title,
+                        link: item.link,
+                        date: new Date(item.pubDate || item.isoDate),
+                        type: item.contentSnippet?.match(/Book|DVD|CD/i)?.[0] || 'Item'
+                    }))
+                }
+            };
+        }
     }
 ];
 

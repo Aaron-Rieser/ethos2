@@ -1,6 +1,8 @@
 MUST DO : 
 
 RSS feed research
+- bandsintown paid tier, dice.fm partnership, exclaim! Magazine
+- news from cbc, 
 Change post design and account for more styles
 RSS integrate
 map funcionality, full geo json file
@@ -11,17 +13,13 @@ architecture costing
 pitch
 launch
 
-Ethos2 with a map and choosing of neighbourhoods function is also live. DEC 2nd:
 
-- BACKUP on dec 1 was just prior to implementing most of these
-- NOW map is initialized and you can click to feed, with pages showing just those posts from correct neighbourhood
-- these are pulled with a custom URL for the neighbourhood name
-- "name" is the field from GEOJSON file not AREA_NAME
-- Custom URL has lots of feed.html code running it as well as server.js code 
-- Need to update the click function and look into location detection but PICKING your neighbourhood from a map is going well
+RELEASE NOTES: 
+
+Ethos2 with feeds for Toronto weather and traffic is now live
 
 
-OLD NOTES: NOV 30 and before
+CORE NOTES: NOV 30 and before
 
 ethos2 is functional !! YAS !
 
