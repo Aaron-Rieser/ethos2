@@ -13,13 +13,33 @@ app.use(express.static('public'));
 
 // Define feeds
 const FEEDS = [
-    // Weather Feed (keeping as is)
+    // Weather Feed
     {
         url: 'https://weather.gc.ca/rss/city/on-143_e.xml',
         source: 'Environment Canada',
         type: 'atom',
         transform: (item) => {
-            // Your existing weather transform
+            console.log('Raw feed item:', item);
+            
+            // Only transform if it's a current conditions item
+            if (item.title && item.title.includes('Current Conditions')) {
+                const transformedItem = {
+                    type: 'feed',
+                    source: 'Toronto Weather',
+                    title: 'Current Conditions',
+                    content: item.summary,
+                    link: item.link,
+                    date: new Date(item.pubDate || item.isoDate),
+                    weather: {
+                        temperature: item.summary?.match(/Temperature:\s*([-\d.]+)/)?.[1] || 'N/A',
+                        conditions: item.summary?.match(/Condition:\s*([^,\n]+)/)?.[1] || 'N/A'
+                    }
+                };
+
+                console.log('Transformed item:', transformedItem);
+                return transformedItem;
+            }
+            return null;  // Skip non-current condition items
         }
     },
     // Road Alerts Feed
@@ -65,42 +85,6 @@ const FEEDS = [
                 }
             };
         }
-    },
-    // Library Feed (modified to combine all items)
-    {
-        url: 'https://www.torontopubliclibrary.ca/rss.jsp?N=&Ns=p_date_acquired_sort&Nso=1&Ntt=Toronto',
-        source: 'Toronto Public Library',
-        type: 'atom',
-        transform: (data) => {
-            console.log('TPL Raw feed data:', data);
-
-            // Get all items and take first 10
-            const items = data.items?.slice(0, 10) || [];
-            
-            if (items.length === 0) {
-                console.log('No TPL items found');
-                return null;
-            }
-
-            // Return single combined feed item
-            return {
-                type: 'feed',
-                source: 'TPL New Toronto Books',
-                title: 'New at the Library',
-                content: items.map(item => item.title).join('\n'),
-                link: 'https://www.torontopubliclibrary.ca/search.jsp?Ntt=Toronto&sort=newest',
-                date: new Date(),
-                books: {
-                    count: items.length,
-                    items: items.map(item => ({
-                        title: item.title,
-                        link: item.link,
-                        date: new Date(item.pubDate || item.isoDate),
-                        type: item.contentSnippet?.match(/Book|DVD|CD/i)?.[0] || 'Item'
-                    }))
-                }
-            };
-        }
     }
 ];
 
@@ -108,12 +92,18 @@ async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
             try {
-                console.log(`Fetching feed from: ${feed.source}`);  // Add this line
-                const parsedFeed = await parser.parseURL(feed.url);
-                console.log(`Successfully fetched ${feed.source}`);  // Add this line
-                return parsedFeed.items
-                    .map(item => feed.transform(item))
-                    .filter(item => item !== null);
+                if (feed.type === 'json') {
+                    // Handle JSON feeds (511 traffic)
+                    const response = await fetch(feed.url);
+                    const data = await response.json();
+                    return [feed.transform(data)].filter(item => item !== null);
+                } else {
+                    // Handle RSS/ATOM feeds (weather)
+                    const parsedFeed = await parser.parseURL(feed.url);
+                    return parsedFeed.items
+                        .map(item => feed.transform(item))
+                        .filter(item => item !== null);
+                }
             } catch (error) {
                 console.error(`Error fetching ${feed.source}:`, error);
                 return [];
