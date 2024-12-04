@@ -106,20 +106,32 @@ const FEEDS = [
 
 async function fetchAllFeeds() {
     try {
+        console.log('Starting to fetch feeds...');  // Debug line
         const feedPromises = FEEDS.map(async feed => {
             try {
-                console.log(`Fetching feed from: ${feed.source}`);  // Add this line
-                const parsedFeed = await parser.parseURL(feed.url);
-                console.log(`Successfully fetched ${feed.source}`);  // Add this line
-                return parsedFeed.items
-                    .map(item => feed.transform(item))
-                    .filter(item => item !== null);
+                console.log(`Attempting to fetch ${feed.source}...`);  // Debug line
+                if (feed.type === 'json') {
+                    // Handle JSON feeds (511 traffic)
+                    const response = await fetch(feed.url);
+                    const data = await response.json();
+                    console.log(`Successfully fetched JSON from ${feed.source}`);  // Debug line
+                    return [feed.transform(data)].filter(item => item !== null);
+                } else {
+                    // Handle RSS/ATOM feeds (weather, library)
+                    const parsedFeed = await parser.parseURL(feed.url);
+                    console.log(`Successfully fetched RSS from ${feed.source}`);  // Debug line
+                    return parsedFeed.items
+                        .map(item => feed.transform(item))
+                        .filter(item => item !== null);
+                }
             } catch (error) {
                 console.error(`Error fetching ${feed.source}:`, error);
                 return [];
             }
         });
-        return (await Promise.all(feedPromises)).flat();
+        const results = await Promise.all(feedPromises);
+        console.log('All feeds fetched, results:', results);  // Debug line
+        return results.flat();
     } catch (error) {
         console.error('Error fetching feeds:', error);
         return [];
