@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Define feeds
-cconst FEEDS = [
+const FEEDS = [
     {
         url: 'https://weather.gc.ca/rss/city/on-143_cc_e.xml',  // Current conditions feed
         source: 'Environment Canada',
