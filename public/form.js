@@ -18,7 +18,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
 
         if (response.ok) {
             // Redirect to feed page after successful submission
-            window.location.href = '/feed.html';
+            window.location.href = '/index.html';
         } else {
             alert('Error submitting post');
         }
