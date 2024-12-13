@@ -1,22 +1,32 @@
 MUST DO : 
 
-RSS feed research
-- bandsintown paid tier, dice.fm partnership, exclaim! Magazine
-- news from cbc, 
-Change post design and account for more styles
-RSS integrate
+Change homepage logic. Detect location and send to right feed immediately, if not send to secondary index.
+- index must move to feed then
+- view all posts... all Toronto posts
+Add location coordinates stamp in the data capture, add conditions for if not available, will need to be a new column
+Add a news and one final rss feed
 map funcionality, full geo json file
+Change post design and account for more styles
 Add images 
-Add payment function for service
 Add ads 
+**SUNDAY DEC 15**
+Design sprint
+Wilbur
+Add payment function for service
 architecture costing 
 pitch
 launch
 
+RSS feeds
+- bandsintown paid tier, dice.fm partnership, exclaim! Magazine
+- libraries 
+
+
 
 RELEASE NOTES: 
 
-Ethos2 with feeds for Toronto weather and traffic is now live
+Ethos2 with feeds for Toronto weather and traffic is now live! 
+Tried to use libraries but need to rollback
 
 
 CORE NOTES: NOV 30 and before

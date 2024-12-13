@@ -116,7 +116,7 @@
 
                         // Click handler
                         layer.on('click', function() {
-                            window.location.href = `feed.html?neighbourhood=${encodeURIComponent(feature.properties.name)}`;
+                            window.location.href = `index.html?neighbourhood=${encodeURIComponent(feature.properties.name)}`;
                         });
                     }
                 }).addTo(map);
@@ -159,7 +159,7 @@
                             
                             // Add click handler to the popup content
                             popupContent.addEventListener('click', function() {
-                                window.location.href = `feed.html?neighbourhood=${encodeURIComponent(neighbourhoodName)}`;
+                                window.location.href = `index.html?neighbourhood=${encodeURIComponent(neighbourhoodName)}`;
                             });
 
                             userMarker.bindPopup(popupContent).openPopup();
@@ -190,7 +190,7 @@
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
     <div class="bottom-nav">
         <a href="index.html">Home</a>
-        <a href="feed.html">View all posts</a>
+        <a href="create.html">Create new post</a>
     </div>
 </body>
 </html>
