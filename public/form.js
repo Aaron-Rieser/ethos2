@@ -18,7 +18,8 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
 
         if (response.ok) {
             // Redirect to feed page after successful submission
-            window.location.href = '/index.html';
+            // Use formData.neighbourhood instead of selectedNeighbourhood
+            window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.neighbourhood)}`; 
         } else {
             alert('Error submitting post');
         }
