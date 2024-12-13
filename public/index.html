@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
     <title>Neighbourhood Deals</title>
     <style>
         .post-card {
@@ -185,6 +186,51 @@
     </div>
 
     <script>
+        //detect location and serve relevant posts
+        async function detectUserLocation() {
+            try {
+                // First check if geolocation is available
+                if (!navigator.geolocation) {
+                    console.log('Geolocation not supported');
+                    return showAllPosts();
+                }
+
+                // Prompt user for location
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+
+                // Get the neighborhoods GeoJSON data
+                const response = await fetch('/neighborhoods.geojson');
+                const neighborhoodsData = await response.json();
+
+                // User's coordinates
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+
+                // Find matching neighborhood
+                const matchingNeighborhood = neighborhoodsData.features.find(feature => {
+                    // Use turf.js for point-in-polygon check
+                    const point = turf.point([userLng, userLat]);
+                    const polygon = feature.geometry;
+                    return turf.booleanPointInPolygon(point, polygon);
+                });
+
+                if (matchingNeighborhood) {
+                    // Redirect to neighborhood-specific feed
+                    const neighborhood = matchingNeighborhood.properties.name;
+                    window.location.href = `index.html?neighbourhood=${encodeURIComponent(neighborhood)}`;
+                } else {
+                    // Not in any defined neighborhood
+                    showAllPosts();
+                }
+
+            } catch (error) {
+                console.log('Location access denied or error:', error);
+                showAllPosts();
+            }
+        }
+        
         // Function to parse URL parameters
         function getNeighbourhoodFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -329,7 +375,16 @@
             return feedDiv;
         }
         // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', loadCombinedFeed);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if we already have a neighborhood parameter
+            const neighborhood = getNeighbourhoodFromURL();
+            if (!neighborhood) {
+                // Only detect location if we're not already showing a specific neighborhood
+                detectUserLocation();
+            } else {
+                loadCombinedFeed();
+            }
+        });
     </script>
         <div class="bottom-nav">
             <a href="index.html">Home</a>

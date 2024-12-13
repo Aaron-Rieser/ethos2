@@ -1,7 +1,6 @@
 MUST DO : 
+Detect location and send to right feed immediately, if not send to secondary index.
 
-Change homepage logic. Detect location and send to right feed immediately, if not send to secondary index.
-- index must move to feed then
 - view all posts... all Toronto posts
 Add location coordinates stamp in the data capture, add conditions for if not available, will need to be a new column
 Add a news and one final rss feed
@@ -25,8 +24,9 @@ RSS feeds
 
 RELEASE NOTES: 
 
-Ethos2 with feeds for Toronto weather and traffic is now live! 
-Tried to use libraries but need to rollback
+Change homepage logic. 
+- index must move to feed then
+
 
 
 CORE NOTES: NOV 30 and before
