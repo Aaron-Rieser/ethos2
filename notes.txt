@@ -1,7 +1,7 @@
 MUST DO : 
-Detect location and send to right feed immediately, if not send to secondary index.
+Detect location and send to right feed as an intro task
+Update all buttons and nav 
 
-- view all posts... all Toronto posts
 Add location coordinates stamp in the data capture, add conditions for if not available, will need to be a new column
 Add a news and one final rss feed
 map funcionality, full geo json file

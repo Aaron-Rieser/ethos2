@@ -53,12 +53,15 @@
             width: 100%;
             background-color: white;
             padding: 15px;
-            text-align: center;  /* Centers the text */
+            text-align: center;
             box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
-            display: flex;      /* Added for better centering */
-            justify-content: center;  /* Centers flex items */
-            align-items: center;      /* Centers vertically */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
         .bottom-nav a {
@@ -169,8 +172,8 @@
         <div style="text-align: left;">
             <h1>Neighbourhood Deals</h1>
             <nav>
-                <a href="/create.html">Create New Post</a>
-                <a href="/map.html">Choose my location</a>        
+                <a href="/map.html">Choose  neighbourhood feed</a>
+                <a href="/create.html">Create New Post</a>        
             </nav>
             
             <div id="filter-info" class="filter-info">
@@ -196,14 +199,19 @@
             const neighbourhood = getNeighbourhoodFromURL();
             const currentFilterSpan = document.getElementById('current-filter');
             const filterInfo = document.getElementById('filter-info');
+            const clearFilter = document.querySelector('.clear-filter');
             
             if (neighbourhood) {
+                // Showing specific neighborhood
                 currentFilterSpan.textContent = neighbourhood;
-                filterInfo.style.display = 'block';
+                clearFilter.style.display = 'inline';  // Show the "Show All Posts" link
             } else {
+                // Showing all neighborhoods
                 currentFilterSpan.textContent = 'All Neighbourhoods';
-                filterInfo.style.display = 'block';
+                clearFilter.style.display = 'none';    // Hide the "Show All Posts" link
             }
+            
+            filterInfo.style.display = 'block';
         }
 
         // Function to show all posts
@@ -329,10 +337,37 @@
             return feedDiv;
         }
         // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', loadCombinedFeed);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load the feed
+            loadCombinedFeed();
+            
+            // Setup bottom nav scroll behavior
+            const topNav = document.querySelector('nav');
+            const bottomNav = document.querySelector('.bottom-nav');
+            let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+
+            // Initially hide bottom nav
+            bottomNav.style.display = 'none';
+
+            // Handle scroll events
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > topNavBottom) {
+                    bottomNav.style.opacity = '1';
+                    bottomNav.style.visibility = 'visible';
+                } else {
+                    bottomNav.style.opacity = '0';
+                    bottomNav.style.visibility = 'hidden';
+                }
+            });
+
+            // Recalculate on window resize
+            window.addEventListener('resize', function() {
+                topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+            });
+        });
     </script>
         <div class="bottom-nav">
-            <a href="index.html">Home</a>
+            <a href="map.html">Change feed</a>
             <a href="create.html">Create new post</a>
         </div>
 </body>
