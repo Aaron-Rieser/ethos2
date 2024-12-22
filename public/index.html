@@ -347,7 +347,8 @@
             let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
 
             // Initially hide bottom nav
-            bottomNav.style.display = 'none';
+            bottomNav.style.opacity = '0';
+            bottomNav.style.visibility = 'hidden';
 
             // Handle scroll events
             window.addEventListener('scroll', function() {
@@ -366,9 +367,11 @@
             });
         });
     </script>
-        <div class="bottom-nav">
-            <a href="map.html">Change feed</a>
-            <a href="create.html">Create new post</a>
-        </div>
+
+    <div class="bottom-nav">
+        <a href="map.html">Change feed</a>
+        <a href="create.html">Create new post</a>
+    </div>
+    
 </body>
 </html>
