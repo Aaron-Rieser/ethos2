@@ -1,6 +1,5 @@
 MUST DO : 
 Update more buttons and nav 
-Footer not available - fix
 Add location coordinates stamp in the data capture, add conditions for if not available, will need to be a new column
 Detect location and send to right feed as an intro task - try again
 Add a news and one final rss feed
@@ -26,6 +25,7 @@ RSS feeds
 
 RELEASE NOTES: 
 
+Footer fixed on all pages 
 Change homepage logic. 
 - index must move to feed then
 Updated some buttons and nav
