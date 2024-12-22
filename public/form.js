@@ -1,30 +1,27 @@
 document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    // Create basic form data
+    
     const formData = {
         neighbourhood: document.getElementById('neighbourhood').value,
         username: document.getElementById('username').value,
         post: document.getElementById('post').value,
-        latitude: null,  // Default to null
+        latitude: null,
         longitude: null
     };
 
-    // Try to get location if available
+    // Try to get location - either from stored permission or new request
     try {
         if (navigator.geolocation) {
             const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    timeout: 5000 // 5 second timeout
-                });
+                navigator.geolocation.getCurrentPosition(resolve, reject);
             });
-            
             formData.latitude = position.coords.latitude;
             formData.longitude = position.coords.longitude;
+            // Store permission for future use
+            localStorage.setItem('locationPermissionGranted', 'true');
         }
     } catch (error) {
         console.log('Location not available or denied, continuing without coordinates');
-        // Post will continue with null coordinates
     }
 
     // Submit post regardless of whether we got coordinates

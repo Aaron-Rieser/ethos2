@@ -129,6 +129,10 @@
         function getUserLocation() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(function(position) {
+
+                    // Store permission status when location is successfully obtained
+                    localStorage.setItem('locationPermissionGranted', 'true');
+
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
 

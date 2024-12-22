@@ -64,10 +64,20 @@
         </div>
         <button type="submit">Submit Post</button>
     </form>
-
     <script src="neighborhoods.js"></script>
-    <script src="form.js"></script>
 
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we have location permission when page loads
+        if (localStorage.getItem('locationPermissionGranted') === 'true') {
+            console.log('Location will be included with post');
+            // Optionally: Add a visual indicator that location will be included
+        }
+    });
+    </script>
+    
+    <script src="form.js"></script>
+    
     <div class="bottom-nav">
         <a href="index.html">Home</a>
     </div>
