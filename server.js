@@ -119,20 +119,14 @@ async function fetchAllFeeds() {
 // Your existing POST endpoint for creating posts
 app.post('/api/posts', async (req, res) => {
     try {
-        const { neighbourhood, username, post, latitude, longitude } = req.body;
-        
-        const query = `
-            INSERT INTO posts (neighbourhood, username, post, latitude, longitude) 
-            VALUES ($1, $2, $3, $4, $5) 
-            RETURNING *
-        `;
-        
-        const values = [neighbourhood, username, post, latitude, longitude];
-        const result = await pool.query(query, values);
-        
-        res.json(result.rows[0]);
+        const { neighbourhood, username, post } = req.body;
+        const newPost = await pool.query(
+            'INSERT INTO posts (neighbourhood, username, post) VALUES ($1, $2, $3) RETURNING *',
+            [neighbourhood, username, post]
+        );
+        res.json(newPost.rows[0]);
     } catch (err) {
-        console.error(err);
+        console.error(err.message);
         res.status(500).send('Server Error');
     }
 });

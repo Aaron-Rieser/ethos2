@@ -1,30 +1,12 @@
-cument.getElementById('postForm').addEventListener('submit', async (e) => {
+document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Get form data
     const formData = {
         neighbourhood: document.getElementById('neighbourhood').value,
         username: document.getElementById('username').value,
-        post: document.getElementById('post').value,
-        latitude: null,  // Will be updated if geolocation available
-        longitude: null
+        post: document.getElementById('post').value
     };
 
-    // Try to get geolocation
-    try {
-        if (navigator.geolocation) {
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            });
-            
-            formData.latitude = position.coords.latitude;
-            formData.longitude = position.coords.longitude;
-        }
-    } catch (error) {
-        console.log('Geolocation not available or denied');
-    }
-
-    // Submit the post
     try {
         const response = await fetch('/api/posts', {
             method: 'POST',
@@ -35,7 +17,9 @@ cument.getElementById('postForm').addEventListener('submit', async (e) => {
         });
 
         if (response.ok) {
-            window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.neighbourhood)}`;
+            // Redirect to feed page after successful submission
+            // Use formData.neighbourhood instead of selectedNeighbourhood
+            window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.neighbourhood)}`; 
         } else {
             alert('Error submitting post');
         }
