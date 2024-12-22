@@ -4,6 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neighbourhood Deals</title>
+
+    <style>
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .bottom-nav a {
+            color: #3388ff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    
+        .bottom-nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
@@ -40,5 +67,10 @@
 
     <script src="neighborhoods.js"></script>
     <script src="form.js"></script>
+
+    <div class="bottom-nav">
+        <a href="index.html">Home</a>
+    </div>
+
 </body>
 </html>
