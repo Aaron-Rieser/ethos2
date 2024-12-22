@@ -1,14 +1,16 @@
 MUST DO : 
-Detect location and send to right feed as an intro task
-Update all buttons and nav 
-
+Update more buttons and nav 
+Footer not available - fix
 Add location coordinates stamp in the data capture, add conditions for if not available, will need to be a new column
+Detect location and send to right feed as an intro task - try again
 Add a news and one final rss feed
 map funcionality, full geo json file
 Change post design and account for more styles
 Add images 
 Add ads 
+
 **SUNDAY DEC 15**
+
 Design sprint
 Wilbur
 Add payment function for service
@@ -26,7 +28,7 @@ RELEASE NOTES:
 
 Change homepage logic. 
 - index must move to feed then
-
+Updated some buttons and nav
 
 
 CORE NOTES: NOV 30 and before
