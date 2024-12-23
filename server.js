@@ -7,12 +7,67 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
-// Initialize cache and parser
+// Verify required environment variables
+const requiredEnvVars = [
+    'CLOUDINARY_CLOUD_NAME',
+    'CLOUDINARY_API_KEY',
+    'CLOUDINARY_API_SECRET'
+];
+
+requiredEnvVars.forEach(varName => {
+    if (!process.env[varName]) {
+        console.error(`Missing required environment variable: ${varName}`);
+        process.exit(1);
+    }
+});
+
+console.log('Initializing database connection...');
+pool.connect()
+    .then(() => console.log('Database connected successfully'))
+    .catch(err => {
+        console.error('Database connection error:', err);
+        process.exit(1);
+    });
+
+// 2. Initialize cache and parser
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
 
 app.use(express.json());
 app.use(express.static('public'));
+
+// 3. Cloudinary configuration MUST come before storage and upload
+try {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
+
+    // Test connection
+    cloudinary.api.ping()
+        .then(result => console.log('Cloudinary connected:', result))
+    } catch (error) {    // Add this closing brace
+            console.error('Cloudinary connection error:', error);
+            process.exit(1);  // Add this line to exit on connection failure
+        });
+
+// 4. Then storage configuration
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'posts',
+        allowed_formats: ['jpg', 'jpeg', 'png'] 
+    }
+});
+
+// 5. Then upload middleware
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
 
 // Define feeds
 const FEEDS = [
@@ -91,28 +146,6 @@ const FEEDS = [
     }
 ];
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-// Add this to test configuration
-cloudinary.v2.api.ping()
-    .then(result => console.log('Cloudinary connected:', result))
-    .catch(error => console.error('Cloudinary error:', error));
-
-// Upload middleware
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'posts',
-        allowed_formats: ['jpg', 'jpeg', 'png'] 
-    }
-});
-
-const upload = multer({ storage: storage });
-
 async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
@@ -144,9 +177,14 @@ async function fetchAllFeeds() {
 // Your existing POST endpoint for creating posts
 app.post('/api/posts', upload.single('image'), async (req, res) => {
     try {
+        console.log('Received file:', req.file);
         const { neighbourhood, username, post, latitude, longitude } = req.body;
-        const image_url = req.file ? req.file.path : null;
+        
+        if (!neighbourhood || !username || !post) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
 
+        const image_url = req.file ? req.file.path : null;
         const query = `
             INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url) 
             VALUES ($1, $2, $3, $4, $5, $6) 
@@ -159,7 +197,10 @@ app.post('/api/posts', upload.single('image'), async (req, res) => {
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Detailed error:', err);
-        res.status(500).send('Server Error');
+        if (err.name === 'MulterError') {
+            return res.status(400).json({ error: 'File upload error', details: err.message });
+        }
+        res.status(500).json({ error: 'Server Error', details: err.message });
     }
 });
 
@@ -216,6 +257,41 @@ app.get('/api/posts', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+});
+
+// Existing SIGTERM handler
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        pool.end();
+        process.exit(0);
+    });
+});
+
+// Add SIGINT handler here
+process.on('SIGINT', () => {
+    console.log('SIGINT signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        pool.end();
+        process.exit(0);
+    });
+});
+
+// Add unhandled rejection handler here
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Add actual error handling
+    process.exit(1);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    server.close(() => {
+        pool.end();
+        process.exit(1);
+    });
 });
