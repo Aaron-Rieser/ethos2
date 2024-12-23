@@ -97,6 +97,11 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Add this to test configuration
+cloudinary.v2.api.ping()
+    .then(result => console.log('Cloudinary connected:', result))
+    .catch(error => console.error('Cloudinary error:', error));
+
 // Upload middleware
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -153,7 +158,7 @@ app.post('/api/posts', upload.single('image'), async (req, res) => {
         
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('Error:', err);
+        console.error('Detailed error:', err);
         res.status(500).send('Server Error');
     }
 });
