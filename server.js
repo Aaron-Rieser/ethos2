@@ -29,6 +29,11 @@ pool.connect()
         process.exit(1);
     });
 
+console.log('Checking Cloudinary environment variables:');
+console.log('CLOUD_NAME present:', !!process.env.CLOUDINARY_CLOUD_NAME);
+console.log('API_KEY present:', !!process.env.CLOUDINARY_API_KEY);
+console.log('API_SECRET present:', !!process.env.CLOUDINARY_API_SECRET);
+
 // 2. Initialize cache and parser
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
