@@ -3,6 +3,9 @@ const pool = require('./db');
 const NodeCache = require('node-cache');
 const RSSParser = require('rss-parser');
 const app = express();
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
 
 // Initialize cache and parser
 const cache = new NodeCache({ stdTTL: 300 });
@@ -88,6 +91,23 @@ const FEEDS = [
     }
 ];
 
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Upload middleware
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'posts',
+        allowed_formats: ['jpg', 'jpeg', 'png'] 
+    }
+});
+
+const upload = multer({ storage: storage });
+
 async function fetchAllFeeds() {
     try {
         const feedPromises = FEEDS.map(async feed => {
@@ -117,22 +137,23 @@ async function fetchAllFeeds() {
 }
 
 // Your existing POST endpoint for creating posts
-app.post('/api/posts', async (req, res) => {
+app.post('/api/posts', upload.single('image'), async (req, res) => {
     try {
         const { neighbourhood, username, post, latitude, longitude } = req.body;
-        
+        const image_url = req.file ? req.file.path : null;
+
         const query = `
-            INSERT INTO posts (neighbourhood, username, post, latitude, longitude) 
-            VALUES ($1, $2, $3, $4, $5) 
+            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url) 
+            VALUES ($1, $2, $3, $4, $5, $6) 
             RETURNING *
         `;
         
-        const values = [neighbourhood, username, post, latitude, longitude];
+        const values = [neighbourhood, username, post, latitude, longitude, image_url];
         const result = await pool.query(query, values);
         
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('Database error:', err);
+        console.error('Error:', err);
         res.status(500).send('Server Error');
     }
 });

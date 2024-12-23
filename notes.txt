@@ -5,11 +5,15 @@ Add a news and one final rss feed
 map funcionality, full geo json file
 Change post design and account for more styles
 Add images 
+- if doesn't work, 3. Add error handling specific to Railway?
+Add image next to S
+- how how to handle image validation?
+- Add loading states during upload?
+- Show how to handle image resizing
+.ENV backups for local dev testing
 Add ads 
 Login
-
-**SUNDAY DEC 15**
-
+Geolocation api implementation to help reduce requests for location permission
 Design sprint
 Wilbur
 Add payment function for service

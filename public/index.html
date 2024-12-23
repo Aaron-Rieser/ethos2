@@ -261,9 +261,16 @@
         function createPostElement(post) {
             const postDiv = document.createElement('div');
             postDiv.className = 'post post-card';
+            
+            let imageHtml = '';
+            if (post.image_url) {
+                imageHtml = `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">`;
+            }
+            
             postDiv.innerHTML = `
                 <div class="post-content">
                     <p>${post.post}</p>
+                    ${imageHtml}
                     <small>Posted by ${post.username} in ${post.neighbourhood}</small>
                 </div>
             `;
@@ -372,6 +379,6 @@
         <a href="map.html">Change feed</a>
         <a href="create.html">Create new post</a>
     </div>
-    
+
 </body>
 </html>
