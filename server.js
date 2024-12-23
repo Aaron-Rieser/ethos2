@@ -47,12 +47,16 @@ try {
     // Test connection
     cloudinary.api.ping()
         .then(result => console.log('Cloudinary connected:', result))
-    } catch (error) {    // Add this closing brace
+        .catch(error => {
             console.error('Cloudinary connection error:', error);
-            process.exit(1);  // Add this line to exit on connection failure
+            process.exit(1);
         });
+} catch (error) {
+    console.error('Cloudinary configuration error:', error);
+    process.exit(1);
+}
 
-// 4. Then storage configuration
+// 4. Then storage configuration (AFTER the try-catch block)
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
