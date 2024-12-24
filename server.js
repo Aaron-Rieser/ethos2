@@ -183,7 +183,6 @@ async function fetchAllFeeds() {
     }
 }
 
-// Your existing POST endpoint for creating posts
 app.post('/api/posts', upload.single('image'), async (req, res) => {
     try {
         console.log('Received file:', req.file);
@@ -206,6 +205,12 @@ app.post('/api/posts', upload.single('image'), async (req, res) => {
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Detailed error:', err);
+        if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                error: 'File too large', 
+                details: 'Maximum file size is 5MB' 
+            });
+        }
         if (err.name === 'MulterError') {
             return res.status(400).json({ error: 'File upload error', details: err.message });
         }

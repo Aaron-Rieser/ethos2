@@ -30,6 +30,11 @@
         .bottom-nav a:hover {
             text-decoration: underline;
         }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -67,6 +72,12 @@
             <input type="file" id="image" name="image" accept="image/*">
         </div>
         <button type="submit">Submit</button>
+        <div id="errorMessage" style="display: none; color: #d32f2f; margin: 10px 0; padding: 8px; background-color: #ffebee; border-radius: 4px;">
+        </div>
+        
+        <div id="loadingIndicator" style="display: none; margin-top: 10px; color: #666; font-style: italic;">
+            Uploading your post...
+        </div>
     </form>
     <script src="neighborhoods.js"></script>
 

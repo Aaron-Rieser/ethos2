@@ -1,6 +1,17 @@
 document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Reset error message
+    errorMessage.style.display = 'none';
+    
+    // Show loading state
+    submitButton.disabled = true;
+    loadingIndicator.style.display = 'block';
+    
     // Use FormData instead of plain object for file upload
     const formData = new FormData();
     formData.append('neighbourhood', document.getElementById('neighbourhood').value);
@@ -10,8 +21,18 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     formData.append('longitude', null);
 
     // Handle image if present
-    const imageFile = document.getElementById('image').files[0];
+    const imageInput = document.getElementById('image');
+    const imageFile = imageInput.files[0];
     if (imageFile) {
+        // Check file size before upload
+        if (imageFile.size > 5 * 1024 * 1024) { // 5MB in bytes
+            errorMessage.textContent = 'File size exceeds 5MB limit';
+            errorMessage.style.display = 'block';
+            loadingIndicator.style.display = 'none';
+            submitButton.disabled = false;
+            imageInput.value = ''; // Clear the file input
+            return;
+        }
         formData.append('image', imageFile);
     }
 
@@ -33,17 +54,36 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     try {
         const response = await fetch('/api/posts', {
             method: 'POST',
-            // Remove Content-Type header - FormData sets its own
             body: formData
         });
 
-        if (response.ok) {
-            window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
-        } else {
-            alert('Error submitting post');
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.details || data.error || 'Error submitting post');
         }
+
+        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
-        alert('Error submitting post');
+        errorMessage.textContent = error.message;
+        errorMessage.style.display = 'block';
+    } finally {
+        loadingIndicator.style.display = 'none';
+        submitButton.disabled = false;
+    }
+});
+
+// Add file size check on file input change
+document.getElementById('image').addEventListener('change', function(e) {
+    const errorMessage = document.getElementById('errorMessage');
+    const file = this.files[0];
+    
+    if (file && file.size > 5 * 1024 * 1024) { // 5MB in bytes
+        errorMessage.textContent = 'File size exceeds 5MB limit';
+        errorMessage.style.display = 'block';
+        this.value = ''; // Clear the file input
+    } else {
+        errorMessage.style.display = 'none';
     }
 });
