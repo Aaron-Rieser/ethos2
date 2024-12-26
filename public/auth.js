@@ -20,9 +20,9 @@ const configureAuth = async () => {
     try {
         console.log('Initializing Auth0...');
         auth0Client = await auth0.createAuth0Client({
-            domain: 'dev-g0wpwzacl04kb6eb.us.auth0.com',
+            domain: 'dev-g0wpwzacl04kb6eb.ca.auth0.com',
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
-            audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/',
+            audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
             cacheLocation: 'localstorage',
             useRefreshTokens: true
         });
