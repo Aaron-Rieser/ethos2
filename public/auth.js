@@ -24,8 +24,23 @@ const configureAuth = async () => {
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
             audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
             cacheLocation: 'localstorage',
-            useRefreshTokens: true
+            useRefreshTokens: true,
+            redirectUri: window.location.origin + '/index.html' // Specify exact redirect
+
         });
+
+        if (window.location.search.includes("code=")) {
+            try {
+                await auth0Client.handleRedirectCallback();
+                // Remove the query parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Update UI
+                await updateUI();
+            } catch (callbackError) {
+                console.error('Callback handling error:', callbackError);
+            }
+        }
+
         console.log('Auth0 initialized successfully');
     } catch (error) {
         console.error('Auth0 initialization error:', error);
