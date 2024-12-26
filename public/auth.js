@@ -1,0 +1,110 @@
+let auth0Client;
+
+const handleAuth0Callback = async () => {
+    try {
+        // Handle the redirect from Auth0
+        const query = window.location.search;
+        if (query.includes("code=") && query.includes("state=")) {
+            await auth0Client.handleRedirectCallback();
+            // Update UI after successful login
+            await updateUI();
+            // Remove the URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    } catch (err) {
+        console.error('Error handling Auth0 callback:', err);
+    }
+};
+
+const configureAuth = async () => {
+    auth0Client = await auth0.createAuth0Client({
+        domain: 'dev-g0wpwzacl04kb6eb.us.auth0.com',
+        clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16', 
+        cacheLocation: 'localstorage',
+        useRefreshTokens: true
+        audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/' // Add this line
+    });
+
+    await handleAuth0Callback();
+
+    // Check for existing session
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (isAuthenticated) {
+            updateUI();
+        }
+    } catch (err) {
+        console.error('Error checking authentication', err);
+    }
+};
+
+const getAuthToken = async () => {
+    try {
+        if (await auth0Client.isAuthenticated()) {
+            const token = await auth0Client.getTokenSilently({
+                timeoutInSeconds: 60,
+                cacheMode: 'on'
+            });
+            return token;
+        }
+        return null;
+    } catch (err) {
+        if (err.error === 'login_required') {
+            console.log('Session expired, redirecting to login...');
+            await login();
+        }
+        console.error('Error getting auth token:', err);
+        return null;
+    }
+};
+
+const updateUI = async () => {
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        
+        const loginButton = document.getElementById('login');
+        const logoutButton = document.getElementById('logout');
+        const userProfile = document.getElementById('userProfile');
+        
+        if (!loginButton || !logoutButton || !userProfile) {
+            console.warn('Auth UI elements not found');
+            return;
+        }
+        
+        loginButton.style.display = isAuthenticated ? 'none' : 'block';
+        logoutButton.style.display = isAuthenticated ? 'block' : 'none';
+        
+        if (isAuthenticated) {
+            const user = await auth0Client.getUser();
+            userProfile.textContent = user.email;
+        }
+    } catch (err) {
+        console.error('Error updating UI:', err);
+    }
+};
+
+const login = async () => {
+    try {
+        await auth0Client.loginWithRedirect({
+            redirect_uri: window.location.origin
+        });
+    } catch (err) {
+        console.error('Login error:', err);
+        // Optionally show error to user
+        alert('Login failed. Please try again.');
+    }
+};
+
+const logout = async () => {
+    try {
+        await auth0Client.logout({
+            returnTo: window.location.origin
+        });
+    } catch (err) {
+        console.error('Logout error:', err);
+        // Optionally show error to user
+        alert('Logout failed. Please try again.');
+    }
+};
+
+configureAuth();

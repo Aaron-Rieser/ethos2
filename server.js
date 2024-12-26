@@ -6,6 +6,7 @@ const app = express();
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
+const { auth } = require('express-oauth2-jwt-bearer');
 
 // Verify required environment variables
 const requiredEnvVars = [
@@ -40,6 +41,11 @@ const parser = new RSSParser();
 
 app.use(express.json());
 app.use(express.static('public'));
+
+const checkJwt = auth({
+    audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+    issuerBaseURL: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/'
+});
 
 // 3. Cloudinary configuration MUST come before storage and upload
 try {
@@ -183,8 +189,11 @@ async function fetchAllFeeds() {
     }
 }
 
-app.post('/api/posts', upload.single('image'), async (req, res) => {
+app.post('/api/posts', checkJwt, upload.single('image'), async (req, res) => {    
     try {
+        // Get user ID from the Auth0 token
+        const userId = req.auth.payload.sub;
+        
         console.log('Received file:', req.file);
         const { neighbourhood, username, post, latitude, longitude } = req.body;
         
@@ -194,12 +203,12 @@ app.post('/api/posts', upload.single('image'), async (req, res) => {
 
         const image_url = req.file ? req.file.path : null;
         const query = `
-            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url) 
-            VALUES ($1, $2, $3, $4, $5, $6) 
+            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url, user_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
-        const values = [neighbourhood, username, post, latitude, longitude, image_url];
+        const values = [neighbourhood, username, post, latitude, longitude, image_url, userId];
         const result = await pool.query(query, values);
         
         res.json(result.rows[0]);

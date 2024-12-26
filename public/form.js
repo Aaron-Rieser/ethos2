@@ -1,9 +1,20 @@
 document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const errorMessage = document.getElementById('errorMessage');
+    
+    // Check authentication
+    if (!await auth0Client.isAuthenticated()) {
+        errorMessage.textContent = 'Please login to post';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
+    // Get user info
+    const user = await auth0Client.getUser();
+    
     const submitButton = e.target.querySelector('button[type="submit"]');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const errorMessage = document.getElementById('errorMessage');
     
     // Reset error message
     errorMessage.style.display = 'none';
@@ -12,8 +23,9 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     submitButton.disabled = true;
     loadingIndicator.style.display = 'block';
     
-    // Use FormData instead of plain object for file upload
+    // Create FormData ONCE
     const formData = new FormData();
+    formData.append('user_id', user.sub);
     formData.append('neighbourhood', document.getElementById('neighbourhood').value);
     formData.append('username', document.getElementById('username').value);
     formData.append('post', document.getElementById('post').value);

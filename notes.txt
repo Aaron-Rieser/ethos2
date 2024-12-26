@@ -1,12 +1,24 @@
 MUST DO : 
+Login is underway, first code is up now connection to Auth0 must be made. 
+Next steps p/ Cursor: 
+Next steps:
+- Login page??
+- Get your Client ID from Auth0 dashboard
+- Set up your Allowed Callback URLs in Auth0
+- Configure your API identifier
+- Install the express-oauth2-jwt-bearer package
+- double check all connection points have been made  
+Center posts and fix all post look + feel 
+- add a few other posts types
 Update all buttons and nav 
 Detect location and send to right feed as an intro task - try again
 Add a news and one final rss feed
 map funcionality, full geo json file
 Change post design and account for more styles
+- including Toronto, London, Hamilton and Kingston to start, guelph?
+I- compression for large or near limit photos
 I- Speed 
 I- how how to handle image validation?
-I- Add loading states during upload?
 I- Show how to handle image resizing
 .ENV backups for local dev testing
 Add ads 
@@ -29,6 +41,7 @@ RSS feeds
 RELEASE NOTES: 
 
 Images are now LIVE!! Via Cloudinary, 25k images a month. Bit slow though, maybe look at AWS long term?
+- added loading state and error msg for over limit posts
 Gps now added to posts - location coordinates added 
 Footer fixed on all pages 
 Change homepage logic. 

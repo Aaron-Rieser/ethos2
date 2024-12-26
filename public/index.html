@@ -165,16 +165,64 @@
             max-height: 300px;
             overflow-y: auto;
         }
+        
+        .error-message {
+        color: #d32f2f;
+        margin: 10px 0;
+        padding: 8px;
+        background-color: #ffebee;
+        border-radius: 4px;
+        }
+
+        .auth-container {
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        .auth-container button {
+            padding: 8px 16px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #login {
+            background-color: #3388ff;
+            color: white;
+        }
+
+        #logout {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #userProfile {
+            margin-left: 10px;
+            font-style: italic;
+        }
     </style>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth.js"></script> 
 </head>
 <body>
+    <div class="auth-container">
+        <button id="login" onclick="login()">Log In</button>
+        <button id="logout" onclick="logout()" style="display: none">Log Out</button>
+        <span id="userProfile"></span>
+    </div>
     <div style="display: flex; justify-content: center; min-height: 100vh;">
         <div style="text-align: left;">
             <h1>Neighbourhood Deals</h1>
             <nav>
                 <a href="/map.html">Choose  neighbourhood feed</a>
-                <a href="/create.html">Create New Post</a>        
+                <a href="/create.html" id="createPostLink">Create New Post</a>                               
             </nav>
+
+            <div id="loginPrompt" class="error-message" style="display: none;">
+                Please log in to create a post
+            </div>
             
             <div id="filter-info" class="filter-info">
                 Showing posts from: <span id="current-filter"></span>
@@ -225,6 +273,11 @@
                 const neighbourhood = getNeighbourhoodFromURL();
                 updateFilterDisplay();
                 
+                let headers = {};
+                if (await auth0Client.isAuthenticated()) {
+                    const token = await auth0Client.getTokenSilently();
+                    headers.Authorization = `Bearer ${token}`;
+                }
                 // Modify the fetch URL to include neighbourhood filter if present
                 const url = neighbourhood 
                     ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
@@ -345,7 +398,18 @@
         }
         // Load posts when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Load the feed
+
+            document.querySelectorAll('.create-post-link').forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    if (!await auth0Client.isAuthenticated()) {
+                        e.preventDefault();
+                        document.getElementById('loginPrompt').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('loginPrompt').style.display = 'none';
+                        }, 3000);
+                    }
+                });
+            });
             loadCombinedFeed();
             
             // Setup bottom nav scroll behavior
@@ -377,8 +441,24 @@
 
     <div class="bottom-nav">
         <a href="map.html">Change feed</a>
-        <a href="create.html">Create new post</a>
+        <a href="/create.html" id="createPostLink">Create New Post</a>        
     </div>
-
+    <div id="loginPrompt" class="error-message" style="display: none;">
+        Please log in to create a post
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.create-post-link').addEventListener('click', async (e) => {
+                if (!await auth0Client.isAuthenticated()) {
+                    e.preventDefault();
+                    document.getElementById('loginPrompt').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('loginPrompt').style.display = 'none';
+                    }, 3000);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
