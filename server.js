@@ -43,8 +43,9 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const checkJwt = auth({
-    audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
-    issuerBaseURL: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/'
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+    clientSecret: process.env.AUTH0_CLIENT_SECRET
 });
 
 // 3. Cloudinary configuration MUST come before storage and upload

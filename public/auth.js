@@ -19,10 +19,10 @@ const handleAuth0Callback = async () => {
 const configureAuth = async () => {
     auth0Client = await auth0.createAuth0Client({
         domain: 'dev-g0wpwzacl04kb6eb.us.auth0.com',
-        clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16', 
+        clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
+        audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/',
         cacheLocation: 'localstorage',
         useRefreshTokens: true
-        audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/' // Add this line
     });
 
     await handleAuth0Callback();
@@ -85,12 +85,13 @@ const updateUI = async () => {
 
 const login = async () => {
     try {
+        console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             redirect_uri: window.location.origin
         });
+        console.log('Login redirect initiated');
     } catch (err) {
         console.error('Login error:', err);
-        // Optionally show error to user
         alert('Login failed. Please try again.');
     }
 };
@@ -108,3 +109,10 @@ const logout = async () => {
 };
 
 configureAuth();
+
+window.addEventListener('load', () => {
+    console.log('Page loaded, checking Auth0 status');
+    if (!auth0Client) {
+        console.error('Auth0 client not initialized');
+    }
+});
