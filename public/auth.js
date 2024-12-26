@@ -17,24 +17,18 @@ const handleAuth0Callback = async () => {
 };
 
 const configureAuth = async () => {
-    auth0Client = await auth0.createAuth0Client({
-        domain: 'dev-g0wpwzacl04kb6eb.us.auth0.com',
-        clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
-        audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/',
-        cacheLocation: 'localstorage',
-        useRefreshTokens: true
-    });
-
-    await handleAuth0Callback();
-
-    // Check for existing session
     try {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        if (isAuthenticated) {
-            updateUI();
-        }
-    } catch (err) {
-        console.error('Error checking authentication', err);
+        console.log('Initializing Auth0...');
+        auth0Client = await auth0.createAuth0Client({
+            domain: 'dev-g0wpwzacl04kb6eb.us.auth0.com',
+            clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
+            audience: 'https://dev-g0wpwzacl04kb6eb.us.auth0.com/api/v2/',
+            cacheLocation: 'localstorage',
+            useRefreshTokens: true
+        });
+        console.log('Auth0 initialized successfully');
+    } catch (error) {
+        console.error('Auth0 initialization error:', error);
     }
 };
 
