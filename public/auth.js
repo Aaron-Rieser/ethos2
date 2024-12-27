@@ -25,8 +25,9 @@ const configureAuth = async () => {
             audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/userinfo',
             cacheLocation: 'localstorage',
             useRefreshTokens: true,
-            redirectUri: window.location.origin + '/index.html' // Specify exact redirect
-
+            redirectUri: window.location.origin,  // Simplified redirect URI
+            responseType: 'code',                 // Added explicit response type
+            scope: 'openid profile email offline_access'  // Added explicit scope
         });
 
         console.log('Auth0 configuration complete');
@@ -34,9 +35,7 @@ const configureAuth = async () => {
         if (window.location.search.includes("code=")) {
             try {
                 await auth0Client.handleRedirectCallback();
-                // Remove the query parameters
                 window.history.replaceState({}, document.title, window.location.pathname);
-                // Update UI
                 await updateUI();
             } catch (callbackError) {
                 console.error('Callback handling error:', callbackError);
