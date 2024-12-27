@@ -22,12 +22,14 @@ const configureAuth = async () => {
         auth0Client = await auth0.createAuth0Client({
             domain: 'dev-g0wpwzacl04kb6eb.ca.auth0.com',
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
-            audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
             cacheLocation: 'localstorage',
             useRefreshTokens: true,
-            redirectUri: window.location.origin, // Simplified redirect
-            responseType: 'code',
-            scope: 'openid profile email offline_access'
+            authorizationParams: {
+                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                redirect_uri: window.location.origin,
+                scope: 'openid profile email offline_access',
+                response_type: 'code'
+            }
         });
 
         console.log('Auth0 configuration complete');
@@ -102,7 +104,9 @@ const login = async () => {
     try {
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
-            redirect_uri: window.location.origin
+            authorizationParams: {
+                redirect_uri: window.location.origin
+            }
         });
         console.log('Login redirect initiated');
     } catch (err) {
