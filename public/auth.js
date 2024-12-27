@@ -25,9 +25,9 @@ const configureAuth = async () => {
             audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/userinfo',
             cacheLocation: 'localstorage',
             useRefreshTokens: true,
-            redirectUri: window.location.origin,  // Simplified redirect URI
-            responseType: 'code',                 // Added explicit response type
-            scope: 'openid profile email offline_access'  // Added explicit scope
+            redirectUri: window.location.origin, // Simplified redirect
+            responseType: 'code',
+            scope: 'openid profile email offline_access'
         });
 
         console.log('Auth0 configuration complete');
@@ -134,22 +134,19 @@ window.addEventListener('load', () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Create post link handler
-    const createPostLink = document.querySelector('.create-post-link');
+    const createPostLink = document.querySelector('.create-post-link, #createPostLink'); // Look for either class or ID
     if (createPostLink) {
-        createPostLink.addEventListener('click', async () => {
-            // Your existing click handler code
-        }); // Close createPostLink event listener
-    }
-    
-    // Add login button handler
-    const loginButton = document.getElementById('login');
-    if (loginButton) {
-        loginButton.addEventListener('click', login);
-    }
-    
-    // Add logout button handler
-    const logoutButton = document.getElementById('logout');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
+        createPostLink.addEventListener('click', async (e) => {
+            if (!await auth0Client.isAuthenticated()) {
+                e.preventDefault();
+                const loginPrompt = document.getElementById('loginPrompt');
+                if (loginPrompt) {
+                    loginPrompt.style.display = 'block';
+                    setTimeout(() => {
+                        loginPrompt.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        });
     }
 });
