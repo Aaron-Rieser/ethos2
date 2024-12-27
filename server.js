@@ -164,6 +164,9 @@ const FEEDS = [
 
 async function fetchAllFeeds() {
     try {
+        console.log('Starting to fetch all feeds...');
+        console.log('FEEDS array:', FEEDS); // Check what feeds are being processed
+
         const feedPromises = FEEDS.map(async feed => {
             try {
                 if (feed.type === 'json') {
@@ -174,6 +177,8 @@ async function fetchAllFeeds() {
                 } else {
                     // Handle RSS/ATOM feeds (weather)
                     const parsedFeed = await parser.parseURL(feed.url);
+                    console.log(`Raw feed item:`, parsedFeed.items[0]); // Log first item
+
                     return parsedFeed.items
                         .map(item => feed.transform(item))
                         .filter(item => item !== null);

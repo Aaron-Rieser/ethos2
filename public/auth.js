@@ -29,6 +29,8 @@ const configureAuth = async () => {
 
         });
 
+        console.log('Auth0 configuration complete');
+
         if (window.location.search.includes("code=")) {
             try {
                 await auth0Client.handleRedirectCallback();
