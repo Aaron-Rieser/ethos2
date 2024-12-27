@@ -71,12 +71,10 @@
             font-style: italic;
         }
     </style>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="auth.js"></script>
 </head>
 <body>
     <div class="auth-container">
-        <button id="login" onclick="login()">Log In</button>
+        <button id="login">Log In</button>
         <button id="logout" onclick="logout()" style="display: none">Log Out</button>
         <span id="userProfile"></span>
     </div>
@@ -131,6 +129,7 @@
     <div class="bottom-nav">
         <a href="index.html">Home</a>
     </div>
-
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth.js"></script>
 </body>
 </html>

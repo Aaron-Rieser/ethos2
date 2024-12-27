@@ -51,6 +51,7 @@ const configureAuth = async () => {
             stack: error.stack,
             code: error.code
         });
+    }
 };
 
 const getAuthToken = async () => {
@@ -129,5 +130,27 @@ window.addEventListener('load', () => {
     console.log('Page loaded, checking Auth0 status');
     if (!auth0Client) {
         console.error('Auth0 client not initialized');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Create post link handler
+    const createPostLink = document.querySelector('.create-post-link');
+    if (createPostLink) {
+        createPostLink.addEventListener('click', async () => {
+            // Your existing click handler code
+        }); // Close createPostLink event listener
+    }
+    
+    // Add login button handler
+    const loginButton = document.getElementById('login');
+    if (loginButton) {
+        loginButton.addEventListener('click', login);
+    }
+    
+    // Add logout button handler
+    const logoutButton = document.getElementById('logout');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
     }
 });
