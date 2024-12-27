@@ -132,7 +132,7 @@ window.addEventListener('load', () => {
     }
 });
 
-ddocument.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     // Create post link handler
     const createPostLink = document.querySelector('.create-post-link, #createPostLink');
     if (createPostLink) {
