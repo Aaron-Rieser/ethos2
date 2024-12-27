@@ -4,7 +4,29 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     const errorMessage = document.getElementById('errorMessage');
     
     // Check authentication
-    if (!await auth0Client.isAuthenticated()) {
+    if (!auth0Client) {
+        try {
+            await initializeAuth0();
+        } catch (error) {
+            console.error('Error initializing Auth0:', error);
+            errorMessage.textContent = 'Authentication service not available';
+            errorMessage.style.display = 'block';
+            return;
+        }
+    }
+    
+    // Check authentication
+    let isAuthenticated = false;
+    try {
+        isAuthenticated = await auth0Client.isAuthenticated();
+    } catch (error) {
+        console.error('Error checking authentication:', error);
+        errorMessage.textContent = 'Error checking authentication status';
+        errorMessage.style.display = 'block';
+        return;
+    }
+
+    if (!isAuthenticated) {
         errorMessage.textContent = 'Please login to post';
         errorMessage.style.display = 'block';
         return;
@@ -64,17 +86,23 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
 
     // Submit post
     try {
+        // Get the token
+        const token = await auth0Client.getTokenSilently();
+        
         const response = await fetch('/api/posts', {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}` // Add the auth token
+            },
             body: formData
         });
-
+    
         const data = await response.json();
-
+    
         if (!response.ok) {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
-
+    
         window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);

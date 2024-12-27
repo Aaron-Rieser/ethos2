@@ -1,6 +1,7 @@
 MUST DO : 
-Authentication problems - moving between pages, etc - auth must remain between pages in the same app
-Overall user design of this and how it impacts posts
+Auth won't allow posting 
+Auth on incognito 
+Auth user design of this and how it impacts posts
 New sign up page 
 Intro page description  / sell for new sign ups 
 Center posts and fix all post look + feel 
@@ -35,6 +36,7 @@ RSS feeds
 
 RELEASE NOTES: 
 
+Authentication problems - moving between pages, etc - auth must remain between pages in the same app
 Login is now LIVE! Via Auth0, it only works on 1 page at a time lol. It's a start.
 Images are now LIVE!! Via Cloudinary, 25k images a month. Bit slow though, maybe look at AWS long term?
 - added loading state and error msg for over limit posts
