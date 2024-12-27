@@ -1,13 +1,8 @@
 MUST DO : 
-Login is underway, first code is up now connection to Auth0 must be made. 
-Next steps p/ Cursor: 
-Next steps:
-- Login page??
-- Get your Client ID from Auth0 dashboard
-- Set up your Allowed Callback URLs in Auth0
-- Configure your API identifier
-- Install the express-oauth2-jwt-bearer package
-- double check all connection points have been made  
+Authentication problems - moving between pages, etc - auth must remain between pages in the same app
+Overall user design of this and how it impacts posts
+New sign up page 
+Intro page description  / sell for new sign ups 
 Center posts and fix all post look + feel 
 - add a few other posts types
 Update all buttons and nav 
@@ -40,6 +35,7 @@ RSS feeds
 
 RELEASE NOTES: 
 
+Login is now LIVE! Via Auth0, it only works on 1 page at a time lol. It's a start.
 Images are now LIVE!! Via Cloudinary, 25k images a month. Bit slow though, maybe look at AWS long term?
 - added loading state and error msg for over limit posts
 Gps now added to posts - location coordinates added 

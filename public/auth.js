@@ -105,7 +105,7 @@ const login = async () => {
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             authorizationParams: {
-                redirect_uri: window.location.origin
+                redirect_uri: window.location.href
             }
         });
         console.log('Login redirect initiated');
@@ -118,7 +118,7 @@ const login = async () => {
 const logout = async () => {
     try {
         await auth0Client.logout({
-            returnTo: window.location.origin
+            returnTo: window.location.href
         });
     } catch (err) {
         console.error('Logout error:', err);
