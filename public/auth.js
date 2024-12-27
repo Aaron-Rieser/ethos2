@@ -132,9 +132,9 @@ window.addEventListener('load', () => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+ddocument.addEventListener('DOMContentLoaded', () => {
     // Create post link handler
-    const createPostLink = document.querySelector('.create-post-link, #createPostLink'); // Look for either class or ID
+    const createPostLink = document.querySelector('.create-post-link, #createPostLink');
     if (createPostLink) {
         createPostLink.addEventListener('click', async (e) => {
             if (!await auth0Client.isAuthenticated()) {
@@ -148,5 +148,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+
+    // Add login button handler
+    const loginButton = document.getElementById('login');
+    if (loginButton) {
+        loginButton.addEventListener('click', login);
+        console.log('Login button handler added');
+    } else {
+        console.warn('Login button not found');
+    }
+    
+    // Add logout button handler
+    const logoutButton = document.getElementById('logout');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
+        console.log('Logout button handler added');
     }
 });
