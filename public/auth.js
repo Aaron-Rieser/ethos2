@@ -1,22 +1,8 @@
 let auth0Client;
 
-const handleAuth0Callback = async () => {
-    try {
-        // Handle the redirect from Auth0
-        const query = window.location.search;
-        if (query.includes("code=") && query.includes("state=")) {
-            await auth0Client.handleRedirectCallback();
-            // Update UI after successful login
-            await updateUI();
-            // Remove the URL parameters
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    } catch (err) {
-        console.error('Error handling Auth0 callback:', err);
-    }
-};
-
-const configureAuth = async () => {
+const initializeAuth0 = async () => {
+    if (auth0Client) return auth0Client; // Return existing instance if available
+    
     try {
         console.log('Initializing Auth0...');
         auth0Client = await auth0.createAuth0Client({
@@ -31,27 +17,28 @@ const configureAuth = async () => {
                 response_type: 'code'
             }
         });
-
-        console.log('Auth0 configuration complete');
-
-        if (window.location.search.includes("code=")) {
-            try {
-                await auth0Client.handleRedirectCallback();
-                window.history.replaceState({}, document.title, window.location.pathname);
-                await updateUI();
-            } catch (callbackError) {
-                console.error('Callback handling error:', callbackError);
-            }
-        }
-
-        console.log('Auth0 initialized successfully');
+        
+        await updateUI(); // Update UI immediately after initialization
+        return auth0Client;
     } catch (error) {
         console.error('Auth0 initialization error:', error);
-        console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            code: error.code
-        });
+        throw error;
+    }
+};
+
+const handleAuth0Callback = async () => {
+    try {
+        // Handle the redirect from Auth0
+        const query = window.location.search;
+        if (query.includes("code=") && query.includes("state=")) {
+            await auth0Client.handleRedirectCallback();
+            // Update UI after successful login
+            await updateUI();
+            // Remove the URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    } catch (err) {
+        console.error('Error handling Auth0 callback:', err);
     }
 };
 
@@ -78,6 +65,7 @@ const getAuthToken = async () => {
 const updateUI = async () => {
     try {
         const isAuthenticated = await auth0Client.isAuthenticated();
+        console.log('Auth status:', isAuthenticated); // Add this debug log
         
         const loginButton = document.getElementById('login');
         const logoutButton = document.getElementById('logout');
@@ -93,6 +81,7 @@ const updateUI = async () => {
         
         if (isAuthenticated) {
             const user = await auth0Client.getUser();
+            console.log('User session:', user); // Add this debug log
             userProfile.textContent = user.email;
         }
     } catch (err) {
@@ -102,6 +91,9 @@ const updateUI = async () => {
 
 const login = async () => {
     try {
+        if (!auth0Client) {
+            throw new Error('Auth0 client not initialized');
+        }
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             authorizationParams: {
@@ -117,22 +109,31 @@ const login = async () => {
 
 const logout = async () => {
     try {
+        if (!auth0Client) {
+            throw new Error('Auth0 client not initialized');
+        }
         await auth0Client.logout({
             returnTo: window.location.href
         });
     } catch (err) {
         console.error('Logout error:', err);
-        // Optionally show error to user
         alert('Logout failed. Please try again.');
     }
 };
 
-configureAuth();
-
-window.addEventListener('load', () => {
-    console.log('Page loaded, checking Auth0 status');
-    if (!auth0Client) {
-        console.error('Auth0 client not initialized');
+window.addEventListener('load', async () => {
+    console.log('Page loaded, initializing Auth0');
+    try {
+        await initializeAuth0();
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        console.log('Auth status on page load:', isAuthenticated);
+        
+        if (isAuthenticated) {
+            const user = await auth0Client.getUser();
+            console.log('User session found:', user.email);
+        }
+    } catch (error) {
+        console.error('Error during page load:', error);
     }
 });
 
