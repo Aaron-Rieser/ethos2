@@ -268,20 +268,41 @@
         // Load combined feed function
         async function loadCombinedFeed() {
             try {
+                // Wait for Auth0 initialization if needed
+                if (!auth0Client) {
+                    await initializeAuth0();
+                }
+                
                 const neighbourhood = getNeighbourhoodFromURL();
                 updateFilterDisplay();
                 
+                // Set up headers with error handling
                 let headers = {};
-                if (await auth0Client.isAuthenticated()) {
-                    const token = await auth0Client.getTokenSilently();
-                    headers.Authorization = `Bearer ${token}`;
+                let isAuthenticated = false;
+                try {
+                    isAuthenticated = await auth0Client.isAuthenticated();
+                } catch (error) {
+                    console.error('Error checking authentication:', error);
                 }
-                // Modify the fetch URL to include neighbourhood filter if present
+
+                if (isAuthenticated) {
+                    try {
+                        const token = await auth0Client.getTokenSilently();
+                        headers.Authorization = `Bearer ${token}`;
+                    } catch (error) {
+                        console.error('Error getting token:', error);
+                    }
+                }
+
+                // Fetch posts with authentication headers if available
                 const url = neighbourhood 
                     ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
-                    : '/api/posts';  // This endpoint now returns combined content
+                    : '/api/posts';
                 
-                const response = await fetch(url);
+                const response = await fetch(url, { headers });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
                 const combinedContent = await response.json();
                 
                 const postsContainer = document.querySelector('#posts-container');
@@ -395,45 +416,60 @@
             return feedDiv;
         }
         // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-
-            document.querySelectorAll('.create-post-link').forEach(link => {
-                link.addEventListener('click', async (e) => {
-                    if (!await auth0Client.isAuthenticated()) {
-                        e.preventDefault();
-                        document.getElementById('loginPrompt').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('loginPrompt').style.display = 'none';
-                        }, 3000);
-                    }
+        document.addEventListener('DOMContentLoaded', async function() { // Add async here
+            try {
+                // Initialize Auth0 first
+                await initializeAuth0();
+                // Then load the feed
+                await loadCombinedFeed();
+                
+                // Remove duplicate loadCombinedFeed call
+                // loadCombinedFeed(); // Remove this line since we already called it above
+                
+                document.querySelectorAll('.create-post-link').forEach(link => {
+                    link.addEventListener('click', async (e) => {
+                        if (!await auth0Client.isAuthenticated()) {
+                            e.preventDefault();
+                            const loginPrompt = document.getElementById('loginPrompt');
+                            if (loginPrompt) {
+                                loginPrompt.style.display = 'block';
+                                setTimeout(() => {
+                                    loginPrompt.style.display = 'none';
+                                }, 3000);
+                            }
+                        }
+                    });
                 });
-            });
-            loadCombinedFeed();
-            
-            // Setup bottom nav scroll behavior
-            const topNav = document.querySelector('nav');
-            const bottomNav = document.querySelector('.bottom-nav');
-            let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+                
+                // Setup bottom nav scroll behavior
+                const topNav = document.querySelector('nav');
+                const bottomNav = document.querySelector('.bottom-nav');
+                if (topNav && bottomNav) { // Add null checks
+                    let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
 
-            // Initially hide bottom nav
-            bottomNav.style.opacity = '0';
-            bottomNav.style.visibility = 'hidden';
-
-            // Handle scroll events
-            window.addEventListener('scroll', function() {
-                if (window.scrollY > topNavBottom) {
-                    bottomNav.style.opacity = '1';
-                    bottomNav.style.visibility = 'visible';
-                } else {
+                    // Initially hide bottom nav
                     bottomNav.style.opacity = '0';
                     bottomNav.style.visibility = 'hidden';
-                }
-            });
 
-            // Recalculate on window resize
-            window.addEventListener('resize', function() {
-                topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-            });
+                    // Handle scroll events
+                    window.addEventListener('scroll', function() {
+                        if (window.scrollY > topNavBottom) {
+                            bottomNav.style.opacity = '1';
+                            bottomNav.style.visibility = 'visible';
+                        } else {
+                            bottomNav.style.opacity = '0';
+                            bottomNav.style.visibility = 'hidden';
+                        }
+                    });
+
+                    // Recalculate on window resize
+                    window.addEventListener('resize', function() {
+                        topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+                    });
+                }
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+            }
         });
     </script>
 
