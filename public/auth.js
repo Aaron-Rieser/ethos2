@@ -44,7 +44,11 @@ const configureAuth = async () => {
         console.log('Auth0 initialized successfully');
     } catch (error) {
         console.error('Auth0 initialization error:', error);
-    }
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+        });
 };
 
 const getAuthToken = async () => {
