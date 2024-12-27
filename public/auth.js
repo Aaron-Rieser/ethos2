@@ -22,7 +22,7 @@ const configureAuth = async () => {
         auth0Client = await auth0.createAuth0Client({
             domain: 'dev-g0wpwzacl04kb6eb.ca.auth0.com',
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
-            audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/userinfo',
+            audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
             cacheLocation: 'localstorage',
             useRefreshTokens: true,
             redirectUri: window.location.origin, // Simplified redirect
