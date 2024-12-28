@@ -34,8 +34,9 @@ const handleAuth0Callback = async () => {
             await auth0Client.handleRedirectCallback();
             // Update UI after successful login
             await updateUI();
-            // Remove the URL parameters
+            // Remove the URL parameters and redirect to clean URL
             window.history.replaceState({}, document.title, window.location.pathname);
+            window.location.reload(); // Add this to refresh the page after callback
         }
     } catch (err) {
         console.error('Error handling Auth0 callback:', err);
@@ -132,42 +133,50 @@ window.addEventListener('load', async () => {
             const user = await auth0Client.getUser();
             console.log('User session found:', user.email);
         }
+        await updateUI();
+        await handleAuth0Callback(); // Add this to handle any auth callbacks
     } catch (error) {
         console.error('Error during page load:', error);
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Create post link handler
-    const createPostLink = document.querySelector('.create-post-link, #createPostLink');
-    if (createPostLink) {
-        createPostLink.addEventListener('click', async (e) => {
-            if (!await auth0Client.isAuthenticated()) {
-                e.preventDefault();
-                const loginPrompt = document.getElementById('loginPrompt');
-                if (loginPrompt) {
-                    loginPrompt.style.display = 'block';
-                    setTimeout(() => {
-                        loginPrompt.style.display = 'none';
-                    }, 3000);
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Wait for Auth0 initialization first
+        if (!auth0Client) {
+            await initializeAuth0();
+        }
+        
+        // Then set up event listeners
+        const createPostLink = document.querySelector('.create-post-link, #createPostLink');
+        if (createPostLink) {
+            createPostLink.addEventListener('click', async (e) => {
+                if (!await auth0Client.isAuthenticated()) {
+                    e.preventDefault();
+                    const loginPrompt = document.getElementById('loginPrompt');
+                    if (loginPrompt) {
+                        loginPrompt.style.display = 'block';
+                        setTimeout(() => {
+                            loginPrompt.style.display = 'none';
+                        }, 3000);
+                    }
                 }
-            }
-        });
-    }
+            });
+        }
 
-    // Add login button handler
-    const loginButton = document.getElementById('login');
-    if (loginButton) {
-        loginButton.addEventListener('click', login);
-        console.log('Login button handler added');
-    } else {
-        console.warn('Login button not found');
-    }
-    
-    // Add logout button handler
-    const logoutButton = document.getElementById('logout');
-    if (logoutButton) {
-        logoutButton.addEventListener('click', logout);
-        console.log('Logout button handler added');
+        // Add login/logout button handlers
+        const loginButton = document.getElementById('login');
+        if (loginButton) {
+            loginButton.addEventListener('click', login);
+            console.log('Login button handler added');
+        }
+        
+        const logoutButton = document.getElementById('logout');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', logout);
+            console.log('Logout button handler added');
+        }
+    } catch (error) {
+        console.error('Error in DOMContentLoaded:', error);
     }
 });

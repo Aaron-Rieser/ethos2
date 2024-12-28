@@ -1,6 +1,9 @@
 MUST DO : 
-Auth won't allow posting 
+Auth on chrome and other devices not working / posting on safari works now tho
+Delay on getting some posts up - posted, in database, but take a few to get online 
 Auth on incognito 
+Login bar as sticky top nav with some other useful info or naw
+User stories and product mgmt focus 
 Auth user design of this and how it impacts posts
 New sign up page 
 Intro page description  / sell for new sign ups 
@@ -8,6 +11,7 @@ Center posts and fix all post look + feel
 - add a few other posts types
 Update all buttons and nav 
 Detect location and send to right feed as an intro task - try again
+Timeline. 75 days of 2025 til' launch or baunch 
 Add a news and one final rss feed
 map funcionality, full geo json file
 Change post design and account for more styles
@@ -35,6 +39,8 @@ RSS feeds
 
 
 RELEASE NOTES: 
+Auth won't allow posting 
+
 
 Authentication problems - moving between pages, etc - auth must remain between pages in the same app
 Login is now LIVE! Via Auth0, it only works on 1 page at a time lol. It's a start.
