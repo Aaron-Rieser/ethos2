@@ -1,5 +1,5 @@
 MUST DO : 
-Auth on chrome and other devices not working / posting on safari works now tho
+Change name on header 
 Delay on getting some posts up - posted, in database, but take a few to get online 
 Auth on incognito 
 Login bar as sticky top nav with some other useful info or naw
@@ -14,6 +14,7 @@ Detect location and send to right feed as an intro task - try again
 Timeline. 75 days of 2025 til' launch or baunch 
 Add a news and one final rss feed
 map funcionality, full geo json file
+- can AI make the map ??
 Change post design and account for more styles
 - including Toronto, London, Hamilton and Kingston to start, guelph?
 I- compression for large or near limit photos
@@ -39,9 +40,8 @@ RSS feeds
 
 
 RELEASE NOTES: 
-Auth won't allow posting 
-
-
+Auth on chrome fixed so now both chrome and safari works
+Auth won't allow posting fixed
 Authentication problems - moving between pages, etc - auth must remain between pages in the same app
 Login is now LIVE! Via Auth0, it only works on 1 page at a time lol. It's a start.
 Images are now LIVE!! Via Cloudinary, 25k images a month. Bit slow though, maybe look at AWS long term?
