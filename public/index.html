@@ -202,6 +202,29 @@
             margin-left: 10px;
             font-style: italic;
         }
+        .post {
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        @media screen and (max-width: 768px) {
+            .post {
+                margin: 20px 0; /* Remove horizontal margin */
+                padding: 15px 0; /* Remove horizontal padding */
+                border-left: none; /* Remove left border */
+                border-right: none; /* Remove right border */
+                border-radius: 0; /* Remove border radius */
+            }
+
+            .post img {
+                width: 100vw; /* Full viewport width */
+                margin-left: -15px; /* Offset the container padding */
+                margin-right: -15px;
+                max-width: none; /* Override any max-width */
+                border-radius: 0; /* Remove any border radius */
+            }
+        }
     </style>
 </head>
 <body>

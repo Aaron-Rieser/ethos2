@@ -1,19 +1,17 @@
 MUST DO : 
-- make a backup - without the steps for the env 
-Database is connected locally and the .env is ready 
-- need to add local domains to the auth0 and also verify the public problem 
-- maybe a server or express issue
-- test everything with the load in,
+Browser and device testing on the new env, plus testing with and without location
+- address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
+Then, make a backup - without the steps for the env 
+Images and posts should be full width, slight design update 
+Delay on getting some posts up - posted, in database, but take a few to get online 
 Fix the nav between map and posting
 - when you post, location should show
 -main page it should be detected
 - map it should offer an easy way to post on that page,
 - from that page offer easy way to post, and 
 - on feed make it way more obvious how to post right away
-Images and posts should be full width
 Add multiple post styles
 Create the new map, fix the (AI ? ) Hamilton, guelph, Kingston, London, Toronto. 
-Delay on getting some posts up - posted, in database, but take a few to get online 
 Login bar as sticky top nav with some other useful info or naw
 Update auth design
 User stories and product mgmt focus 
@@ -48,6 +46,8 @@ RSS feeds
 
 
 RELEASE NOTES: 
+Env for local database now fully firing
+- db = ethos_dev, 5432, Postgres, Natonato2, user = ethos test * check credentials
 Env for local database is partially added (login not working yet to fully post) 
 Auth on incognito 
 Changed name to scavenge 
