@@ -1,8 +1,10 @@
 MUST DO : 
 Browser and device testing on the new env, plus testing with and without location
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
+Font 
+Post size on desktop a bit wider. 
+Post design
 Then, make a backup - without the steps for the env 
-Images and posts should be full width, slight design update 
 Delay on getting some posts up - posted, in database, but take a few to get online 
 Fix the nav between map and posting
 - when you post, location should show
@@ -46,6 +48,7 @@ RSS feeds
 
 
 RELEASE NOTES: 
+Full width images on mobile and centred on desktop
 Env for local database now fully firing
 - db = ethos_dev, 5432, Postgres, Natonato2, user = ethos test * check credentials
 Env for local database is partially added (login not working yet to fully post) 

@@ -1,0 +1,12 @@
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Keep original font for auth elements */
+#login,
+#logout,
+#userProfile,
+.auth-container,
+.login-container {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
