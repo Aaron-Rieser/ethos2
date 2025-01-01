@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const pool = require('./db');
 const NodeCache = require('node-cache');
@@ -282,6 +284,10 @@ app.get('/api/posts', async (req, res) => {
         console.error('Error fetching content:', err.message);
         res.status(500).send('Server Error');
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: './public' });
 });
 
 const PORT = process.env.PORT || 3000;

@@ -1,29 +1,37 @@
 MUST DO : 
-Change name on header 
+- make a backup - without the steps for the env 
+Database is connected locally and the .env is ready 
+- need to add local domains to the auth0 and also verify the public problem 
+- maybe a server or express issue
+- test everything with the load in,
+Fix the nav between map and posting
+- when you post, location should show
+-main page it should be detected
+- map it should offer an easy way to post on that page,
+- from that page offer easy way to post, and 
+- on feed make it way more obvious how to post right away
+Images and posts should be full width
+Add multiple post styles
+Create the new map, fix the (AI ? ) Hamilton, guelph, Kingston, London, Toronto. 
 Delay on getting some posts up - posted, in database, but take a few to get online 
-Auth on incognito 
 Login bar as sticky top nav with some other useful info or naw
+Update auth design
 User stories and product mgmt focus 
 Auth user design of this and how it impacts posts
 New sign up page 
 Intro page description  / sell for new sign ups 
 Center posts and fix all post look + feel 
 - add a few other posts types
-Update all buttons and nav 
 Detect location and send to right feed as an intro task - try again
-Timeline. 75 days of 2025 til' launch or baunch 
+Timeline. 75 days of 2025 til' launch or baunch MARCH 21st
 Add a news and one final rss feed
 map funcionality, full geo json file
 - can AI make the map ??
-Change post design and account for more styles
-- including Toronto, London, Hamilton and Kingston to start, guelph?
 I- compression for large or near limit photos
 I- Speed 
 I- how how to handle image validation?
 I- Show how to handle image resizing
-.ENV backups for local dev testing
 Add ads 
-Login
 Geolocation api implementation to help reduce requests for location permission
 architecture costing - before all design
 Proper branding name, theme, logo
@@ -40,6 +48,9 @@ RSS feeds
 
 
 RELEASE NOTES: 
+Env for local database is partially added (login not working yet to fully post) 
+Auth on incognito 
+Changed name to scavenge 
 Auth on chrome fixed so now both chrome and safari works
 Auth won't allow posting fixed
 Authentication problems - moving between pages, etc - auth must remain between pages in the same app

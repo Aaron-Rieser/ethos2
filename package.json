@@ -4,7 +4,8 @@
   "main": "db.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrate": "node-pg-migrate"
   },
   "keywords": [],
   "author": "",
@@ -12,12 +13,14 @@
   "description": "",
   "dependencies": {
     "cloudinary": "^1.41.3",
+    "dotenv": "^16.4.7",
     "express": "^4.21.1",
     "express-oauth2-jwt-bearer": "^1.6.0",
     "feed-reader": "^6.1.4-rc1",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
     "node-cache": "^5.1.2",
+    "node-pg-migrate": "^7.8.0",
     "pg": "^8.13.1",
     "rss-parser": "^3.13.0"
   }
