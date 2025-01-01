@@ -1,7 +1,7 @@
 let auth0Client;
 
 const initializeAuth0 = async () => {
-    if (auth0Client) return auth0Client; // Return existing instance if available
+    if (auth0Client) return auth0Client;
     
     try {
         console.log('Initializing Auth0...');
@@ -9,16 +9,17 @@ const initializeAuth0 = async () => {
             domain: 'dev-g0wpwzacl04kb6eb.ca.auth0.com',
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
             cacheLocation: 'localstorage',
-            useRefreshTokens: true,
+            useRefreshTokens: true,  // Make sure this is true
             authorizationParams: {
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 redirect_uri: window.location.origin,
                 scope: 'openid profile email offline_access',
-                response_type: 'code'
+                response_type: 'code',
+                prompt: 'consent'  // Add this to ensure refresh token
             }
         });
         
-        await updateUI(); // Update UI immediately after initialization
+        await updateUI();
         return auth0Client;
     } catch (error) {
         console.error('Auth0 initialization error:', error);
@@ -98,7 +99,8 @@ const login = async () => {
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             authorizationParams: {
-                redirect_uri: window.location.href
+                redirect_uri: window.location.origin,  // Change from window.location.href
+                prompt: 'consent'  // Add this to ensure refresh token
             }
         });
         console.log('Login redirect initiated');
