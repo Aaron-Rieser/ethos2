@@ -1,6 +1,6 @@
 /* Import both fonts in fonts.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Badeen+Display&family=Jersey+15&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sixtyfour&display=swap');
 
 /* Global font settings */
 body {
@@ -11,7 +11,7 @@ body {
 h1, 
 .site-title,
 .main-title {
-    font-family: 'Jersey 15';
+    font-family: 'Sixtyfour';
 }
 
 /* Keep original font for auth elements */
@@ -24,7 +24,7 @@ h1,
 }
 
 h1 {
-    font-family: 'Jersey 15', sans-serif;
+    font-family: 'Sixtyfour', sans-serif;
     font-size: 2em; /* Base size for desktop */
 }
 
