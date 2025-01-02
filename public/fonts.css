@@ -22,3 +22,17 @@ h1,
 .login-container {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
+h1 {
+    font-family: 'Jersey 15', sans-serif;
+    font-size: 2em; /* Base size for desktop */
+}
+
+/* Mobile specific title styling */
+@media screen and (max-width: 768px) {
+    h1 {
+        font-size: 2.4em; /* 20% larger than desktop */
+        padding-left: 15px;
+        margin-left: 0;
+    }
+}
