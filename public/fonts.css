@@ -31,7 +31,7 @@ h1 {
 /* Mobile specific title styling */
 @media screen and (max-width: 768px) {
     h1 {
-        font-size: 2.4em; /* 20% larger than desktop */
+        font-size: 1.4em; /* 20% larger than desktop */
         padding-left: 15px;
         margin-left: 0;
     }
