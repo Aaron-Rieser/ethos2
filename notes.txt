@@ -1,7 +1,7 @@
 MUST DO : 
 Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
 Blind item focus: flip through items, serve from post, detective folder design
-Neighb vs Distance 
+Neighb vs Distance - whole approach may be more scalable on distance but how fun is that? See app ideas notes for full dump 
 Browser and device testing on the new env, plus testing with and without location
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
 Post size on desktop a bit wider. 
@@ -16,6 +16,7 @@ Fix the nav between map and posting
 - from that page offer easy way to post, and 
 - on feed make it way more obvious how to post right away
 Add multiple post styles
+Footer code, up high above scripts - poor formatting now potentially 
 Create the new map, fix the (AI ? ) Hamilton, guelph, Kingston, London, Toronto. 
 Login bar as sticky top nav with some other useful info or naw
 Update auth design

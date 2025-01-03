@@ -57,7 +57,8 @@
 
         /* Adjust map height to account for nav bar */
         #map {
-            height: calc(100vh - 50px);
+            height: calc(100vh - 60px);
+            margin-top: 60px; /* Add this to push content below header */
             width: 100%;
         }
 
@@ -101,17 +102,73 @@
             margin-left: 10px;
             font-style: italic;
         }
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .site-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3388ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        @media screen and (max-width: 768px) {
+            #map {
+                height: calc(100vh - 50px);
+                margin-top: 50px; /* Add this to push content below header */
+            }
+        }
+
     </style>
 </head>
 <body>
     
-    <h1>gumshoe</h1>
-    <div class="auth-container">
-        <button id="login">Log In</button>
-        <button id="logout" onclick="logout()" style="display: none">Log Out</button>
-        <span id="userProfile"></span>
-    </div>
-    <div id="map"></div>
+    <header class="sticky-header">
+        <div class="header-content">
+            <h1 class="site-title">gumshoe</h1>
+            <div class="auth-section">
+                <button id="login" onclick="login()">Log In</button>                
+                <button id="logout" onclick="logout()" style="display: none">Log Out</button>
+                <div id="userInitial" class="user-circle" style="display: none"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div id="map"></div>
+    </main>
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

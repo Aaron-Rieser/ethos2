@@ -222,6 +222,57 @@
             margin-top: 15px;
             text-align: left;
         }
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .site-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3388ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-top: 60px; /* Adjust based on header height */
+            padding: 20px 15px;
+        }
+
+        /* Update existing auth container styles */
+        .auth-container {
+            margin-bottom: 0;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -251,6 +302,13 @@
                 margin: 0;
                 padding: 0;
                 display: block;
+            }
+            .header-content {
+                padding: 0 10px;
+            }
+
+            .main-content {
+                margin-top: 30px; /* Adjust based on header height */
             }
 
             /* Add padding only to text elements */
@@ -298,33 +356,42 @@
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <button id="login">Log In</button>
-        <button id="logout" onclick="logout()" style="display: none">Log Out</button>
-        <span id="userProfile"></span>
-    </div>
-    <div style="display: flex; justify-content: center; min-height: 100vh;">
-        <div style="text-align: left;">
-            <h1>gumshoe</h1>
-            <nav>
-                <a href="/map.html">Choose  neighbourhood feed</a>
-                <a href="/create.html" id="createPostLink">Create New Post</a>                               
-            </nav>
-
-            <div id="loginPrompt" class="error-message" style="display: none;">
-                Please log in to create a post
-            </div>
-            
-            <div id="filter-info" class="filter-info">
-                Showing posts from: <span id="current-filter"></span>
-                <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
-            </div>
-
-            <div id="posts-container">
-                <!-- Posts will be inserted here -->
+    <header class="sticky-header">
+        <div class="header-content">
+            <h1 class="site-title">gumshoe</h1>
+            <div class="auth-section">
+                <button id="login" onclick="login()">Log In</button>                
+                <button id="logout" onclick="logout()" style="display: none">Log Out</button>
+                <div id="userInitial" class="user-circle" style="display: none"></div>
             </div>
         </div>
-    </div>
+    </header>
+
+    <main class="main-content">
+
+        <div style="display: flex; justify-content: center; min-height: 100vh;">
+            <div style="text-align: left;">
+                <nav>
+                    <a href="/map.html">Choose  neighbourhood feed</a>
+                    <a href="/create.html" id="createPostLink">Create New Post</a>                               
+                </nav>
+
+                <div id="loginPrompt" class="error-message" style="display: none;">
+                    Please log in to create a post
+                </div>
+                
+                <div id="filter-info" class="filter-info">
+                    Showing posts from: <span id="current-filter"></span>
+                    <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
+                </div>
+
+                <div id="posts-container">
+                    <!-- Posts will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <script>
         // Function to parse URL parameters

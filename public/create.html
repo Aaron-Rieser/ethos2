@@ -74,48 +74,166 @@
             margin-left: 10px;
             font-style: italic;
         }
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .site-title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3388ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .main-content {
+            margin-top: 60px; /* Keep the header margin */
+            min-height: calc(100vh - 120px); /* Viewport height minus header and bottom nav */
+            padding: 20px 15px;
+            display: flex;
+            align-items: center;
+        }
+        .form-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5vh;
+            text-align: left; /* Align all content left */
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        select, input[type="text"], textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            max-width: 400px;
+            margin: 10pxauto;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Navigation links spacing */
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start; /* Align links to the left */
+            margin-bottom: 3vh;
+        }
+
+        .nav-links a {
+            text-align: left;
+            color: #064eb5;
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Submit button styling */
+        button[type="submit"] {
+            background-color: #3388ff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 3vh;
+        }
+
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <button id="login">Log In</button>
-        <button id="logout" onclick="logout()" style="display: none">Log Out</button>
-        <span id="userProfile"></span>
-    </div>
-    <div style="text-align: center;">
-        <h1>gumshoe</h1>
-        <h2>create a new post</h2>
-        <nav>
-            <div style="margin-bottom: 20px;">
+    <header class="sticky-header">
+        <div class="header-content">
+            <h1 class="site-title">gumshoe</h1>
+            <div class="auth-section">
+                <button id="login" onclick="login()">Log In</button>                
+                <button id="logout" onclick="logout()" style="display: none">Log Out</button>
+                <div id="userInitial" class="user-circle" style="display: none"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="form-container">
+            <h2>create a new post</h2>
+            
+            <nav class="nav-links">
                 <a href="/index.html">View All Posts</a>
                 <a href="/map.html">Choose my location</a>
-            </div>        
-        </nav>
-    
-        <form id="postForm">
-            <div style="margin-bottom: 20px;">
-                <label for="neighbourhood">Neighbourhood:</label>
-                <select id="neighbourhood" name="neighbourhood" required>
-                    <option value="">Select a neighbourhood</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            </div>
-            <div style="margin-bottom: 20px;">
-                <label for="post">Post:</label>
-                <textarea id="post" name="post" required></textarea>
-            </div>
-            <div class="form-group">
-                <label for="image">Image (optional):</label>
-                <input type="file" id="image" name="image" accept="image/*">
-            </div>
-            <button type="submit">Submit</button>
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
-            <div id="loadingIndicator" style="display: none;">Uploading your post...</div>
-        </form>
-    </div>
+            </nav>
+        
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="neighbourhood">Neighbourhood:</label>
+                    <select id="neighbourhood" name="neighbourhood" required>
+                        <option value="">Select a neighbourhood</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="post">Post:</label>
+                    <textarea id="post" name="post" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Image (optional):</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                
+                <button type="submit">Submit</button>
+                
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="loadingIndicator" style="display: none;">Uploading your post...</div>
+            </form>
+        </div>
+    </main>
+
     <script src="neighborhoods.js"></script>
 
     <script>
