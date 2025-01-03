@@ -18,7 +18,10 @@ h2 {
     font-family: 'Sixtyfour';
     font-size: 1em;
 }
-
+.bottom-nav a {
+    font-family: 'Sixtyfour', system-ui;
+    font-size: 0.7em; /* You might want to adjust size since Sixtyfour is quite bold */
+}
 /* Keep original font for auth elements */
 #login,
 #logout,
