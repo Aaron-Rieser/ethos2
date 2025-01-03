@@ -1,8 +1,11 @@
 MUST DO : 
+Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
+Blind item focus: flip through items, serve from post, detective folder design
+Neighb vs Distance 
 Browser and device testing on the new env, plus testing with and without location
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
-Font 
 Post size on desktop a bit wider. 
+Logo jockeying in and out to correct position on all devices, and definitely desktop
 Post design
 Then, make a backup - without the steps for the env 
 Delay on getting some posts up - posted, in database, but take a few to get online 
@@ -36,6 +39,7 @@ Geolocation api implementation to help reduce requests for location permission
 architecture costing - before all design
 Proper branding name, theme, logo
 DESIGN SPRINT!
+- all fonts 
 Wilbur
 Add payment function for service
 launch
@@ -44,6 +48,7 @@ Pitch
 RSS feeds
 - bandsintown paid tier, dice.fm partnership, exclaim! Magazine
 - libraries 
+
 
 
 
