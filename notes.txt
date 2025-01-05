@@ -1,9 +1,8 @@
 MUST DO : 
 Username default to the email, can be changed from the header site section and add this to the comment itself
 Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
-Commenting design, too crowded
-Move logout to a menu from the profile
-Menu to show username and logout 
+Commenting design, too crowded - click to comment, something unique to gumshoe
+Menu to show username  
 Second menu somewhere for site actions 
 Commenting, with db and user profiles, how to integrate? 2 db's? Multiple? Make comments work 
 Splash page 
@@ -18,7 +17,7 @@ Browser and device testing on the new env, plus testing with and without locatio
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
 Post size on desktop a bit wider. 
 Logo jockeying in and out to correct position on all devices, and definitely desktop
-Post design
+Post design - something more unique 
 Then, make a backup - without the steps for the env 
 Delay on getting some posts up - posted, in database, but take a few to get online 
 Fix the nav between map and posting
