@@ -88,8 +88,8 @@ const updateUI = async () => {
         const loginButton = document.getElementById('login');
         const userProfile = document.getElementById('userProfile');
         const userCircle = document.getElementById('userInitial');
+        const userEmailDisplay = document.querySelector('.dropdown-content .user-email');
         
-        // Check each element individually before using it
         if (loginButton) {
             loginButton.style.display = isAuthenticated ? 'none' : 'block';
         }
@@ -102,14 +102,19 @@ const updateUI = async () => {
                 userProfile.textContent = user.email;
             }
             if (userCircle) {
-                const initial = user.email.charAt(0).toUpperCase();
+                const initial = user.email[0].toUpperCase();
                 userCircle.textContent = initial;
                 userCircle.style.display = 'flex';
-                userCircle.title = user.email;  // Keep this for tooltip functionality
+                userCircle.title = user.email;
+            }
+            if (userEmailDisplay) {
+                const truncatedEmail = user.email.split('@')[0];
+                userEmailDisplay.textContent = truncatedEmail;
             }
         } else {
             if (userProfile) userProfile.textContent = '';
             if (userCircle) userCircle.style.display = 'none';
+            if (userEmailDisplay) userEmailDisplay.textContent = '';
         }
     } catch (err) {
         console.error('Error updating UI:', err);

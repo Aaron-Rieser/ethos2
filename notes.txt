@@ -16,6 +16,7 @@ Neighb vs Distance - whole approach may be more scalable on distance but how fun
 Browser and device testing on the new env, plus testing with and without location
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
 Post size on desktop a bit wider. 
+Shared css file for styles 
 Logo jockeying in and out to correct position on all devices, and definitely desktop
 Post design - something more unique 
 Then, make a backup - without the steps for the env 

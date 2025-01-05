@@ -215,6 +215,12 @@
         .show {
             display: block;
         }
+        .dropdown-content .user-email {
+            display: block;
+            padding: 12px 16px;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
 
     </style>
 </head>
@@ -228,6 +234,7 @@
                 <div class="user-dropdown">
                     <div id="userInitial" class="user-circle" style="display: none"></div>
                     <div class="dropdown-content">
+                        <span class="user-email"></span>
                         <a href="#" onclick="logout()">Logout</a>
                     </div>
                 </div>
