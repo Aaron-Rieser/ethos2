@@ -1,5 +1,7 @@
 MUST DO : 
+Username default to the email, can be changed from the header site section and add this to the comment itself
 Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
+Commenting design, too crowded
 Move logout to a menu from the profile
 Menu to show username and logout 
 Second menu somewhere for site actions 
@@ -64,7 +66,7 @@ RSS feeds
 
 
 
-RELEASE NOTES: 
+RELEASE NOTES (OLD - migrated over to separate local file, NO LONGER UPDATED)
 Full width images on mobile and centred on desktop
 Env for local database now fully firing
 - db = ethos_dev, 5432, Postgres, Natonato2, user = ethos test * check credentials

@@ -86,16 +86,12 @@ const updateUI = async () => {
         console.log('Auth status:', isAuthenticated);
         
         const loginButton = document.getElementById('login');
-        const logoutButton = document.getElementById('logout');
         const userProfile = document.getElementById('userProfile');
         const userCircle = document.getElementById('userInitial');
         
         // Check each element individually before using it
         if (loginButton) {
             loginButton.style.display = isAuthenticated ? 'none' : 'block';
-        }
-        if (logoutButton) {
-            logoutButton.style.display = isAuthenticated ? 'block' : 'none';
         }
         
         if (isAuthenticated) {
@@ -109,7 +105,7 @@ const updateUI = async () => {
                 const initial = user.email.charAt(0).toUpperCase();
                 userCircle.textContent = initial;
                 userCircle.style.display = 'flex';
-                userCircle.title = user.email;
+                userCircle.title = user.email;  // Keep this for tooltip functionality
             }
         } else {
             if (userProfile) userProfile.textContent = '';

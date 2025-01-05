@@ -53,14 +53,19 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
     try {
         const { postId } = req.params;
         console.log('Fetching comments for post:', postId); // Add this
+        console.log('Request received for comments, URL:', req.url);  // Safe to add
+        console.log('PostId:', postId);  // Safe to add
+        console.log('Request headers:', req.headers);  // Safe to add
         const comments = await pool.query(
             'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC',
             [postId]
         );
         console.log('Found comments:', comments.rows); // Add this
+        console.log('Query executed, found comments:', comments.rows.length);  // Safe to add
         res.json(comments.rows);
     } catch (error) {
         console.error('Error fetching comments:', error);
+        console.error('Detailed error in comments:', error);  // Safe to add
         res.status(500).json({ error: 'Error fetching comments' });
     }
 });
