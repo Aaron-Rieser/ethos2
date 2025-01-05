@@ -274,6 +274,52 @@
             margin-bottom: 0;
         }
 
+        .comments-section {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .comment {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .comment-user {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .comment-text {
+            margin: 5px 0;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .comment-form button {
+            padding: 8px 16px;
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .comment-form button:hover {
+            background-color: #2266dd;
+        }
+
         @media screen and (max-width: 768px) {
             body {
                 overflow-x: hidden;
@@ -494,19 +540,88 @@
             const postDiv = document.createElement('div');
             postDiv.className = 'post post-card';
             
-            let imageHtml = '';
-            if (post.image_url) {
-                imageHtml = `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">`;
-            }
+            let imageHtml = post.image_url 
+                ? `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
+                : '';
             
             postDiv.innerHTML = `
                 <div class="post-content">
                     <p>${post.post}</p>
                     ${imageHtml}
                     <small>Posted by ${post.username} in ${post.neighbourhood}</small>
+                    
+                    <div class="comments-section">
+                        <div class="comments-container" id="comments-${post.id}"></div>
+                        <form class="comment-form" onsubmit="submitComment(event, ${post.id})">
+                            <input type="text" class="comment-input" placeholder="Add a comment..." required>
+                            <button type="submit">Comment</button>
+                        </form>
+                    </div>
                 </div>
             `;
+
+            // Load comments for this post
+            loadComments(post.id);
+            
             return postDiv;
+        }
+
+        async function loadComments(postId) {
+            try {
+                // Make sure this URL matches your server endpoint
+                const response = await fetch(`/api/posts/${postId}/comments`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const comments = await response.json();
+                
+                const commentsContainer = document.getElementById(`comments-${postId}`);
+                if (commentsContainer) {  // Add null check for container
+                    commentsContainer.innerHTML = comments.map(comment => `
+                        <div class="comment">
+                            <small class="comment-user">${comment.username}</small>
+                            <p class="comment-text">${comment.comment}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+
+        async function submitComment(event, postId) {
+            event.preventDefault();
+            
+            if (!await auth0Client.isAuthenticated()) {
+                document.getElementById('loginPrompt').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('loginPrompt').style.display = 'none';
+                }, 3000);
+                return;
+            }
+
+            const form = event.target;
+            const input = form.querySelector('.comment-input');
+            const comment = input.value;
+
+            try {
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ post_id: postId, comment })
+                });
+
+                if (response.ok) {
+                    input.value = ''; // Clear input
+                    await loadComments(postId); // Reload comments
+                }
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+            }
         }
 
         function createFeedElement(item) {

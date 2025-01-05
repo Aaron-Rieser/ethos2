@@ -49,6 +49,49 @@ const checkJwt = auth({
     issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
 });
 
+app.get('/api/posts/:postId/comments', async (req, res) => {
+    try {
+        const { postId } = req.params;
+        console.log('Fetching comments for post:', postId); // Add this
+        const comments = await pool.query(
+            'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC',
+            [postId]
+        );
+        console.log('Found comments:', comments.rows); // Add this
+        res.json(comments.rows);
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        res.status(500).json({ error: 'Error fetching comments' });
+    }
+});
+
+app.post('/api/comments', checkJwt, async (req, res) => {
+    try {
+        const { post_id, comment } = req.body;
+
+        if (!post_id || !comment) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (comment.length > 750) { // or whatever limit you want
+            return res.status(400).json({ error: 'Comment too long' });
+        }
+
+        const user_id = req.auth.payload.sub;  // Change this line too
+        const username = req.auth.payload.email;  // And this line
+
+        const result = await pool.query(
+            'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
+            [post_id, comment, user_id, username]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ error: 'Error adding comment' });
+    }
+});
+
 // 3. Cloudinary configuration MUST come before storage and upload
 try {
     cloudinary.config({

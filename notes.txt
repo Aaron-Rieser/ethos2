@@ -1,6 +1,16 @@
 MUST DO : 
 Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
+Move logout to a menu from the profile
+Menu to show username and logout 
+Second menu somewhere for site actions 
+Commenting, with db and user profiles, how to integrate? 2 db's? Multiple? Make comments work 
+Splash page 
+Yogumshoe.com ? Or something else. Go gumshoe, gumshoe talk etc.
+On local env the traffic is above posts erroneously 
 Blind item focus: flip through items, serve from post, detective folder design
+Blind for all post types too, article, deals etc. 
+Content moderation tool for backend or other users? Some system for staff, me or other users to vet posts
+Hidden dashboard of stats
 Neighb vs Distance - whole approach may be more scalable on distance but how fun is that? See app ideas notes for full dump 
 Browser and device testing on the new env, plus testing with and without location
 - address null error if persistent: 'error: invalid input syntax for type numeric: "null" ' may be when people do not let locaition be shared
@@ -26,6 +36,7 @@ New sign up page
 Intro page description  / sell for new sign ups 
 Center posts and fix all post look + feel 
 - add a few other posts types
+Proper posting algorithm that populates this with content 
 Detect location and send to right feed as an intro task - try again
 Timeline. 75 days of 2025 til' launch or baunch MARCH 21st
 Add a news and one final rss feed
