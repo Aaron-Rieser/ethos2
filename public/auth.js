@@ -39,6 +39,20 @@ const handleAuth0Callback = async () => {
                 const user = await auth0Client.getUser();
                 console.log('User authenticated:', user);
                 
+                // Create/update account in database
+                try {
+                    const token = await auth0Client.getTokenSilently();
+                    await fetch('/api/account', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error creating/updating account:', error);
+                }
+                
                 // Explicitly update UI elements
                 const loginButton = document.getElementById('login');
                 const logoutButton = document.getElementById('logout');
@@ -62,6 +76,10 @@ const handleAuth0Callback = async () => {
 
 const getAuthToken = async () => {
     try {
+        if (!auth0Client) {
+            throw new Error('Auth0 client not initialized');
+        }
+        
         if (await auth0Client.isAuthenticated()) {
             const token = await auth0Client.getTokenSilently({
                 timeoutInSeconds: 60,
@@ -74,8 +92,9 @@ const getAuthToken = async () => {
         if (err.error === 'login_required') {
             console.log('Session expired, redirecting to login...');
             await login();
+        } else {
+            console.error('Error getting auth token:', err);
         }
-        console.error('Error getting auth token:', err);
         return null;
     }
 };
@@ -207,6 +226,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const userInitial = document.getElementById('userInitial');
+        if (userInitial) {
+            // Toggle dropdown when clicking user circle
+            userInitial.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const dropdown = document.querySelector('.dropdown-content');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            });
+
+            // Close dropdown when clicking anywhere else
+            window.addEventListener('click', () => {
+                const dropdown = document.querySelector('.dropdown-content');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+        
         // Add login/logout button handlers
         const loginButton = document.getElementById('login');
         if (loginButton) {

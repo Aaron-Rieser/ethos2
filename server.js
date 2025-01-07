@@ -9,7 +9,10 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-
+const authenticateJWT = auth({
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
+});
 // Verify required environment variables
 const requiredEnvVars = [
     'CLOUDINARY_CLOUD_NAME',
@@ -43,59 +46,6 @@ const parser = new RSSParser();
 
 app.use(express.json());
 app.use(express.static('public'));
-
-const checkJwt = auth({
-    audience: process.env.AUTH0_AUDIENCE,
-    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-});
-
-app.get('/api/posts/:postId/comments', async (req, res) => {
-    try {
-        const { postId } = req.params;
-        console.log('Fetching comments for post:', postId); // Add this
-        console.log('Request received for comments, URL:', req.url);  // Safe to add
-        console.log('PostId:', postId);  // Safe to add
-        console.log('Request headers:', req.headers);  // Safe to add
-        const comments = await pool.query(
-            'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC',
-            [postId]
-        );
-        console.log('Found comments:', comments.rows); // Add this
-        console.log('Query executed, found comments:', comments.rows.length);  // Safe to add
-        res.json(comments.rows);
-    } catch (error) {
-        console.error('Error fetching comments:', error);
-        console.error('Detailed error in comments:', error);  // Safe to add
-        res.status(500).json({ error: 'Error fetching comments' });
-    }
-});
-
-app.post('/api/comments', checkJwt, async (req, res) => {
-    try {
-        const { post_id, comment } = req.body;
-
-        if (!post_id || !comment) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        if (comment.length > 750) { // or whatever limit you want
-            return res.status(400).json({ error: 'Comment too long' });
-        }
-
-        const user_id = req.auth.payload.sub;  // Change this line too
-        const username = req.auth.payload.email;  // And this line
-
-        const result = await pool.query(
-            'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
-            [post_id, comment, user_id, username]
-        );
-
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error adding comment:', error);
-        res.status(500).json({ error: 'Error adding comment' });
-    }
-});
 
 // 3. Cloudinary configuration MUST come before storage and upload
 try {
@@ -131,6 +81,149 @@ const upload = multer({
     storage: storage,
     limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
+    }
+});
+
+app.get('/api/posts/:postId/comments', async (req, res) => {
+    try {
+        const { postId } = req.params;
+        console.log('Fetching comments for post:', postId);
+        console.log('Request received for comments, URL:', req.url);
+        console.log('PostId:', postId);
+        console.log('Request headers:', req.headers);
+
+        const comments = await pool.query(
+            'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC',
+            [postId]
+        );
+
+        console.log('Found comments:', comments.rows);
+        console.log('Query executed, found comments:', comments.rows.length);
+        
+        res.json(comments.rows);
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        console.error('Detailed error in comments:', error);
+        res.status(500).json({ error: 'Error fetching comments' });
+    }
+});
+
+app.post('/api/comments', authenticateJWT, async (req, res) => {
+    try {
+        const { post_id, comment } = req.body;
+        const user_id = req.auth.payload.sub;   // Changed from req.user.sub
+        if (comment.length > 1000) {
+            return res.status(400).json({ error: 'Comment too long' });
+        }
+        
+        const userResult = await pool.query(
+            'SELECT username FROM accounts WHERE auth0_id = $1',
+            [user_id]
+        );
+        console.log('Account lookup result:', userResult.rows);
+
+        if (!userResult.rows[0]) {
+            // Create account if it doesn't exist
+            const email = req.auth.payload.email;  // Changed from req.user.email
+            const username = email.split('@')[0];
+            await pool.query(
+                'INSERT INTO accounts (auth0_id, email, username) VALUES ($1, $2, $3)',
+                [user_id, email, username]
+            );
+        }
+
+        const username = userResult.rows[0]?.username || req.auth.payload.email.split('@')[0];
+
+        const result = await pool.query(
+            'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
+            [post_id, comment, user_id, username]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        res.status(500).json({ error: 'Error adding comment' });
+    }
+});
+
+app.post('/api/account', authenticateJWT, async (req, res) => {
+    try {
+        const auth0_id = req.auth.payload.sub;  // Changed from req.user.sub
+        const email = req.auth.payload.email;   // Changed from req.user.email
+        const userResult = await pool.query(
+            'SELECT username FROM accounts WHERE auth0_id = $1',
+            [auth0_id]  // Changed from user_id
+        );
+        console.log('Account lookup result:', userResult.rows);
+        const username = email.split('@')[0];
+
+        const result = await pool.query(
+            `INSERT INTO accounts (auth0_id, email, username) 
+             VALUES ($1, $2, $3)
+             ON CONFLICT (auth0_id) 
+             DO UPDATE SET email = $2, username = $3
+             RETURNING *`,
+            [auth0_id, email, username]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error managing account:', error);
+        res.status(500).json({ error: 'Error managing account' });
+    }
+});
+
+app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
+    try {
+        const user_id = req.auth.payload.sub;   // Changed from req.user.sub
+        console.log('Received file:', req.file);
+        const { neighbourhood, post, latitude, longitude } = req.body;
+        
+        const userResult = await pool.query(
+            'SELECT username FROM accounts WHERE auth0_id = $1',
+            [user_id]
+        );
+        console.log('Account lookup result:', userResult.rows);
+        
+        if (!userResult.rows[0]) {
+            // Create account if it doesn't exist
+            const email = req.auth.payload.email;  // Changed from req.user.email
+            const username = email.split('@')[0];
+            await pool.query(
+                'INSERT INTO accounts (auth0_id, email, username) VALUES ($1, $2, $3)',
+                [user_id, email, username]
+            );
+        }
+
+        const username = userResult.rows[0]?.username || req.auth.payload.email.split('@')[0];
+        
+        if (!neighbourhood || !post) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const image_url = req.file ? req.file.path : null;
+        const query = `
+            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url, user_id) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            RETURNING *
+        `;
+        
+        const values = [neighbourhood, username, post, latitude, longitude, image_url, user_id];
+        const result = await pool.query(query, values);
+        
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Detailed error:', err);
+        if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                error: 'File too large', 
+                details: 'Maximum file size is 5MB' 
+            });
+        }
+        if (err.name === 'MulterError') {
+            return res.status(400).json({ error: 'File upload error', details: err.message });
+        }
+        res.status(500).json({ error: 'Server Error', details: err.message });
     }
 });
 
@@ -243,44 +336,6 @@ async function fetchAllFeeds() {
         return [];
     }
 }
-
-app.post('/api/posts', checkJwt, upload.single('image'), async (req, res) => {    
-    try {
-        // Get user ID from the Auth0 token
-        const userId = req.auth.payload.sub;
-        
-        console.log('Received file:', req.file);
-        const { neighbourhood, username, post, latitude, longitude } = req.body;
-        
-        if (!neighbourhood || !username || !post) {
-            return res.status(400).json({ error: 'Missing required fields' });
-        }
-
-        const image_url = req.file ? req.file.path : null;
-        const query = `
-            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url, user_id) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
-            RETURNING *
-        `;
-        
-        const values = [neighbourhood, username, post, latitude, longitude, image_url, userId];
-        const result = await pool.query(query, values);
-        
-        res.json(result.rows[0]);
-    } catch (err) {
-        console.error('Detailed error:', err);
-        if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(400).json({ 
-                error: 'File too large', 
-                details: 'Maximum file size is 5MB' 
-            });
-        }
-        if (err.name === 'MulterError') {
-            return res.status(400).json({ error: 'File upload error', details: err.message });
-        }
-        res.status(500).json({ error: 'Server Error', details: err.message });
-    }
-});
 
 // Modified GET endpoint to include feeds
 app.get('/api/posts', async (req, res) => {
