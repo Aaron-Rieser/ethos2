@@ -9,15 +9,23 @@ const initializeAuth0 = async () => {
             domain: 'dev-g0wpwzacl04kb6eb.ca.auth0.com',
             clientId: '8sx5KNflhuxg6zCpE0yQK3hutmjLLQ16',
             cacheLocation: 'localstorage',
-            useRefreshTokens: true,  // Make sure this is true
+            useRefreshTokens: true,
             authorizationParams: {
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 redirect_uri: window.location.origin,
                 scope: 'openid profile email offline_access',
                 response_type: 'code',
-                prompt: 'consent'  // Add this to ensure refresh token
+                prompt: 'consent'
             }
         });
+        
+        // Check if we need to handle a callback
+        if (window.location.search.includes('code=') && 
+            window.location.search.includes('state=')) {
+            // Handle the redirect and retrieve tokens
+            await auth0Client.handleRedirectCallback();
+            window.history.replaceState({}, document.title, window.location.origin);
+        }
         
         await updateUI();
         return auth0Client;
@@ -148,8 +156,10 @@ const login = async () => {
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             authorizationParams: {
-                redirect_uri: window.location.origin,  // Change from window.location.href
-                prompt: 'consent'  // Add this to ensure refresh token
+                redirect_uri: window.location.origin,
+                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                scope: 'openid profile email offline_access',
+                prompt: 'consent'
             }
         });
         console.log('Login redirect initiated');
@@ -245,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
-        
+
         // Add login/logout button handlers
         const loginButton = document.getElementById('login');
         if (loginButton) {
