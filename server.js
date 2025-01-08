@@ -111,29 +111,16 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
 app.post('/api/comments', authenticateJWT, async (req, res) => {
     try {
         const { post_id, comment } = req.body;
-        const user_id = req.auth.payload.sub;   // Changed from req.user.sub
+        const user_id = req.auth.payload.sub;
+        const email = req.auth.payload.email;
+
         if (comment.length > 1000) {
             return res.status(400).json({ error: 'Comment too long' });
         }
+
+        // Use the helper function to ensure user account exists
+        const username = await ensureUserAccount(user_id, email);
         
-        const userResult = await pool.query(
-            'SELECT username FROM accounts WHERE auth0_id = $1',
-            [user_id]
-        );
-        console.log('Account lookup result:', userResult.rows);
-
-        if (!userResult.rows[0]) {
-            // Create account if it doesn't exist
-            const email = req.auth.payload.email;  // Changed from req.user.email
-            const username = email.split('@')[0];
-            await pool.query(
-                'INSERT INTO accounts (auth0_id, email, username) VALUES ($1, $2, $3)',
-                [user_id, email, username]
-            );
-        }
-
-        const username = userResult.rows[0]?.username || req.auth.payload.email.split('@')[0];
-
         const result = await pool.query(
             'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
             [post_id, comment, user_id, username]
@@ -173,41 +160,51 @@ app.post('/api/account', authenticateJWT, async (req, res) => {
     }
 });
 
+async function ensureUserAccount(user_id, email) {
+    if (!email) {
+        throw new Error('No email found in token payload');
+    }
+    if (!user_id) {
+        throw new Error('No user_id provided');
+    }
+
+    try {
+        const username = email.split('@')[0];
+        const result = await pool.query(
+            `INSERT INTO accounts (auth0_id, email, username) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (auth0_id) 
+             DO UPDATE SET email = $2, username = $3
+             RETURNING username`,
+            [user_id, email, username]
+        );
+        return result.rows[0].username;
+    } catch (error) {
+        console.error('Error ensuring user account:', error);
+        throw new Error('Failed to create/update user account');
+    }
+}
+
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
         const user_id = req.auth.payload.sub;
         const email = req.auth.payload.email;
-
-        if (!email) {
-            console.error('No email found in token payload:', req.auth.payload);
-            return res.status(400).json({ error: 'User email not found' });
-        }
-
+        
+        // Ensure user has an account (this handles all the account creation/verification)
+        const username = await ensureUserAccount(user_id, email);
+        
         console.log('Received file:', req.file);
         const { neighbourhood, post, latitude, longitude } = req.body;
         
-        const userResult = await pool.query(
-            'SELECT username FROM accounts WHERE auth0_id = $1',
-            [user_id]
-        );
-        console.log('Account lookup result:', userResult.rows);
-        
-        if (!userResult.rows[0]) {
-            // Create account if it doesn't exist
-            const username = email.split('@')[0];
-            await pool.query(
-                'INSERT INTO accounts (auth0_id, email, username) VALUES ($1, $2, $3)',
-                [user_id, email, username]
-            );
-        }
-
-        const username = userResult.rows[0]?.username || email.split('@')[0];
-        
+        // Validate required fields
         if (!neighbourhood || !post) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // Handle image upload
         const image_url = req.file ? req.file.path : null;
+        
+        // Create the post
         const query = `
             INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url, user_id) 
             VALUES ($1, $2, $3, $4, $5, $6, $7) 
