@@ -333,11 +333,15 @@
             display: none;
             position: absolute;
             right: 0;
+            top: 100%; /* Position below the user circle */
             background-color: #f9f9f9;
-            min-width: 120px;
+            min-width: 160px;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-            border-radius: 4px;
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block !important; /* Use !important to override any other display settings */
         }
 
         .dropdown-content a {
@@ -448,13 +452,12 @@
         <div class="header-content">
             <h1 class="site-title">gumshoe</h1>
             <div class="auth-section">
-                <button id="login" onclick="login()">Log In</button>
-                <!-- Remove the logout button and add dropdown -->
+                <button id="login">Log In</button>
                 <div class="user-dropdown">
-                    <div id="userInitial" class="user-circle" style="display: none"></div>
+                    <div id="userInitial" class="user-circle" style="display: none;"></div>
                     <div class="dropdown-content">
                         <span class="user-email"></span>
-                        <a href="#" onclick="logout()">Logout</a>
+                        <button id="logout">Logout</button>
                     </div>
                 </div>
             </div>

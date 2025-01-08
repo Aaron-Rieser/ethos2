@@ -238,19 +238,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const userInitial = document.getElementById('userInitial');
         if (userInitial) {
-            // Toggle dropdown when clicking user circle
             userInitial.addEventListener('click', (e) => {
+                console.log('userInitial clicked');
                 e.stopPropagation();
                 const dropdown = document.querySelector('.dropdown-content');
+                console.log('Found dropdown:', dropdown);
+                
+                // More explicit class handling
                 if (dropdown) {
-                    dropdown.classList.toggle('show');
+                    const isCurrentlyShown = dropdown.classList.contains('show');
+                    console.log('Currently shown:', isCurrentlyShown);
+                    
+                    if (isCurrentlyShown) {
+                        dropdown.style.display = 'none';
+                        dropdown.classList.remove('show');
+                    } else {
+                        dropdown.style.display = 'block';
+                        dropdown.classList.add('show');
+                    }
+                    
+                    console.log('New display style:', dropdown.style.display);
+                    console.log('New classes:', dropdown.classList);
                 }
             });
-
+        
             // Close dropdown when clicking anywhere else
             window.addEventListener('click', () => {
                 const dropdown = document.querySelector('.dropdown-content');
-                if (dropdown && dropdown.classList.contains('show')) {
+                if (dropdown) {
+                    dropdown.style.display = 'none';
                     dropdown.classList.remove('show');
                 }
             });

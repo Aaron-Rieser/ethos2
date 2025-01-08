@@ -1,4 +1,11 @@
 MUST DO : 
+ACCOUNTS TABLE AND SHORTHAND 
+
+- commenting after logging back IN looks like working. Syntax for comment username all messed up: null type of error
+- Posting no
+- dropdown no
+- Debug all, console log all, and check new accounts creation.
+
 User problem based: the daily item. A daily thing that binds the neighburhood together. 
 - just one idea. Fall in love with the problem, not the solution.
 Username default to the email, can be changed from the header site section and add this to the comment itself
