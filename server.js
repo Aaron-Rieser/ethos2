@@ -175,7 +175,14 @@ app.post('/api/account', authenticateJWT, async (req, res) => {
 
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
-        const user_id = req.auth.payload.sub;   // Changed from req.user.sub
+        const user_id = req.auth.payload.sub;
+        const email = req.auth.payload.email;
+
+        if (!email) {
+            console.error('No email found in token payload:', req.auth.payload);
+            return res.status(400).json({ error: 'User email not found' });
+        }
+
         console.log('Received file:', req.file);
         const { neighbourhood, post, latitude, longitude } = req.body;
         
@@ -187,7 +194,6 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         
         if (!userResult.rows[0]) {
             // Create account if it doesn't exist
-            const email = req.auth.payload.email;  // Changed from req.user.email
             const username = email.split('@')[0];
             await pool.query(
                 'INSERT INTO accounts (auth0_id, email, username) VALUES ($1, $2, $3)',
@@ -195,7 +201,7 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
             );
         }
 
-        const username = userResult.rows[0]?.username || req.auth.payload.email.split('@')[0];
+        const username = userResult.rows[0]?.username || email.split('@')[0];
         
         if (!neighbourhood || !post) {
             return res.status(400).json({ error: 'Missing required fields' });
