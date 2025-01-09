@@ -56,7 +56,6 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         formData.append('user_id', user.sub);
         formData.append('email', user.email);
         formData.append('neighbourhood', document.getElementById('neighbourhood').value);
-        formData.append('username', document.getElementById('username').value);
         formData.append('post', document.getElementById('post').value);
         formData.append('latitude', null);
         formData.append('longitude', null);

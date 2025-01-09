@@ -199,15 +199,16 @@
     
     <header class="sticky-header">
         <div class="header-content">
-            <h1 class="site-title">gumshoe</h1>
+            <a href="/index.html" style="text-decoration: none; color: inherit;">
+                <h1 class="site-title">gumshoe</h1>
+            </a>
             <div class="auth-section">
-                <button id="login" onclick="login()">Log In</button>
-                <!-- Remove the logout button and add dropdown -->
+                <button id="login">Log In</button>
                 <div class="user-dropdown">
-                    <div id="userInitial" class="user-circle" style="display: none"></div>
+                    <div id="userInitial" class="user-circle" style="display: none;"></div>
                     <div class="dropdown-content">
                         <span class="user-email"></span>
-                        <a href="#" onclick="logout()">Logout</a>
+                        <button id="logout">Logout</button>
                     </div>
                 </div>
             </div>

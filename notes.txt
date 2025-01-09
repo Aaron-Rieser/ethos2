@@ -1,15 +1,12 @@
 MUST DO : 
 ACCOUNTS TABLE AND SHORTHAND 
-
-- commenting after logging back IN looks like working. Syntax for comment username all messed up: null type of error
-- Posting no
-- dropdown no
-- Debug all, console log all, and check new accounts creation.
+- Remove the username input from posting, not needed 
 
 User problem based: the daily item. A daily thing that binds the neighburhood together. 
 - just one idea. Fall in love with the problem, not the solution.
-Username default to the email, can be changed from the header site section and add this to the comment itself
-- do we need a third db for users to change names ?
+
+Ability to change username and write that to account db 
+
 Create a header for the site section, brand and instructions when needed AND login info/profile ID to be held together
 Commenting design, too crowded - click to comment, something unique to gumshoe
 Second menu somewhere for site actions 
