@@ -13,7 +13,7 @@ const initializeAuth0 = async () => {
             authorizationParams: {
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 redirect_uri: window.location.origin,
-                scope: 'openid profile email offline_access',
+                scope: 'openid profile email',  // Make sure email is included
                 response_type: 'code',
                 prompt: 'consent'
             }

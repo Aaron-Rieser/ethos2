@@ -187,6 +187,10 @@ async function ensureUserAccount(user_id, email) {
 
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
+        console.log('Full auth payload:', req.auth.payload);
+        console.log('User ID:', req.auth.payload.sub);
+        console.log('Email:', req.auth.payload.email);
+        
         const user_id = req.auth.payload.sub;
         const email = req.auth.payload.email;
         

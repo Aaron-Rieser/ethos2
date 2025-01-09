@@ -34,6 +34,19 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     
     // Get user info
     const user = await auth0Client.getUser();
+
+    const token = await auth0Client.getTokenSilently();
+    const decodedToken = JSON.parse(atob(token.split('.')[1]));
+    console.log('Token payload:', decodedToken);  // Debug token contents
+
+    if (!decodedToken.email) {
+        console.error('No email in token:', decodedToken);
+        errorMessage.textContent = 'User email not available';
+        errorMessage.style.display = 'block';
+        loadingIndicator.style.display = 'none';
+        submitButton.disabled = false;
+        return;
+    }
     
     const submitButton = e.target.querySelector('button[type="submit"]');
     const loadingIndicator = document.getElementById('loadingIndicator');
