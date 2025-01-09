@@ -190,9 +190,22 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         console.log('Full auth payload:', req.auth.payload);
         console.log('User ID:', req.auth.payload.sub);
         console.log('Email:', req.auth.payload.email);
+        console.log('Form Data:', req.body);  // Add this to see what's coming in
+
         
         const user_id = req.auth.payload.sub;
-        const email = req.auth.payload.email;
+        // Get email from request body instead of token
+        const email = req.body.email;  // Changed from req.body.get('email')
+
+        console.log('Email from form:', email); // Debug
+
+        console.log('Auth payload:', req.auth.payload); // Debug
+        console.log('Request body email:', email); // Debug
+
+        if (!email) {
+            console.error('No email provided in request');
+            return res.status(400).json({ error: 'User email not provided' });
+        }
         
         // Ensure user has an account (this handles all the account creation/verification)
         const username = await ensureUserAccount(user_id, email);
