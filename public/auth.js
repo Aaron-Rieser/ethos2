@@ -31,6 +31,7 @@ const initializeAuth0 = async () => {
         return auth0Client;
     } catch (error) {
         console.error('Auth0 initialization error:', error);
+        console.error('Detailed Auth0 callback error:', error);  // Enhanced error logging
         throw error;
     }
 };
@@ -46,6 +47,8 @@ const handleAuth0Callback = async () => {
             if (isAuthenticated) {
                 const user = await auth0Client.getUser();
                 console.log('User authenticated:', user);
+                console.log('Auth0 user object:', user);  // Add this debug line
+                console.log('Auth0 email:', user.email);  // Add this debug line
                 
                 // Create/update account in database
                 try {
