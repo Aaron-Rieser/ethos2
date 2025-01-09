@@ -57,8 +57,29 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         formData.append('email', user.email);
         formData.append('neighbourhood', document.getElementById('neighbourhood').value);
         formData.append('post', document.getElementById('post').value);
-        formData.append('latitude', null);
-        formData.append('longitude', null);
+
+        let lat = null;
+        let lng = null;
+
+        // Get location if available
+        try {
+            if (navigator.geolocation) {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                lat = position.coords.latitude;
+                lng = position.coords.longitude;
+                localStorage.setItem('locationPermissionGranted', 'true');
+            }
+        } catch (error) {
+            console.log('Location not available or denied, continuing without coordinates');
+        }
+
+        // Only append coordinates if they exist
+        if (lat !== null && lng !== null) {
+            formData.append('latitude', lat.toString());
+            formData.append('longitude', lng.toString());
+        }
 
         // Handle image
         const imageInput = document.getElementById('image');
@@ -68,20 +89,6 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
                 throw new Error('File size exceeds 5MB limit');
             }
             formData.append('image', imageFile);
-        }
-
-        // Get location
-        try {
-            if (navigator.geolocation) {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
-                formData.set('latitude', position.coords.latitude);
-                formData.set('longitude', position.coords.longitude);
-                localStorage.setItem('locationPermissionGranted', 'true');
-            }
-        } catch (error) {
-            console.log('Location not available or denied, continuing without coordinates');
         }
 
         // Submit post
