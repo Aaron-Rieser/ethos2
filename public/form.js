@@ -1,4 +1,4 @@
-ocument.getElementById('postForm').addEventListener('submit', async (e) => {
+document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const errorMessage = document.getElementById('errorMessage');
