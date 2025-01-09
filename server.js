@@ -110,17 +110,26 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
 
 app.post('/api/comments', authenticateJWT, async (req, res) => {
     try {
-        const { post_id, comment } = req.body;
+        const { post_id, comment, email } = req.body;  // Get email from request body
         const user_id = req.auth.payload.sub;
-        const email = req.auth.payload.email;
+        
+        // Add debug logging
+        console.log('Comment attempt:', {
+            post_id,
+            comment,
+            user_id,
+            email,  // Log the email we got from the form
+            auth: req.auth.payload
+        });
 
-        if (comment.length > 1000) {
-            return res.status(400).json({ error: 'Comment too long' });
+        if (!email) {
+            console.error('No email provided in comment request');
+            return res.status(400).json({ error: 'User email not provided' });
         }
 
-        // Use the helper function to ensure user account exists
+        // Use ensureUserAccount like we did in posts
         const username = await ensureUserAccount(user_id, email);
-        
+
         const result = await pool.query(
             'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
             [post_id, comment, user_id, username]
@@ -129,7 +138,7 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error adding comment:', error);
-        res.status(500).json({ error: 'Error adding comment' });
+        res.status(500).json({ error: 'Error adding comment', details: error.message });
     }
 });
 
