@@ -641,40 +641,40 @@
         }
 
         async function submitComment(postId, commentText) {
-    try {
-        const user = await auth0Client.getUser();
-        const token = await auth0Client.getTokenSilently();
-        
-        console.log('Submitting comment with user:', user);  // Debug log
+            try {
+                const user = await auth0Client.getUser();
+                const token = await auth0Client.getTokenSilently();
+                
+                console.log('Submitting comment with user:', user);  // Debug log
 
-        const response = await fetch('/api/comments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                post_id: postId,
-                comment: commentText,
-                email: user.email  // Add email here, just like we did for posts
-            })
-        });
+                const response = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        post_id: postId,
+                        comment: commentText,
+                        email: user.email  // Add email here, just like we did for posts
+                    })
+                });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.details || error.error || 'Error submitting comment');
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.details || error.error || 'Error submitting comment');
+                }
+
+                // Refresh comments after successful submission
+                await loadComments(postId);
+                
+                // Clear the comment input
+                document.querySelector(`#comment-input-${postId}`).value = '';
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+                alert('Error submitting comment: ' + error.message);
+            }
         }
-
-        // Refresh comments after successful submission
-        await loadComments(postId);
-        
-        // Clear the comment input
-        document.querySelector(`#comment-input-${postId}`).value = '';
-    } catch (error) {
-        console.error('Error submitting comment:', error);
-        alert('Error submitting comment: ' + error.message);
-    }
-}
 
         function createFeedElement(item) {
             const feedDiv = document.createElement('div');
