@@ -645,15 +645,17 @@
                 const user = await auth0Client.getUser();
                 const token = await auth0Client.getTokenSilently();
                 
-                console.log('Starting comment submission:', {
+                // Add detailed logging
+                console.log('Comment submission details:', {
                     postId,
-                    user: user.email,
+                    commentText,
+                    userEmail: user.email,
                     hasToken: !!token
                 });
 
-                // First, verify we have all required data
-                if (!user || !user.email || !token) {
-                    throw new Error('Missing user info or token');
+                // Check if we have all required data
+                if (!postId || !commentText) {
+                    throw new Error('Missing post ID or comment text');
                 }
 
                 const response = await fetch('/api/comments', {
@@ -663,28 +665,39 @@
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        post_id: postId,
+                        post_id: parseInt(postId), // Ensure postId is a number
                         comment: commentText,
                         email: user.email
                     })
                 });
 
-                console.log('Response status:', response.status);  // Debug response
+                // Log response for debugging
+                console.log('Response status:', response.status);
 
+                const data = await response.json();
+                
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to submit comment');
+                    throw new Error(data.error || 'Failed to submit comment');
                 }
 
-                // Refresh comments after successful submission
+                // Refresh comments only after successful submission
                 await loadComments(postId);
                 
-                // Clear the comment input
-                document.querySelector(`#comment-input-${postId}`).value = '';
+                // Clear input
+                const input = document.querySelector(`#comment-input-${postId}`);
+                if (input) input.value = '';
                 
             } catch (error) {
                 console.error('Detailed comment error:', error);
-                alert('Error submitting comment. Please try again.');
+                // Show error to user
+                const errorElement = document.querySelector(`#comment-error-${postId}`);
+                if (errorElement) {
+                    errorElement.textContent = 'Error posting comment. Please try again.';
+                    errorElement.style.display = 'block';
+                    setTimeout(() => {
+                        errorElement.style.display = 'none';
+                    }, 3000);
+                }
             }
         }
 
