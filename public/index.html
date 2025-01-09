@@ -653,7 +653,7 @@
                     hasToken: !!token
                 });
 
-                // Check if we have all required data
+                // Validate required data
                 if (!postId || !commentText) {
                     throw new Error('Missing post ID or comment text');
                 }
@@ -671,16 +671,14 @@
                     })
                 });
 
-                // Log response for debugging
                 console.log('Response status:', response.status);
-
                 const data = await response.json();
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to submit comment');
                 }
 
-                // Refresh comments only after successful submission
+                // Refresh comments after successful submission
                 await loadComments(postId);
                 
                 // Clear input
@@ -700,7 +698,7 @@
                 }
             }
         }
-
+        
         function createFeedElement(item) {
             const feedDiv = document.createElement('div');
             feedDiv.className = 'feed-item';
