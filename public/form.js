@@ -1,7 +1,9 @@
-document.getElementById('postForm').addEventListener('submit', async (e) => {
+ocument.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const errorMessage = document.getElementById('errorMessage');
+    const submitButton = e.target.querySelector('button[type="submit"]');
+    const loadingIndicator = document.getElementById('loadingIndicator');
     
     // Check authentication
     if (!auth0Client) {
@@ -32,97 +34,72 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         return;
     }
     
-    // Get user info
-    const user = await auth0Client.getUser();
-    console.log('User info:', user);  // Add this line to debug
+    // Get user info and token
+    try {
+        const user = await auth0Client.getUser();
+        const token = await auth0Client.getTokenSilently();
+        console.log('User info:', user);
 
-    // If user info exists but token doesn't have email, use user info
-    if (!decodedToken.email && user && user.email) {
-        console.log('Using email from user info instead of token');
-        formData.append('email', user.email);
-    }
-    
-    const token = await auth0Client.getTokenSilently();
-    const decodedToken = JSON.parse(atob(token.split('.')[1]));
-    console.log('Token payload:', decodedToken);  // Debug token contents
-
-    if (!decodedToken.email) {
-        console.error('No email in token:', decodedToken);
-        errorMessage.textContent = 'User email not available';
-        errorMessage.style.display = 'block';
-        loadingIndicator.style.display = 'none';
-        submitButton.disabled = false;
-        return;
-    }
-    
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    
-    // Reset error message
-    errorMessage.style.display = 'none';
-    
-    // Show loading state
-    submitButton.disabled = true;
-    loadingIndicator.style.display = 'block';
-    
-    // Create FormData ONCE
-    const formData = new FormData();
-    formData.append('user_id', user.sub);
-    formData.append('neighbourhood', document.getElementById('neighbourhood').value);
-    formData.append('username', document.getElementById('username').value);
-    formData.append('post', document.getElementById('post').value);
-    formData.append('latitude', null);
-    formData.append('longitude', null);
-
-    // Handle image if present
-    const imageInput = document.getElementById('image');
-    const imageFile = imageInput.files[0];
-    if (imageFile) {
-        // Check file size before upload
-        if (imageFile.size > 5 * 1024 * 1024) { // 5MB in bytes
-            errorMessage.textContent = 'File size exceeds 5MB limit';
+        if (!user.email) {
+            errorMessage.textContent = 'User email not available';
             errorMessage.style.display = 'block';
-            loadingIndicator.style.display = 'none';
-            submitButton.disabled = false;
-            imageInput.value = ''; // Clear the file input
             return;
         }
-        formData.append('image', imageFile);
-    }
 
-    // Try to get location
-    try {
-        if (navigator.geolocation) {
-            const position = await new Promise((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject);
-            });
-            formData.set('latitude', position.coords.latitude);
-            formData.set('longitude', position.coords.longitude);
-            localStorage.setItem('locationPermissionGranted', 'true');
-        }
-    } catch (error) {
-        console.log('Location not available or denied, continuing without coordinates');
-    }
-
-    // Submit post
-    try {
-        // Get the token
-        const token = await auth0Client.getTokenSilently();
+        // Reset error message and show loading state
+        errorMessage.style.display = 'none';
+        submitButton.disabled = true;
+        loadingIndicator.style.display = 'block';
         
+        // Create FormData
+        const formData = new FormData();
+        formData.append('user_id', user.sub);
+        formData.append('email', user.email);
+        formData.append('neighbourhood', document.getElementById('neighbourhood').value);
+        formData.append('username', document.getElementById('username').value);
+        formData.append('post', document.getElementById('post').value);
+        formData.append('latitude', null);
+        formData.append('longitude', null);
+
+        // Handle image
+        const imageInput = document.getElementById('image');
+        const imageFile = imageInput.files[0];
+        if (imageFile) {
+            if (imageFile.size > 5 * 1024 * 1024) {
+                throw new Error('File size exceeds 5MB limit');
+            }
+            formData.append('image', imageFile);
+        }
+
+        // Get location
+        try {
+            if (navigator.geolocation) {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                formData.set('latitude', position.coords.latitude);
+                formData.set('longitude', position.coords.longitude);
+                localStorage.setItem('locationPermissionGranted', 'true');
+            }
+        } catch (error) {
+            console.log('Location not available or denied, continuing without coordinates');
+        }
+
+        // Submit post
         const response = await fetch('/api/posts', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}` // Add the auth token
+                'Authorization': `Bearer ${token}`
             },
             body: formData
         });
-    
+
         const data = await response.json();
-    
+        
         if (!response.ok) {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
-    
+
         window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
@@ -131,19 +108,5 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     } finally {
         loadingIndicator.style.display = 'none';
         submitButton.disabled = false;
-    }
-});
-
-// Add file size check on file input change
-document.getElementById('image').addEventListener('change', function(e) {
-    const errorMessage = document.getElementById('errorMessage');
-    const file = this.files[0];
-    
-    if (file && file.size > 5 * 1024 * 1024) { // 5MB in bytes
-        errorMessage.textContent = 'File size exceeds 5MB limit';
-        errorMessage.style.display = 'block';
-        this.value = ''; // Clear the file input
-    } else {
-        errorMessage.style.display = 'none';
     }
 });
