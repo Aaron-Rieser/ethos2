@@ -604,7 +604,8 @@
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${post.id}"></div>
                         <form class="comment-form" onsubmit="submitComment(event, ${post.id})">
-                            <input type="text" class="comment-input" placeholder="Add a comment..." required>
+                            <input type="text" id="comment-input-${post.id}" class="comment-input" placeholder="Add a comment..." required>
+                            <div id="comment-error-${post.id}" class="error-message" style="display: none;"></div>
                             <button type="submit">Comment</button>
                         </form>
                     </div>
@@ -640,13 +641,18 @@
             }
         }
 
-        async function submitComment(event, postId) {  // Add event parameter
-            event.preventDefault();  // Prevent form submission
+        async function submitComment(event, postId) {
+            event.preventDefault();
             
+            // First verify the comment input exists
+            const commentInput = document.querySelector(`#comment-input-${postId}`);
+            if (!commentInput) {
+                console.error(`Comment input not found for post ${postId}`);
+                return;
+            }
+
             try {
-                const commentInput = document.querySelector(`#comment-input-${postId}`);
                 const commentText = commentInput.value.trim();
-                
                 if (!commentText) {
                     throw new Error('Comment cannot be empty');
                 }
@@ -670,14 +676,12 @@
                     body: JSON.stringify({
                         post_id: parseInt(postId),
                         comment: commentText,
-                        email: user.email,
-                        user_id: user.sub
+                        email: user.email
                     })
                 });
 
-                const data = await response.json();
-                
                 if (!response.ok) {
+                    const data = await response.json();
                     throw new Error(data.error || 'Failed to submit comment');
                 }
 
@@ -691,7 +695,6 @@
                 if (errorDiv) {
                     errorDiv.textContent = error.message;
                     errorDiv.style.display = 'block';
-                    setTimeout(() => errorDiv.style.display = 'none', 3000);
                 }
             }
         }
