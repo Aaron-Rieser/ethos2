@@ -640,23 +640,26 @@
             }
         }
 
-        async function submitComment(postId, commentText) {
+        async function submitComment(event, postId) {  // Add event parameter
+            event.preventDefault();  // Prevent form submission
+            
             try {
+                const commentInput = document.querySelector(`#comment-input-${postId}`);
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) {
+                    throw new Error('Comment cannot be empty');
+                }
+
                 const user = await auth0Client.getUser();
                 const token = await auth0Client.getTokenSilently();
                 
-                // Add detailed logging
                 console.log('Comment submission details:', {
                     postId,
                     commentText,
                     userEmail: user.email,
-                    hasToken: !!token
+                    userId: user.sub
                 });
-
-                // Validate required data
-                if (!postId || !commentText) {
-                    throw new Error('Missing post ID or comment text');
-                }
 
                 const response = await fetch('/api/comments', {
                     method: 'POST',
@@ -665,40 +668,34 @@
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        post_id: parseInt(postId), // Ensure postId is a number
+                        post_id: parseInt(postId),
                         comment: commentText,
-                        email: user.email
+                        email: user.email,
+                        user_id: user.sub
                     })
                 });
 
-                console.log('Response status:', response.status);
                 const data = await response.json();
                 
                 if (!response.ok) {
                     throw new Error(data.error || 'Failed to submit comment');
                 }
 
-                // Refresh comments after successful submission
+                // Clear input and refresh comments
+                commentInput.value = '';
                 await loadComments(postId);
                 
-                // Clear input
-                const input = document.querySelector(`#comment-input-${postId}`);
-                if (input) input.value = '';
-                
             } catch (error) {
-                console.error('Detailed comment error:', error);
-                // Show error to user
-                const errorElement = document.querySelector(`#comment-error-${postId}`);
-                if (errorElement) {
-                    errorElement.textContent = 'Error posting comment. Please try again.';
-                    errorElement.style.display = 'block';
-                    setTimeout(() => {
-                        errorElement.style.display = 'none';
-                    }, 3000);
+                console.error('Comment error:', error);
+                const errorDiv = document.querySelector(`#comment-error-${postId}`);
+                if (errorDiv) {
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                    setTimeout(() => errorDiv.style.display = 'none', 3000);
                 }
             }
         }
-        
+
         function createFeedElement(item) {
             const feedDiv = document.createElement('div');
             feedDiv.className = 'feed-item';
