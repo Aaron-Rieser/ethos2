@@ -13,8 +13,8 @@ const initializeAuth0 = async () => {
             authorizationParams: {
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 redirect_uri: window.location.origin,
-                scope: 'openid profile email',  // Make sure email is included
-                response_type: 'code',
+                scope: 'openid profile email offline_access',  // Added offline_access
+                response_type: 'token id_token',  // Changed from 'code'
                 prompt: 'consent'
             }
         });
@@ -160,9 +160,10 @@ const login = async () => {
         await auth0Client.loginWithRedirect({
             authorizationParams: {
                 redirect_uri: window.location.origin,
-                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 scope: 'openid profile email offline_access',
-                prompt: 'consent'
+                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                response_type: 'token id_token',  // Add this from the shorter version
+                prompt: 'consent'  // Keep this from your current version
             }
         });
         console.log('Login redirect initiated');

@@ -34,7 +34,14 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     
     // Get user info
     const user = await auth0Client.getUser();
+    console.log('User info:', user);  // Add this line to debug
 
+    // If user info exists but token doesn't have email, use user info
+    if (!decodedToken.email && user && user.email) {
+        console.log('Using email from user info instead of token');
+        formData.append('email', user.email);
+    }
+    
     const token = await auth0Client.getTokenSilently();
     const decodedToken = JSON.parse(atob(token.split('.')[1]));
     console.log('Token payload:', decodedToken);  // Debug token contents
