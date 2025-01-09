@@ -640,40 +640,41 @@
             }
         }
 
-        async function submitComment(event, postId) {
-            event.preventDefault();
-            
-            if (!await auth0Client.isAuthenticated()) {
-                document.getElementById('loginPrompt').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('loginPrompt').style.display = 'none';
-                }, 3000);
-                return;
-            }
+        async function submitComment(postId, commentText) {
+    try {
+        const user = await auth0Client.getUser();
+        const token = await auth0Client.getTokenSilently();
+        
+        console.log('Submitting comment with user:', user);  // Debug log
 
-            const form = event.target;
-            const input = form.querySelector('.comment-input');
-            const comment = input.value;
+        const response = await fetch('/api/comments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                post_id: postId,
+                comment: commentText,
+                email: user.email  // Add email here, just like we did for posts
+            })
+        });
 
-            try {
-                const token = await auth0Client.getTokenSilently();
-                const response = await fetch('/api/comments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ post_id: postId, comment })
-                });
-
-                if (response.ok) {
-                    input.value = ''; // Clear input
-                    await loadComments(postId); // Reload comments
-                }
-            } catch (error) {
-                console.error('Error submitting comment:', error);
-            }
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.details || error.error || 'Error submitting comment');
         }
+
+        // Refresh comments after successful submission
+        await loadComments(postId);
+        
+        // Clear the comment input
+        document.querySelector(`#comment-input-${postId}`).value = '';
+    } catch (error) {
+        console.error('Error submitting comment:', error);
+        alert('Error submitting comment: ' + error.message);
+    }
+}
 
         function createFeedElement(item) {
             const feedDiv = document.createElement('div');
