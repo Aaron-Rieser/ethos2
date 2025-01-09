@@ -645,7 +645,16 @@
                 const user = await auth0Client.getUser();
                 const token = await auth0Client.getTokenSilently();
                 
-                console.log('Submitting comment with user:', user);  // Debug log
+                console.log('Starting comment submission:', {
+                    postId,
+                    user: user.email,
+                    hasToken: !!token
+                });
+
+                // First, verify we have all required data
+                if (!user || !user.email || !token) {
+                    throw new Error('Missing user info or token');
+                }
 
                 const response = await fetch('/api/comments', {
                     method: 'POST',
@@ -656,13 +665,15 @@
                     body: JSON.stringify({
                         post_id: postId,
                         comment: commentText,
-                        email: user.email  // Add email here, just like we did for posts
+                        email: user.email
                     })
                 });
 
+                console.log('Response status:', response.status);  // Debug response
+
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.details || error.error || 'Error submitting comment');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to submit comment');
                 }
 
                 // Refresh comments after successful submission
@@ -670,9 +681,10 @@
                 
                 // Clear the comment input
                 document.querySelector(`#comment-input-${postId}`).value = '';
+                
             } catch (error) {
-                console.error('Error submitting comment:', error);
-                alert('Error submitting comment: ' + error.message);
+                console.error('Detailed comment error:', error);
+                alert('Error submitting comment. Please try again.');
             }
         }
 
