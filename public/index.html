@@ -365,6 +365,34 @@
             color: #666;
             border-bottom: 1px solid #eee;
         }
+        .deal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .deal-tag {
+            background-color: #3388ff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .deal-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #3388ff;
+        }
+
+        .post-card.deal {
+            border: 2px solid #3388ff;
+            box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -591,12 +619,22 @@
         // Create post element function
         function createPostElement(post) {
             const postDiv = document.createElement('div');
-            postDiv.className = 'post post-card';
+            postDiv.className = `post post-card${post.post_type === 'deal' ? ' deal' : ''}`;
             
             let imageHtml = post.image_url 
                 ? `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
-            
+                let dealHtml = '';
+
+            if (post.post_type === 'deal') {
+                dealHtml = `
+                    <div class="deal-header">
+                        <div class="deal-tag">Deal</div>
+                        <div class="deal-price">$${parseFloat(post.price).toFixed(2)}</div>
+                    </div>
+                `;
+            }
+    
             postDiv.innerHTML = `
                 <div class="post-content">
                     <p>${post.post}</p>
