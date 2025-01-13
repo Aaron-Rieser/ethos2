@@ -637,6 +637,7 @@
     
             postDiv.innerHTML = `
                 <div class="post-content">
+                    ${dealHtml}  <!-- Add dealHtml here, before the post content -->
                     <p>${post.post}</p>
                     ${imageHtml}
                     <small>Posted by ${post.username} in ${post.neighbourhood}</small>
