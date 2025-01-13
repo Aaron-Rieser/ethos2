@@ -222,6 +222,16 @@
             border-bottom: 1px solid #eee;
         }
 
+        input:invalid {
+            border-color: #d32f2f;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -253,6 +263,29 @@
             </nav>
         
             <form id="postForm">
+                <div class="form-group">
+                    <label for="post-type">Post Type:</label>
+                    <select id="post-type" name="post-type" required onchange="togglePriceField()">
+                        <option value="user_post">User Post</option>
+                        <option value="deal">Deal</option>
+                    </select>
+                </div>
+                
+                <!-- Price field (hidden by default) -->
+                <div class="form-group" id="price-field" style="display: none;">
+                    <label for="price">Price ($):</label>
+                    <input 
+                        type="number" 
+                        id="price" 
+                        name="price" 
+                        step="0.01" 
+                        min="0" 
+                        max="999999.99"
+                        placeholder="0.00"
+                        required
+                    >
+                </div>
+                
                 <div class="form-group">
                     <label for="neighbourhood">Neighbourhood:</label>
                     <select id="neighbourhood" name="neighbourhood" required>
@@ -288,6 +321,21 @@
             // Optionally: Add a visual indicator that location will be included
         }
     });
+
+    function togglePriceField() {
+        const postType = document.getElementById('post-type').value;
+        const priceField = document.getElementById('price-field');
+        const priceInput = document.getElementById('price');
+        
+        if (postType === 'deal') {
+            priceField.style.display = 'block';
+            priceInput.required = true;
+        } else {
+            priceField.style.display = 'none';
+            priceInput.required = false;
+            priceInput.value = ''; // Clear the value when hidden
+        }
+    }
     </script>
     
     <script src="form.js"></script>

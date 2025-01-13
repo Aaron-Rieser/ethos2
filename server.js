@@ -197,47 +197,56 @@ async function ensureUserAccount(user_id, email) {
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
         console.log('Full auth payload:', req.auth.payload);
-        console.log('User ID:', req.auth.payload.sub);
-        console.log('Email:', req.auth.payload.email);
-        console.log('Form Data:', req.body);  // Add this to see what's coming in
+        console.log('Form Data:', req.body);
 
-        
         const user_id = req.auth.payload.sub;
-        // Get email from request body instead of token
-        const email = req.body.email;  // Changed from req.body.get('email')
+        const email = req.body.email;
+        const post_type = req.body.post_type;
+        const price = req.body.price;
 
-        console.log('Email from form:', email); // Debug
+        console.log('Email from form:', email);
 
-        console.log('Auth payload:', req.auth.payload); // Debug
-        console.log('Request body email:', email); // Debug
+        // Validate post type
+        if (!['user_post', 'deal'].includes(post_type)) {
+            return res.status(400).json({ error: 'Invalid post type' });
+        }
+
+        // Validate price for deals
+        if (post_type === 'deal' && (price === undefined || price === '')) {
+            return res.status(400).json({ error: 'Price is required for deals' });
+        }
 
         if (!email) {
             console.error('No email provided in request');
             return res.status(400).json({ error: 'User email not provided' });
         }
         
-        // Ensure user has an account (this handles all the account creation/verification)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
         const { neighbourhood, post, latitude, longitude } = req.body;
         
-        // Validate required fields
         if (!neighbourhood || !post) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Handle image upload
         const image_url = req.file ? req.file.path : null;
         
-        // Create the post
+        // Modified query to include post_type and price
         const query = `
-            INSERT INTO posts (neighbourhood, username, post, latitude, longitude, image_url, user_id) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            INSERT INTO posts (
+                neighbourhood, username, post, latitude, longitude, 
+                image_url, user_id, post_type, price
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
         `;
         
-        const values = [neighbourhood, username, post, latitude, longitude, image_url, user_id];
+        const values = [
+            neighbourhood, username, post, latitude, longitude, 
+            image_url, user_id, post_type, post_type === 'deal' ? price : null
+        ];
+
         const result = await pool.query(query, values);
         
         res.json(result.rows[0]);
