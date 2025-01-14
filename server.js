@@ -206,12 +206,12 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
 
         console.log('Email from form:', email);
 
-        // Validate post type
-        if (!['user_post', 'deal'].includes(post_type)) {
+        // Update valid post types to include 'blind'
+        if (!['user_post', 'deal', 'blind'].includes(post_type)) {
             return res.status(400).json({ error: 'Invalid post type' });
         }
 
-        // Validate price for deals
+        // Validate price for deals only
         if (post_type === 'deal' && (price === undefined || price === '')) {
             return res.status(400).json({ error: 'Price is required for deals' });
         }
@@ -243,8 +243,15 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         `;
         
         const values = [
-            neighbourhood, username, post, latitude, longitude, 
-            image_url, user_id, post_type, post_type === 'deal' ? price : null
+            neighbourhood, 
+            post_type === 'blind' ? null : username, // Set username to null for blind posts
+            post,
+            latitude, 
+            longitude, 
+            image_url,
+            user_id,
+            post_type,
+            post_type === 'deal' ? price : null
         ];
 
         const result = await pool.query(query, values);
