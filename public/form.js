@@ -51,18 +51,28 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         submitButton.disabled = true;
         loadingIndicator.style.display = 'block';
         
-        // Create FormData
-        const formData = new FormData();
-        formData.append('user_id', user.sub);
-        formData.append('email', user.email);
-        formData.append('neighbourhood', document.getElementById('neighbourhood').value);
-        formData.append('post', document.getElementById('post').value);
-        formData.append('post_type', document.getElementById('post_type').value);
+        // Get form values first
+        const post_type = document.getElementById('post_type').value;
+        const neighbourhood = document.getElementById('neighbourhood').value;
+        const post = document.getElementById('post').value;
+        
+        // Validate required fields
+        if (!post_type || !neighbourhood || !post) {
+            console.error('Missing required fields:', { post_type, neighbourhood, post });
+            throw new Error('Please fill in all required fields');
+        }
 
+        // Create FormData and append basic fields
+        const formData = new FormData();
+        formData.append('post_type', post_type);
+        formData.append('neighbourhood', neighbourhood);
+        formData.append('post', post);
+        formData.append('email', user.email);
+        formData.append('user_id', user.sub);
+
+        // Handle coordinates if available
         let lat = null;
         let lng = null;
-
-        // Get location if available
         try {
             if (navigator.geolocation) {
                 const position = await new Promise((resolve, reject) => {
@@ -76,18 +86,16 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             console.log('Location not available or denied, continuing without coordinates');
         }
 
-        // Only append coordinates if they exist
         if (lat !== null && lng !== null) {
             formData.append('latitude', lat.toString());
             formData.append('longitude', lng.toString());
         }
 
-        if (document.getElementById('post_type').value === 'deal') {
+        // Handle price for deals
+        if (post_type === 'deal') {
             const price = document.getElementById('price').value;
             if (!price && price !== '0') {
-                errorMessage.textContent = 'Price is required for deals';
-                errorMessage.style.display = 'block';
-                return;
+                throw new Error('Price is required for deals');
             }
             formData.append('price', price);
         }
@@ -102,43 +110,17 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             formData.append('image', imageFile);
         }
 
-        // Submit post
-
-        console.log('Form data being submitted:', {
-            post_type: formData.get('post_type'),
-            neighbourhood: formData.get('neighbourhood'),
-            post: formData.get('post'),
-            price: formData.get('price'),
-            hasImage: !!imageFile,
-            hasCoordinates: !!(lat && lng),
-            user: {
-                sub: user.sub,
-                email: user.email
-            }
-        });
-
-        const requiredFields = {
-            post_type: formData.get('post_type'),
-            neighbourhood: formData.get('neighbourhood'),
-            post: formData.get('post'),
-            email: formData.get('email')
-        };
-        
-        // Check for missing fields
-        const missingFields = Object.entries(requiredFields)
-            .filter(([key, value]) => !value)
-            .map(([key]) => key);
-        
-        if (missingFields.length > 0) {
-            console.error('Missing required fields:', missingFields);
-            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        // Debug log the FormData contents
+        console.log('FormData contents:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
         }
 
-        const response = await fetch('/api/posts', {  // Remove http://localhost:3000
+        // Submit post
+        const response = await fetch('/api/posts', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                // Remove 'Content-Type' header to let browser set it with boundary
                 'Accept': 'application/json'
             },
             body: formData
@@ -150,7 +132,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
-        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
+        window.location.href = `index.html?neighbourhood=${encodeURIComponent(neighbourhood)}`;
     } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = error.message;
