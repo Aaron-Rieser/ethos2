@@ -236,23 +236,6 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
                 missing: missingFields 
             });
         }
-        
-        console.log('Received post request:', {
-            body: req.body,
-            file: req.file,
-            auth: req.auth.payload
-        });
-
-        // Validate required fields
-        const requiredFields = ['post_type', 'neighbourhood', 'post'];
-        const missingFields = requiredFields.filter(field => !req.body[field]);
-
-        if (missingFields.length > 0) {
-            return res.status(400).json({ 
-                error: 'Missing required fields',
-                missing: missingFields 
-            });
-        }
 
         // Extract user info from auth token
         const user_id = req.auth.payload.sub;
