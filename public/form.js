@@ -117,10 +117,28 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             }
         });
 
+        const requiredFields = {
+            post_type: formData.get('post_type'),
+            neighbourhood: formData.get('neighbourhood'),
+            post: formData.get('post'),
+            email: formData.get('email')
+        };
+        
+        // Check for missing fields
+        const missingFields = Object.entries(requiredFields)
+            .filter(([key, value]) => !value)
+            .map(([key]) => key);
+        
+        if (missingFields.length > 0) {
+            console.error('Missing required fields:', missingFields);
+            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+        }
+
         const response = await fetch('/api/posts', {  // Remove http://localhost:3000
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                // Remove 'Content-Type' header to let browser set it with boundary
                 'Accept': 'application/json'
             },
             body: formData
