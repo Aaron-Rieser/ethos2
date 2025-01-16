@@ -216,6 +216,27 @@ async function ensureUserAccount(user_id, email) {
 
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
+        console.log('Received request body:', req.body);
+        console.log('Required fields check:', {
+            post_type: !!req.body.post_type,
+            neighbourhood: !!req.body.neighbourhood,
+            post: !!req.body.post,
+            email: !!req.body.email,
+            user_id: !!req.body.user_id
+        });
+
+        // Validate required fields
+        const requiredFields = ['post_type', 'neighbourhood', 'post'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+
+        if (missingFields.length > 0) {
+            console.error('Missing fields:', missingFields);
+            return res.status(400).json({ 
+                error: 'Missing required fields',
+                missing: missingFields 
+            });
+        }
+        
         console.log('Received post request:', {
             body: req.body,
             file: req.file,
