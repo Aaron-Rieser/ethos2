@@ -264,8 +264,8 @@
         
             <form id="postForm">
                 <div class="form-group">
-                    <label for="post-type">Post Type:</label>
-                    <select id="post-type" name="post-type" required onchange="togglePriceField()">
+                    <label for="post_ype">Post Type:</label>
+                    <select id="post_type" name="post_type" required onchange="togglePriceField()">
                         <option value="user_post">User Post</option>
                         <option value="deal">Deal</option>
                         <option value="blind">Blind Item</option>
@@ -324,7 +324,7 @@
     });
 
     function togglePriceField() {
-        const postType = document.getElementById('post-type').value;
+        const postType = document.getElementById('post_type').value;
         const priceField = document.getElementById('price-field');
         const priceInput = document.getElementById('price');
         
@@ -350,7 +350,7 @@
             
             // Debug logging
             console.log('Form submission data:', {
-                post_type: formData.get('post-type'),
+                post_type: formData.get('post_type'),
                 price: formData.get('price'),
                 neighbourhood: formData.get('neighbourhood'),
                 post: formData.get('post'),

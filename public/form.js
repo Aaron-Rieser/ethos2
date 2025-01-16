@@ -57,7 +57,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         formData.append('email', user.email);
         formData.append('neighbourhood', document.getElementById('neighbourhood').value);
         formData.append('post', document.getElementById('post').value);
-        formData.append('post_type', document.getElementById('post-type').value);
+        formData.append('post_type', document.getElementById('post_type').value);
 
         let lat = null;
         let lng = null;
@@ -82,7 +82,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             formData.append('longitude', lng.toString());
         }
 
-        if (document.getElementById('post-type').value === 'deal') {
+        if (document.getElementById('post_type').value === 'deal') {
             const price = document.getElementById('price').value;
             if (!price && price !== '0') {
                 errorMessage.textContent = 'Price is required for deals';

@@ -220,15 +220,14 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         const user_id = req.auth.payload.sub;
         const email = req.auth.payload.email;
 
-        // Basic debug logging
-        console.log('Post attempt:', {
-            user_id,
-            email,
-            body: req.body,
-            file: req.file
-        });
+        // Debug logging
+        console.log('=== Post Creation Debug ===');
+        console.log('1. Raw post_type from request:', req.body.post_type);
+        console.log('2. Full request body:', req.body);
+        console.log('3. Auth payload:', req.auth.payload);
+        console.log('4. Uploaded file:', req.file);
 
-        // Validate required fields
+        // Extract and validate inputs
         const { post_type, price, neighbourhood, post } = req.body;
         
         if (!['user_post', 'deal', 'blind'].includes(post_type)) {
@@ -251,25 +250,31 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         // Get or create user account
         const username = await ensureUserAccount(user_id, email);
         
-        // Insert post (always store username)
-        const result = await pool.query(
-            `INSERT INTO posts (
+        // Insert post
+        const query = `
+            INSERT INTO posts (
                 neighbourhood, username, post, latitude, longitude, 
                 image_url, user_id, post_type, price
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-            RETURNING *`,
-            [
-                neighbourhood,
-                username,  // CHANGE: Always store the actual username
-                post,
-                req.body.latitude || null,
-                req.body.longitude || null,
-                req.file ? req.file.path : null,
-                user_id,
-                post_type,
-                validatedPrice
-            ]
-        );
+            RETURNING *
+        `;
+        
+        const values = [
+            neighbourhood,
+            username,  // Always store the username
+            post,
+            req.body.latitude || null,
+            req.body.longitude || null,
+            req.file ? req.file.path : null,
+            user_id,
+            post_type,
+            validatedPrice
+        ];
+
+        console.log('5. Database insertion values:', values);
+        
+        const result = await pool.query(query, values);
+        console.log('6. Database response:', result.rows[0]);
 
         // Modify the response for blind posts
         const response = {
@@ -277,10 +282,14 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
             username: post_type === 'blind' ? null : result.rows[0].username
         };
 
-        res.json(response);  // Send modified response
+        res.json(response);
     } catch (err) {
-        console.error('Post creation error:', err);
-        
+        console.error('Error details:', {
+            name: err.name,
+            message: err.message,
+            stack: err.stack
+        });
+
         if (err.name === 'MulterError') {
             return res.status(400).json({ 
                 error: err.code === 'LIMIT_FILE_SIZE' 
