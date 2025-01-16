@@ -103,10 +103,22 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         }
 
         // Submit post
+
+        console.log('Form data being submitted:', {
+            post_type: formData.get('post_type'),
+            neighbourhood: formData.get('neighbourhood'),
+            post: formData.get('post'),
+            price: formData.get('price'),
+            hasImage: !!imageFile,
+            hasCoordinates: !!(lat && lng),
+            user: {
+                sub: user.sub,
+                email: user.email
+            }
+        });
+
         const response = await fetch('/api/posts', {  // Remove http://localhost:3000
             method: 'POST',
-            mode: 'cors',  // Add this line
-            credentials: 'include',  // Add this line
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
