@@ -91,7 +91,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             }
             formData.append('price', price);
         }
-        
+
         // Handle image
         const imageInput = document.getElementById('image');
         const imageFile = imageInput.files[0];
@@ -103,10 +103,13 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         }
 
         // Submit post
-        const response = await fetch('/api/posts', {
+        const response = await fetch('/api/posts', {  // Remove http://localhost:3000
             method: 'POST',
+            mode: 'cors',  // Add this line
+            credentials: 'include',  // Add this line
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
             },
             body: formData
         });

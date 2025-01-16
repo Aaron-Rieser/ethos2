@@ -337,6 +337,53 @@
             priceInput.value = ''; // Clear the value when hidden
         }
     }
+    document.getElementById('postForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const errorMessage = document.getElementById('errorMessage');
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        try {
+            const token = await auth0Client.getTokenSilently();
+            const formData = new FormData(this);
+            
+            // Debug logging
+            console.log('Form submission data:', {
+                post_type: formData.get('post-type'),
+                price: formData.get('price'),
+                neighbourhood: formData.get('neighbourhood'),
+                post: formData.get('post'),
+                image: formData.get('image')
+            });
+
+            submitButton.disabled = true;
+            loadingIndicator.style.display = 'block';
+            
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to submit post');
+            }
+
+            window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
+        } catch (error) {
+            console.error('Submission error:', error);
+            errorMessage.textContent = error.message;
+            errorMessage.style.display = 'block';
+        } finally {
+            submitButton.disabled = false;
+            loadingIndicator.style.display = 'none';
+        }
+    });
+
     </script>
     
     <script src="form.js"></script>

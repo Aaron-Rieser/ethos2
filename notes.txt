@@ -1,7 +1,8 @@
 MUST DO : 
 
 Local env the feed pulls are in the wrong spot
-Post classes: Deal, party, blind, article, post 
+Post class blind does not work on env
+Post classes:, party, article 
 Likes and dislikes on posts 
 Flow from map to post is not clear, can be more logical
 Algorithm that serves these post classes based on likes, recency and proximity 
