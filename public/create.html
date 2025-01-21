@@ -282,7 +282,7 @@
                         min="0" 
                         max="999999.99"
                         placeholder="0.00"
-                        required
+                        required="false"
                     >
                 </div>
                 
@@ -330,10 +330,14 @@
         if (postType === 'deal') {
             priceField.style.display = 'block';
             priceInput.required = true;
+            if (!priceInput.value) {
+                priceInput.setCustomValidity('Price is required for deals');
+            }
         } else {
             priceField.style.display = 'none';
             priceInput.required = false;
-            priceInput.value = ''; // Clear the value when hidden
+            priceInput.value = ''; // Clear the value
+            priceInput.setCustomValidity(''); // Clear any validation messages
         }
     }
     </script>

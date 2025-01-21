@@ -83,12 +83,28 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         }
 
         if (document.getElementById('post-type').value === 'deal') {
-            const price = document.getElementById('price').value;
+            const priceInput = document.getElementById('price');
+            const price = priceInput.value;
+            
+            // Clear any previous validation state
+            priceInput.setCustomValidity('');
+            
             if (!price && price !== '0') {
+                priceInput.setCustomValidity('Price is required for deals');
+                priceInput.reportValidity();
                 errorMessage.textContent = 'Price is required for deals';
                 errorMessage.style.display = 'block';
                 return;
             }
+            
+            // Validate price format
+            const priceValue = parseFloat(price);
+            if (isNaN(priceValue) || priceValue < 0) {
+                priceInput.setCustomValidity('Please enter a valid price');
+                priceInput.reportValidity();
+                return;
+            }
+            
             formData.append('price', price);
         }
         
