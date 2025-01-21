@@ -264,11 +264,10 @@
         
             <form id="postForm">
                 <div class="form-group">
-                    <label for="post_type">Post Type:</label>
-                    <select id="post_type" name="post_type" required onchange="togglePriceField()">
+                    <label for="post-type">Post Type:</label>
+                    <select id="post-type" name="post-type" required onchange="togglePriceField()">
                         <option value="user_post">User Post</option>
                         <option value="deal">Deal</option>
-                        <option value="blind">Blind Item</option>
                     </select>
                 </div>
                 
@@ -283,6 +282,7 @@
                         min="0" 
                         max="999999.99"
                         placeholder="0.00"
+                        required
                     >
                 </div>
                 
@@ -323,7 +323,7 @@
     });
 
     function togglePriceField() {
-        const postType = document.getElementById('post_type').value;
+        const postType = document.getElementById('post-type').value;
         const priceField = document.getElementById('price-field');
         const priceInput = document.getElementById('price');
         
@@ -336,7 +336,6 @@
             priceInput.value = ''; // Clear the value when hidden
         }
     }
-
     </script>
     
     <script src="form.js"></script>

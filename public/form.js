@@ -51,28 +51,18 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         submitButton.disabled = true;
         loadingIndicator.style.display = 'block';
         
-        // Get form values first
-        const post_type = document.getElementById('post_type').value;
-        const neighbourhood = document.getElementById('neighbourhood').value;
-        const post = document.getElementById('post').value;
-        
-        // Validate required fields
-        if (!post_type || !neighbourhood || !post) {
-            console.error('Missing required fields:', { post_type, neighbourhood, post });
-            throw new Error('Please fill in all required fields');
-        }
-
-        // Create FormData and append basic fields
+        // Create FormData
         const formData = new FormData();
-        formData.append('post_type', post_type);
-        formData.append('neighbourhood', neighbourhood);
-        formData.append('post', post);
-        formData.append('email', user.email);
         formData.append('user_id', user.sub);
+        formData.append('email', user.email);
+        formData.append('neighbourhood', document.getElementById('neighbourhood').value);
+        formData.append('post', document.getElementById('post').value);
+        formData.append('post_type', document.getElementById('post-type').value);
 
-        // Handle coordinates if available
         let lat = null;
         let lng = null;
+
+        // Get location if available
         try {
             if (navigator.geolocation) {
                 const position = await new Promise((resolve, reject) => {
@@ -86,20 +76,22 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             console.log('Location not available or denied, continuing without coordinates');
         }
 
+        // Only append coordinates if they exist
         if (lat !== null && lng !== null) {
             formData.append('latitude', lat.toString());
             formData.append('longitude', lng.toString());
         }
 
-        // Handle price for deals
-        if (post_type === 'deal') {
+        if (document.getElementById('post-type').value === 'deal') {
             const price = document.getElementById('price').value;
             if (!price && price !== '0') {
-                throw new Error('Price is required for deals');
+                errorMessage.textContent = 'Price is required for deals';
+                errorMessage.style.display = 'block';
+                return;
             }
             formData.append('price', price);
         }
-
+        
         // Handle image
         const imageInput = document.getElementById('image');
         const imageFile = imageInput.files[0];
@@ -110,18 +102,11 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             formData.append('image', imageFile);
         }
 
-        // Debug log the FormData contents
-        console.log('FormData contents:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
-        }
-
         // Submit post
         const response = await fetch('/api/posts', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${token}`
             },
             body: formData
         });
@@ -132,7 +117,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
-        window.location.href = `index.html?neighbourhood=${encodeURIComponent(neighbourhood)}`;
+        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = error.message;

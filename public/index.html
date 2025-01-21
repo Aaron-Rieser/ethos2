@@ -393,20 +393,6 @@
             border: 2px solid #3388ff;
             box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
         }
-        .post-card.blind {
-            border: 2px dashed #666;  /* Dashed border for blind posts */
-            box-shadow: 0 2px 4px rgba(102, 102, 102, 0.1);
-        }
-
-        .blind-tag {
-            background-color: #666;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -633,30 +619,28 @@
         // Create post element function
         function createPostElement(post) {
             const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${post.post_type === 'deal' ? ' deal' : ''}${post.post_type === 'blind' ? ' blind' : ''}`;
+            postDiv.className = `post post-card${post.post_type === 'deal' ? ' deal' : ''}`;
             
             let imageHtml = post.image_url 
                 ? `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
-            
-            let headerHtml = '';
+                let dealHtml = '';
+
             if (post.post_type === 'deal') {
-                headerHtml = `
+                dealHtml = `
                     <div class="deal-header">
                         <div class="deal-tag">Deal</div>
                         <div class="deal-price">$${parseFloat(post.price).toFixed(2)}</div>
                     </div>
                 `;
-            } else if (post.post_type === 'blind') {
-                headerHtml = `<div class="blind-tag">Anonymous</div>`;
             }
-
+    
             postDiv.innerHTML = `
                 <div class="post-content">
-                    ${headerHtml}
+                    ${dealHtml}  <!-- Add dealHtml here, before the post content -->
                     <p>${post.post}</p>
                     ${imageHtml}
-                    <small>Posted ${post.post_type === 'blind' ? 'anonymously' : `by ${post.username}`} in ${post.neighbourhood}</small>
+                    <small>Posted by ${post.username} in ${post.neighbourhood}</small>
                     
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${post.id}"></div>
@@ -669,7 +653,9 @@
                 </div>
             `;
 
+            // Load comments for this post
             loadComments(post.id);
+            
             return postDiv;
         }
 

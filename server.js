@@ -9,7 +9,6 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-const cors = require('cors');
 const authenticateJWT = auth({
     audience: process.env.AUTH0_AUDIENCE,
     issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
@@ -48,17 +47,6 @@ const parser = new RSSParser();
 app.use(express.json());
 app.use(express.static('public'));
 
-app.use((req, res, next) => {
-    if (req.path === '/api/posts' && req.method === 'POST') {
-        console.log('=== POST Request Debug ===');
-        console.log('Headers:', req.headers);
-        console.log('Body:', req.body);
-        console.log('Files:', req.files);
-        console.log('Auth:', req.auth);
-    }
-    next();
-});
-
 // 3. Cloudinary configuration MUST come before storage and upload
 try {
     cloudinary.config({
@@ -95,14 +83,6 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024 // 5MB limit
     }
 });
-
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
-    credentials: true,
-    optionsSuccessStatus: 200
-}));
 
 app.get('/api/posts/:postId/comments', async (req, res) => {
     try {
@@ -216,109 +196,71 @@ async function ensureUserAccount(user_id, email) {
 
 app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res) => {    
     try {
-        console.log('Received request body:', req.body);
-        console.log('Required fields check:', {
-            post_type: !!req.body.post_type,
-            neighbourhood: !!req.body.neighbourhood,
-            post: !!req.body.post,
-            email: !!req.body.email,
-            user_id: !!req.body.user_id
-        });
+        console.log('Full auth payload:', req.auth.payload);
+        console.log('Form Data:', req.body);
 
-        // Validate required fields
-        const requiredFields = ['post_type', 'neighbourhood', 'post'];
-        const missingFields = requiredFields.filter(field => !req.body[field]);
-
-        if (missingFields.length > 0) {
-            console.error('Missing fields:', missingFields);
-            return res.status(400).json({ 
-                error: 'Missing required fields',
-                missing: missingFields 
-            });
-        }
-
-        // Extract user info from auth token
         const user_id = req.auth.payload.sub;
-        const email = req.auth.payload.email;
+        const email = req.body.email;
+        const post_type = req.body.post_type;
+        const price = req.body.price;
 
-        // Debug logging
-        console.log('=== Post Creation Debug ===');
-        console.log('1. Raw post_type from request:', req.body.post_type);
-        console.log('2. Full request body:', req.body);
-        console.log('3. Auth payload:', req.auth.payload);
-        console.log('4. Uploaded file:', req.file);
+        console.log('Email from form:', email);
 
-        // Extract and validate inputs
-        const { post_type, price, neighbourhood, post } = req.body;
-        
-        if (!['user_post', 'deal', 'blind'].includes(post_type)) {
+        // Validate post type
+        if (!['user_post', 'deal'].includes(post_type)) {
             return res.status(400).json({ error: 'Invalid post type' });
         }
 
-        if (!email || !neighbourhood || !post) {
+        // Validate price for deals
+        if (post_type === 'deal' && (price === undefined || price === '')) {
+            return res.status(400).json({ error: 'Price is required for deals' });
+        }
+
+        if (!email) {
+            console.error('No email provided in request');
+            return res.status(400).json({ error: 'User email not provided' });
+        }
+        
+        const username = await ensureUserAccount(user_id, email);
+        
+        console.log('Received file:', req.file);
+        const { neighbourhood, post, latitude, longitude } = req.body;
+        
+        if (!neighbourhood || !post) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        // Handle price for deals
-        let validatedPrice = null;
-        if (post_type === 'deal') {
-            validatedPrice = parseFloat(price);
-            if (isNaN(validatedPrice)) {
-                return res.status(400).json({ error: 'Valid price is required for deals' });
-            }
-        }
-
-        // Get or create user account
-        const username = await ensureUserAccount(user_id, email);
+        const image_url = req.file ? req.file.path : null;
         
-        // Insert post
+        // Modified query to include post_type and price
         const query = `
             INSERT INTO posts (
                 neighbourhood, username, post, latitude, longitude, 
                 image_url, user_id, post_type, price
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood,
-            username,  // Always store the username
-            post,
-            req.body.latitude || null,
-            req.body.longitude || null,
-            req.file ? req.file.path : null,
-            user_id,
-            post_type,
-            validatedPrice
+            neighbourhood, username, post, latitude, longitude, 
+            image_url, user_id, post_type, post_type === 'deal' ? price : null
         ];
 
-        console.log('5. Database insertion values:', values);
-        
         const result = await pool.query(query, values);
-        console.log('6. Database response:', result.rows[0]);
-
-        // Modify the response for blind posts
-        const response = {
-            ...result.rows[0],
-            username: post_type === 'blind' ? null : result.rows[0].username
-        };
-
-        res.json(response);
+        
+        res.json(result.rows[0]);
     } catch (err) {
-        console.error('Error details:', {
-            name: err.name,
-            message: err.message,
-            stack: err.stack
-        });
-
-        if (err.name === 'MulterError') {
+        console.error('Detailed error:', err);
+        if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({ 
-                error: err.code === 'LIMIT_FILE_SIZE' 
-                    ? 'File too large (max 5MB)' 
-                    : 'File upload error'
+                error: 'File too large', 
+                details: 'Maximum file size is 5MB' 
             });
         }
-        
+        if (err.name === 'MulterError') {
+            return res.status(400).json({ error: 'File upload error', details: err.message });
+        }
         res.status(500).json({ error: 'Server Error', details: err.message });
     }
 });
