@@ -1,7 +1,10 @@
 MUST DO : 
 
+Separate databases for all post types
+- user_post, deals, blind and events
+- separate design
+First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
 Local env the feed pulls are in the wrong spot
-Post class blind does not work on env
 Post classes:, party, article 
 Likes and dislikes on posts 
 Flow from map to post is not clear, can be more logical

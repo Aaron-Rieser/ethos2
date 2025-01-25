@@ -201,20 +201,8 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
 
         const user_id = req.auth.payload.sub;
         const email = req.body.email;
-        const post_type = req.body.post_type;
-        const price = req.body.price;
 
         console.log('Email from form:', email);
-
-        // Validate post type
-        if (!['user_post', 'deal'].includes(post_type)) {
-            return res.status(400).json({ error: 'Invalid post type' });
-        }
-
-        // Validate price for deals
-        if (post_type === 'deal' && (price === undefined || price === '')) {
-            return res.status(400).json({ error: 'Price is required for deals' });
-        }
 
         if (!email) {
             console.error('No email provided in request');
@@ -232,19 +220,19 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
 
         const image_url = req.file ? req.file.path : null;
         
-        // Modified query to include post_type and price
+        // Simplified query without post_type
         const query = `
             INSERT INTO posts (
                 neighbourhood, username, post, latitude, longitude, 
-                image_url, user_id, post_type, price
+                image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
         const values = [
             neighbourhood, username, post, latitude, longitude, 
-            image_url, user_id, post_type, post_type === 'deal' ? price : null
+            image_url, user_id
         ];
 
         const result = await pool.query(query, values);
