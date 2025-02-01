@@ -586,29 +586,31 @@
                     dealsResponse.json()
                 ]);
 
-                // Add safe date parsing
+                // Safe date parsing
                 const parseDate = (dateStr) => {
-                    const parsed = new Date(dateStr);
-                    return isNaN(parsed.getTime()) ? new Date() : parsed;
+                    try {
+                        const date = new Date(dateStr);
+                        return isNaN(date.getTime()) ? new Date() : date;
+                    } catch (e) {
+                        return new Date();
+                    }
                 };
 
-                // Combine and sort by creation date
+                // Combine and sort content
                 const combinedContent = [
                     ...posts.map(post => ({
                         ...post,
                         isPost: true,
+                        isDeal: false,
                         created_at: parseDate(post.created_at).toISOString()
                     })),
                     ...deals.map(deal => ({
                         ...deal,
+                        isPost: false,
                         isDeal: true,
                         created_at: parseDate(deal.created_at).toISOString()
                     }))
-                ].sort((a, b) => {
-                    const dateA = parseDate(a.created_at).getTime();
-                    const dateB = parseDate(b.created_at).getTime();
-                    return dateB - dateA;
-                });
+                ].sort((a, b) => parseDate(b.created_at) - parseDate(a.created_at));
 
                 const postsContainer = document.querySelector('#posts-container');
                 postsContainer.innerHTML = '';
