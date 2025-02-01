@@ -13,15 +13,19 @@ async function loadNeighborhoods() {
         ).sort();
         console.log('Extracted neighborhoods:', neighborhoods);
 
-        const select = document.getElementById('neighbourhood');
-        console.log('Select element found:', select);
+        // Get both select elements
+        const selects = document.querySelectorAll('select[name="neighbourhood"]');
+        console.log('Found select elements:', selects.length);
         
-        neighborhoods.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            select.appendChild(option);
-            console.log('Added option:', name);
+        // Populate each select element with neighborhoods
+        selects.forEach(select => {
+            neighborhoods.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+                console.log('Added option:', name, 'to select:', select.id);
+            });
         });
     } catch (error) {
         console.error('Detailed error in loadNeighborhoods:', error);

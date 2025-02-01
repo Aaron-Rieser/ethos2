@@ -552,10 +552,9 @@
             window.location.href = 'index.html';
         }
 
-        // Load combined feed function
+        // updated jan29 for deals table
         async function loadCombinedFeed() {
             try {
-                // Wait for Auth0 initialization if needed
                 if (!auth0Client) {
                     await initializeAuth0();
                 }
@@ -563,35 +562,54 @@
                 const neighbourhood = getNeighbourhoodFromURL();
                 updateFilterDisplay();
                 
-                // Set up headers with error handling
                 let headers = {};
-                let isAuthenticated = false;
                 try {
-                    isAuthenticated = await auth0Client.isAuthenticated();
-                } catch (error) {
-                    console.error('Error checking authentication:', error);
-                }
-
-                if (isAuthenticated) {
-                    try {
+                    if (await auth0Client.isAuthenticated()) {
                         const token = await auth0Client.getTokenSilently();
                         headers.Authorization = `Bearer ${token}`;
-                    } catch (error) {
-                        console.error('Error getting token:', error);
                     }
+                } catch (error) {
+                    console.error('Error with authentication:', error);
                 }
 
-                // Fetch posts with authentication headers if available
-                const url = neighbourhood 
-                    ? `/api/posts?neighbourhood=${encodeURIComponent(neighbourhood)}`
-                    : '/api/posts';
-                
-                const response = await fetch(url, { headers });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const combinedContent = await response.json();
-                
+                // Fetch both endpoints in parallel
+                const [postsResponse, dealsResponse] = await Promise.all([
+                    fetch(`/api/posts${neighbourhood ? `?neighbourhood=${encodeURIComponent(neighbourhood)}` : ''}`, { headers }),
+                    fetch(`/api/deals${neighbourhood ? `?neighbourhood=${encodeURIComponent(neighbourhood)}` : ''}`, { headers })
+                ]);
+
+                if (!postsResponse.ok) throw new Error(`Posts response error: ${postsResponse.status}`);
+                if (!dealsResponse.ok) throw new Error(`Deals response error: ${dealsResponse.status}`);
+
+                const [posts, deals] = await Promise.all([
+                    postsResponse.json(),
+                    dealsResponse.json()
+                ]);
+
+                // Add safe date parsing
+                const parseDate = (dateStr) => {
+                    const parsed = new Date(dateStr);
+                    return isNaN(parsed.getTime()) ? new Date() : parsed;
+                };
+
+                // Combine and sort by creation date
+                const combinedContent = [
+                    ...posts.map(post => ({
+                        ...post,
+                        isPost: true,
+                        created_at: parseDate(post.created_at).toISOString()
+                    })),
+                    ...deals.map(deal => ({
+                        ...deal,
+                        isDeal: true,
+                        created_at: parseDate(deal.created_at).toISOString()
+                    }))
+                ].sort((a, b) => {
+                    const dateA = parseDate(a.created_at).getTime();
+                    const dateB = parseDate(b.created_at).getTime();
+                    return dateB - dateA;
+                });
+
                 const postsContainer = document.querySelector('#posts-container');
                 postsContainer.innerHTML = '';
                 
@@ -606,55 +624,66 @@
                 }
 
                 combinedContent.forEach(item => {
-                    const element = item.type === 'post' 
-                        ? createPostElement(item) 
-                        : createFeedElement(item);
+                    const element = createPostElement(item);
                     postsContainer.appendChild(element);
                 });
             } catch (error) {
                 console.error('Error loading combined feed:', error);
+                const postsContainer = document.querySelector('#posts-container');
+                if (postsContainer) {
+                    postsContainer.innerHTML = `
+                        <div class="error-message">
+                            Failed to load posts. Please try refreshing the page.
+                            ${error.message ? `<br>Error: ${error.message}` : ''}
+                        </div>`;
+                }
             }
         }
-
-        // Create post element function
-        function createPostElement(post) {
+        // Create post element function, updated jan 29 for deals
+        function createPostElement(item) {
             const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${post.post_type === 'deal' ? ' deal' : ''}`;
+            postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}`;
             
-            let imageHtml = post.image_url 
-                ? `<img src="${post.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
+            let imageHtml = item.image_url 
+                ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
-                let dealHtml = '';
-
-            if (post.post_type === 'deal') {
-                dealHtml = `
-                    <div class="deal-header">
-                        <div class="deal-tag">Deal</div>
-                        <div class="deal-price">$${parseFloat(post.price).toFixed(2)}</div>
-                    </div>
-                `;
+            
+            let dealHtml = '';
+            if (item.isDeal && item.price) {
+                const price = parseFloat(item.price);
+                if (!isNaN(price)) {
+                    dealHtml = `
+                        <div class="deal-header">
+                            <div class="deal-tag">Deal</div>
+                            <div class="deal-price">$${price.toFixed(2)}</div>
+                        </div>
+                    `;
+                }
             }
-    
+
+            const createdAt = item.created_at 
+                ? new Date(item.created_at).toLocaleString() 
+                : 'Unknown date';
+            
             postDiv.innerHTML = `
                 <div class="post-content">
-                    ${dealHtml}  <!-- Add dealHtml here, before the post content -->
-                    <p>${post.post}</p>
+                    ${dealHtml}
+                    <p>${item.post || 'No content available'}</p>
                     ${imageHtml}
-                    <small>Posted by ${post.username} in ${post.neighbourhood}</small>
+                    <small>Posted by ${item.username || 'Anonymous'} in ${item.neighbourhood || 'Unknown location'} on ${createdAt}</small>
                     
                     <div class="comments-section">
-                        <div class="comments-container" id="comments-${post.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${post.id})">
-                            <input type="text" id="comment-input-${post.id}" class="comment-input" placeholder="Add a comment..." required>
-                            <div id="comment-error-${post.id}" class="error-message" style="display: none;"></div>
+                        <div class="comments-container" id="comments-${item.id}"></div>
+                        <form class="comment-form" onsubmit="submitComment(event, ${item.id})">
+                            <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
+                            <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
                             <button type="submit">Comment</button>
                         </form>
                     </div>
                 </div>
             `;
 
-            // Load comments for this post
-            loadComments(post.id);
+            loadComments(item.id);
             
             return postDiv;
         }
@@ -873,16 +902,19 @@
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelector('.create-post-link').addEventListener('click', async (e) => {
-                if (!await auth0Client.isAuthenticated()) {
-                    e.preventDefault();
-                    document.getElementById('loginPrompt').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('loginPrompt').style.display = 'none';
-                    }, 3000);
-                }
-            });
+       document.addEventListener('DOMContentLoaded', function() {
+            const createPostLink = document.querySelector('.create-post-link');
+            if (createPostLink) {  // Add this check
+                createPostLink.addEventListener('click', async (e) => {
+                    if (!await auth0Client.isAuthenticated()) {
+                        e.preventDefault();
+                        document.getElementById('loginPrompt').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('loginPrompt').style.display = 'none';
+                        }, 3000);
+                    }
+                });
+            }
         });
     </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>

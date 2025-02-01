@@ -247,6 +247,14 @@
             background: #3388ff;
             color: white;
         }
+        input[type="number"] {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 100%;
+        max-width: 400px;
+        margin: 10px auto;
+    }
 
     </style>
 </head>
@@ -306,6 +314,44 @@
                 <div id="errorMessage" class="error-message" style="display: none;"></div>
                 <div id="loadingIndicator" style="display: none;">Uploading your post...</div>
             </form>
+
+            <form id="dealForm" style="display: none;">
+                <div class="form-group">
+                    <label for="dealPrice">Price ($):</label>
+                    <input 
+                        type="number" 
+                        id="dealPrice" 
+                        name="price" 
+                        step="0.01" 
+                        min="0" 
+                        max="999999999.99"
+                        placeholder="0.00"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="neighbourhood">Neighbourhood:</label>
+                    <select id="neighbourhood" name="neighbourhood" required>
+                        <option value="">Select a neighbourhood</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="post">Post:</label>
+                    <textarea id="post" name="post" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Image (optional):</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                
+                <button type="submit">Submit Deal</button>
+                
+                <div id="dealErrorMessage" class="error-message" style="display: none;"></div>
+                <div id="dealLoadingIndicator" style="display: none;">Uploading your deal...</div>
+            </form>
         </div>
     </main>
 
@@ -313,38 +359,57 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Check if we have location permission when page loads
+        // Location permission check
         if (localStorage.getItem('locationPermissionGranted') === 'true') {
             console.log('Location will be included with post');
-            // Optionally: Add a visual indicator that location will be included
         }
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
+        // Get form elements
         const postButton = document.getElementById('postButton');
         const dealButton = document.getElementById('dealButton');
         const postForm = document.getElementById('postForm');
+        const dealForm = document.getElementById('dealForm');
+        const neighbourhoodDropdown = document.getElementById('neighbourhood');
 
-        // Set initial state
+        // Populate neighborhoods
+        function populateNeighborhoods(dropdown) {
+            if (window.neighborhoods && window.neighborhoods.features) {
+                window.neighborhoods.features.forEach(feature => {
+                    const option = document.createElement('option');
+                    option.value = feature.properties.name;
+                    option.textContent = feature.properties.name;
+                    dropdown.appendChild(option);
+                });
+            }
+        }
+
+        // Initialize forms and dropdown
+        populateNeighborhoods(neighbourhoodDropdown);
+
+        // Set initial state and handle toggles
         postButton.classList.add('active');
         postForm.style.display = 'block';
+        dealForm.style.display = 'none';
 
         postButton.addEventListener('click', function() {
             postButton.classList.add('active');
             dealButton.classList.remove('active');
             postForm.style.display = 'block';
+            dealForm.style.display = 'none';
         });
 
         dealButton.addEventListener('click', function() {
             dealButton.classList.add('active');
             postButton.classList.remove('active');
             postForm.style.display = 'none';
+            dealForm.style.display = 'block';
         });
     });
     </script>
     
     <script src="form.js"></script>
-    
+    <script src="dealForm.js"></script>
+
     <div class="bottom-nav">
         <a href="index.html">Home</a>
     </div>

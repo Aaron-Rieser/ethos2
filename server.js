@@ -9,23 +9,16 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-const authenticateJWT = auth({
-    audience: process.env.AUTH0_AUDIENCE,
-    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
-});
+
+app.use(express.json());
+app.use(express.static('public'));
+
 // Verify required environment variables
 const requiredEnvVars = [
     'CLOUDINARY_CLOUD_NAME',
     'CLOUDINARY_API_KEY',
     'CLOUDINARY_API_SECRET'
 ];
-
-requiredEnvVars.forEach(varName => {
-    if (!process.env[varName]) {
-        console.error(`Missing required environment variable: ${varName}`);
-        process.exit(1);
-    }
-});
 
 console.log('Initializing database connection...');
 pool.connect()
@@ -35,17 +28,17 @@ pool.connect()
         process.exit(1);
     });
 
+requiredEnvVars.forEach(varName => {
+    if (!process.env[varName]) {
+        console.error(`Missing required environment variable: ${varName}`);
+        process.exit(1);
+    }
+});
+
 console.log('Checking Cloudinary environment variables:');
 console.log('CLOUD_NAME present:', !!process.env.CLOUDINARY_CLOUD_NAME);
 console.log('API_KEY present:', !!process.env.CLOUDINARY_API_KEY);
 console.log('API_SECRET present:', !!process.env.CLOUDINARY_API_SECRET);
-
-// 2. Initialize cache and parser
-const cache = new NodeCache({ stdTTL: 300 });
-const parser = new RSSParser();
-
-app.use(express.json());
-app.use(express.static('public'));
 
 // 3. Cloudinary configuration MUST come before storage and upload
 try {
@@ -82,6 +75,14 @@ const upload = multer({
     limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
     }
+});
+
+const cache = new NodeCache({ stdTTL: 300 });
+const parser = new RSSParser();
+
+const authenticateJWT = auth({
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
 });
 
 app.get('/api/posts/:postId/comments', async (req, res) => {
@@ -253,6 +254,71 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
     }
 });
 
+app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res) => {    
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+        console.log('Deals endpoint hit');  // Debug log
+        console.log('Headers:', req.headers);  // Debug log
+        console.log('Body:', req.body);  // Debug log
+        console.log('Full auth payload:', req.auth.payload);
+        console.log('Form Data:', req.body);
+
+        const user_id = req.auth.payload.sub;
+        const email = req.body.email;
+
+        console.log('Email from form:', email);
+
+        if (!email) {
+            console.error('No email provided in request');
+            return res.status(400).json({ error: 'User email not provided' });
+        }
+        
+        const username = await ensureUserAccount(user_id, email);
+        
+        console.log('Received file:', req.file);
+        const { neighbourhood, post, price, latitude, longitude } = req.body;
+        
+        // Validate price
+        const numericPrice = parseFloat(price);
+        if (!neighbourhood || !post || !price || isNaN(numericPrice)) {
+            return res.status(400).json({ error: 'Missing required fields or invalid price' });
+        }
+
+        const image_url = req.file ? req.file.path : null;
+        
+        const query = `
+            INSERT INTO deals (
+                neighbourhood, username, post, price, latitude, longitude, 
+                image_url, user_id
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            RETURNING *
+        `;
+        
+        const values = [
+            neighbourhood, username, post, numericPrice, latitude, longitude, 
+            image_url, user_id
+        ];
+
+        const result = await pool.query(query, values);
+        
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Detailed error:', err);
+        if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                error: 'File too large', 
+                details: 'Maximum file size is 5MB' 
+            });
+        }
+        if (err.name === 'MulterError') {
+            return res.status(400).json({ error: 'File upload error', details: err.message });
+        }
+        res.status(500).json({ error: 'Server Error', details: err.message });
+    }
+});
+
 // Define feeds
 const FEEDS = [
     // Weather Feed
@@ -363,7 +429,7 @@ async function fetchAllFeeds() {
     }
 }
 
-// Modified GET endpoint to include feeds
+// changing feb 1 load comb feed - not doing so properly now 
 app.get('/api/posts', async (req, res) => {
     try {
         console.log('Fetching posts and feeds...');
@@ -376,42 +442,79 @@ app.get('/api/posts', async (req, res) => {
             return res.json(cachedContent);
         }
 
-        // Fetch posts from database
-        let query = 'SELECT * FROM posts';
+        // Build query for posts only
+        let postsQuery = 'SELECT * FROM posts';  // Remove the text conversion for now
         let values = [];
 
         if (neighbourhood) {
-            query += ' WHERE neighbourhood = $1';
+            postsQuery += ' WHERE neighbourhood = $1';
             values = [neighbourhood];
-            console.log(`Filtering posts for neighbourhood: ${neighbourhood}`);
         }
+        
+        postsQuery += ' ORDER BY created_at DESC';
+        
+        console.log('Executing posts query:', postsQuery, values);
+        const postsResult = await pool.query(postsQuery, values);
+        console.log(`Found ${postsResult.rows.length} posts`);
 
-        query += ' ORDER BY id DESC';
-
-        const allPosts = await pool.query(query, values);
-        const posts = allPosts.rows.map(post => ({
+        // Format dates consistently
+        const allContent = postsResult.rows.map(post => ({
             ...post,
-            type: 'post'
+            created_at: new Date(post.created_at).toISOString()
         }));
 
-        // Fetch feed content
+        // Add feeds if they exist
         const feedItems = await fetchAllFeeds();
-
-        // Combine posts and feeds, sort by date
-        const combinedContent = [...posts, ...feedItems].sort((a, b) => {
-            const dateA = new Date(a.created_at || a.date);
-            const dateB = new Date(b.created_at || b.date);
-            return dateB - dateA;
-        });
+        const combinedContent = [...allContent, ...feedItems];
 
         // Cache the result
         cache.set(cacheKey, combinedContent);
 
-        console.log('Combined content retrieved');
         res.json(combinedContent);
     } catch (err) {
-        console.error('Error fetching content:', err.message);
-        res.status(500).send('Server Error');
+        console.error('Error fetching content:', err);
+        res.status(500).json({ error: 'Server Error', details: err.message });
+    }
+});
+
+app.get('/api/deals', async (req, res) => {
+    try {
+        const { neighbourhood } = req.query;
+        
+        // Check cache first
+        const cacheKey = `deals_${neighbourhood || 'all'}`;
+        const cachedContent = cache.get(cacheKey);
+        if (cachedContent) {
+            return res.json(cachedContent);
+        }
+
+        let query = 'SELECT * FROM deals';  // Remove the text conversion
+        let values = [];
+        
+        if (neighbourhood) {
+            query += ' WHERE neighbourhood = $1';
+            values.push(neighbourhood);
+        }
+        
+        query += ' ORDER BY created_at DESC';
+        
+        console.log('Executing deals query:', query, values);
+        const result = await pool.query(query, values);
+        console.log(`Found ${result.rows.length} deals`);
+
+        // Format dates consistently
+        const formattedDeals = result.rows.map(deal => ({
+            ...deal,
+            created_at: new Date(deal.created_at).toISOString()
+        }));
+
+        // Cache the result
+        cache.set(cacheKey, formattedDeals);
+        
+        res.json(formattedDeals);
+    } catch (error) {
+        console.error('Error fetching deals:', error);
+        res.status(500).json({ error: 'Error fetching deals', details: error.message });
     }
 });
 

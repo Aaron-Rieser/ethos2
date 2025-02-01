@@ -1,7 +1,14 @@
 MUST DO : 
 
-Separate databases for all post types
-- user_post, deals, blind and events
+Deals now showing ; but this update not pushed live 
+Also, need to apply the deals db changes to the prod db's
+Sorting works better. Wait to see on the main feed
+Main feed load quicker, and re-login email.
+Need to sort the feed better 
+Need to learn to actually kill servers. Not working and is needed every time we add a new endpoint
+Next - need to add deals, blind and events
+And add all functions back in for them 
+Create a new combined feed that takes the new tables into account 
 - separate design
 First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
 Local env the feed pulls are in the wrong spot
