@@ -1,16 +1,19 @@
 MUST DO : 
 
-Deals now showing ; but this update not pushed live 
-Also, need to apply the deals db changes to the prod db's
-Sorting works better. Wait to see on the main feed
-Main feed load quicker, and re-login email.
-Need to sort the feed better 
-Need to learn to actually kill servers. Not working and is needed every time we add a new endpoint
-Next - need to add deals, blind and events
-And add all functions back in for them 
-Create a new combined feed that takes the new tables into account 
-- separate design
 First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+Main feed load quicker
+Next - need to add deals, blind and events
+Add likes, dislikes (?) 
+Add direct replies
+Better comment design vs. Post vs users 
+Route real URL
+Change username function
+Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
+Add multiple photos on an item, restricted numbers
+**live>??
+Need to learn to actually kill servers. Not working and is needed every time we add a new endpoint
+And add all functions back in for them 
+- separate design
 Local env the feed pulls are in the wrong spot
 Post classes:, party, article 
 Likes and dislikes on posts 
@@ -27,7 +30,6 @@ Account pages
 Nav as clean as possible 
 Better auth design and an auth page
 Show location on default if possible, tried and failed before (Geolocation api implementation to reduce requests?)
-Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
 Clean up comment design
 Clean up post design
 Shared CSS file for all design items?
@@ -43,7 +45,6 @@ All debugging, device, browser testing
 - feed and design of page moving around when page loads (columns look uncertain and adjust on load)
 - delay on posts showing up on the feed after you go to a new feed 
 Design sprint
-Map to proper url
 
 
 PRODUCT OVERALL 

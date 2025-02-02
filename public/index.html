@@ -586,25 +586,44 @@
                     dealsResponse.json()
                 ]);
 
+                // Validate items before processing
+                const validPosts = posts.filter(post => 
+                    post && 
+                    post.id && 
+                    post.post && // Must have content
+                    post.created_at && 
+                    post.neighbourhood // Must have neighborhood
+                );
+
+                const validDeals = deals.filter(deal => 
+                    deal && 
+                    deal.id && 
+                    deal.post && // Must have content
+                    deal.created_at && 
+                    deal.neighbourhood && // Must have neighborhood
+                    deal.price // Must have price for deals
+                );
+
                 // Safe date parsing
                 const parseDate = (dateStr) => {
                     try {
                         const date = new Date(dateStr);
                         return isNaN(date.getTime()) ? new Date() : date;
                     } catch (e) {
+                        console.error('Date parsing error for:', dateStr);
                         return new Date();
                     }
                 };
 
-                // Combine and sort content
+                // Combine only valid content
                 const combinedContent = [
-                    ...posts.map(post => ({
+                    ...validPosts.map(post => ({
                         ...post,
                         isPost: true,
                         isDeal: false,
                         created_at: parseDate(post.created_at).toISOString()
                     })),
-                    ...deals.map(deal => ({
+                    ...validDeals.map(deal => ({
                         ...deal,
                         isPost: false,
                         isDeal: true,
@@ -625,9 +644,14 @@
                     return;
                 }
 
+                // Add debug logging
+                console.log('Combined content before rendering:', combinedContent);
+
                 combinedContent.forEach(item => {
-                    const element = createPostElement(item);
-                    postsContainer.appendChild(element);
+                    if (item && item.id && item.post) { // Additional validation before creating element
+                        const element = createPostElement(item);
+                        postsContainer.appendChild(element);
+                    }
                 });
             } catch (error) {
                 console.error('Error loading combined feed:', error);
