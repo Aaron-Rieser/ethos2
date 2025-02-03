@@ -55,6 +55,8 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
             throw new Error(errorData || 'Failed to submit deal');
         }
 
+        submitSound.play().catch(err => console.log('Sound play failed:', err));
+
         // Redirect on success
         window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {

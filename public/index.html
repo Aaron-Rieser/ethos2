@@ -545,7 +545,8 @@
     </main>
 
     <script>
-        // Function to parse URL parameters
+        const upvoteSound = new Audio('/sounds/gumshoe_upvote.mp3');
+
         function getNeighbourhoodFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('neighbourhood');
@@ -773,6 +774,8 @@
                 if (upvoteCountElement) {
                     upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
                 }
+
+                upvoteSound.play().catch(err => console.log('Sound play failed:', err));
 
                 // Refresh the feed to ensure consistency
                 await loadCombinedFeed();

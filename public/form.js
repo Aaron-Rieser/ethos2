@@ -106,6 +106,16 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
+        try {
+            await submitSound.play();
+            // Wait for the sound to finish playing
+            await new Promise(resolve => {
+                submitSound.addEventListener('ended', resolve, { once: true });
+            });
+        } catch (err) {
+            console.log('Sound play failed:', err);
+        }
+        
         window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
