@@ -1,10 +1,16 @@
 MUST DO : 
 
+Upvotes passing but not coming in quick
+1_ is db count of upvotes right?
+2_ how to show db count acuratenyl right away when loading
+3_db count looks right WHEN you upvote but not off rip
 First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
 Main feed load quicker
+Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events
 Add likes, dislikes (?) 
 Add direct replies
+Post design on desktop
 Better comment design vs. Post vs users 
 Route real URL
 Change username function

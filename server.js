@@ -254,6 +254,26 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
     }
 });
 
+app.post('/api/posts/:postId/upvote', authenticateJWT, async (req, res) => {
+    const { postId } = req.params;
+
+    try {
+        const result = await pool.query(
+            'UPDATE posts SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
+            [postId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating upvotes for post:', error);
+        res.status(500).json({ error: 'Error updating upvotes' });
+    }
+});
+
 app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
@@ -316,6 +336,26 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
             return res.status(400).json({ error: 'File upload error', details: err.message });
         }
         res.status(500).json({ error: 'Server Error', details: err.message });
+    }
+});
+
+app.post('/api/deals/:dealId/upvote', authenticateJWT, async (req, res) => {
+    const { dealId } = req.params;
+
+    try {
+        const result = await pool.query(
+            'UPDATE deals SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
+            [dealId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Deal not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating upvotes for deal:', error);
+        res.status(500).json({ error: 'Error updating upvotes' });
     }
 });
 

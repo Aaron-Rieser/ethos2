@@ -692,12 +692,16 @@
                 : 'Unknown date';
             
             postDiv.innerHTML = `
-                <div class="post-content">
+               <div class="post-content">
                     ${dealHtml}
                     <p>${item.post || 'No content available'}</p>
                     ${imageHtml}
                     <small>Posted by ${item.username || 'Anonymous'} in ${item.neighbourhood || 'Unknown location'} on ${createdAt}</small>
                     
+                    <div class="feed-footer">
+                        <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️ Upvote</button>
+                        <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
+                    </div>
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${item.id}"></div>
                         <form class="comment-form" onsubmit="submitComment(event, ${item.id})">
@@ -709,9 +713,43 @@
                 </div>
             `;
 
+            // Add event listener for upvote button
+            const upvoteButton = postDiv.querySelector('.upvote-button');
+            upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
+
             loadComments(item.id);
             
             return postDiv;
+        }
+
+        async function handleUpvote(itemId, isDeal) {
+            try {
+                const token = await auth0Client.getTokenSilently();
+                const endpoint = isDeal ? `/api/deals/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
+                
+                console.log(`Attempting to upvote ${isDeal ? 'deal' : 'post'} with ID: ${itemId}`);
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to upvote');
+                }
+
+                const updatedItem = await response.json();
+                
+                // Update the upvote count in the UI
+                const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
+                if (upvoteCountElement) {
+                    upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
+                }
+            } catch (error) {
+                console.error('Error handling upvote:', error);
+            }
         }
 
         async function loadComments(postId) {
