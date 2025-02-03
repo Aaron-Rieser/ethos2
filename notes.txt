@@ -1,7 +1,7 @@
 MUST DO : 
 
 Sound for upvotes 
-Upvotes not working on mobile 
+Upvotes working on mobile but the touch/click (maybe?) logging multiple as multiples are being logged in mobile 
 New upvotes not on deals sending posts to the bottom.. maybe a tied time thing. Algorithm needed. 
 1_ is db count of upvotes right?
 2_ how to show db count acuratenyl right away when loading

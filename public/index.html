@@ -394,12 +394,14 @@
             box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
         }
         .upvote-button {
-            min-width: 44px;  /* Minimum touch target size */
+            min-width: 44px;
             min-height: 44px;
-            padding: 12px;    /* Comfortable padding for touch */
+            padding: 12px;
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-            touch-action: manipulation; /* Optimize for touch */
+            position: relative;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         @media screen and (max-width: 768px) {
@@ -474,26 +476,12 @@
                 margin-top: 15px; /* Add some space after the title */
             }
             .upvote-button {
-                min-width: 48px;      /* Standard minimum touch target width */
-                min-height: 48px;     /* Standard minimum touch target height */
-                padding: 15px;        /* Increased padding */
-                margin: 5px 10px;     /* Add some spacing */
-                display: inline-flex; /* Ensure proper sizing */
+                min-width: 48px;      /* Slightly larger for mobile */
+                min-height: 48px;     /* Slightly larger for mobile */
+                padding: 15px;        /* More padding for mobile */
+                display: inline-flex; /* Mobile-specific layout */
                 align-items: center;
                 justify-content: center;
-                touch-action: manipulation;
-                -webkit-tap-highlight-color: transparent;
-            }
-
-            /* Add a larger hit area */
-            .upvote-button::before {
-                content: '';
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                bottom: -10px;
-                left: -10px;
-                z-index: -1;
             }
 
         }
