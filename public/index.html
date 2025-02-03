@@ -393,6 +393,14 @@
             border: 2px solid #3388ff;
             box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
         }
+        .upvote-button {
+            min-width: 44px;  /* Minimum touch target size */
+            min-height: 44px;
+            padding: 12px;    /* Comfortable padding for touch */
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+            touch-action: manipulation; /* Optimize for touch */
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -716,6 +724,10 @@
             // Add event listener for upvote button
             const upvoteButton = postDiv.querySelector('.upvote-button');
             upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
+            upvoteButton.addEventListener('touchend', (e) => {
+                e.preventDefault(); // Prevent any default touch behavior
+                handleUpvote(item.id, item.isDeal);
+            });
 
             loadComments(item.id);
             
