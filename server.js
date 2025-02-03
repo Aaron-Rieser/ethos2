@@ -80,6 +80,16 @@ const upload = multer({
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
 
+function clearCacheForItem(id, isDeal) {
+    const itemType = isDeal ? 'deals' : 'posts';
+    // Clear both specific neighborhood cache and all items cache
+    cache.keys().forEach(key => {
+        if (key.startsWith(itemType)) {
+            cache.del(key);
+        }
+    });
+}
+
 const authenticateJWT = auth({
     audience: process.env.AUTH0_AUDIENCE,
     issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
@@ -258,18 +268,26 @@ app.post('/api/posts/:postId/upvote', authenticateJWT, async (req, res) => {
     const { postId } = req.params;
 
     try {
+        console.log('Attempting to upvote post:', postId);
+        
         const result = await pool.query(
             'UPDATE posts SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
             [postId]
         );
 
+        console.log('Upvote query result:', result.rows);
+
         if (result.rows.length === 0) {
+            console.log('No post found with ID:', postId);
             return res.status(404).json({ error: 'Post not found' });
         }
 
+        clearCacheForItem(postId, false);
+        console.log('Cache cleared for post:', postId);
+
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error updating upvotes for post:', error);
+        console.error('Detailed error updating upvotes for post:', error);
         res.status(500).json({ error: 'Error updating upvotes' });
     }
 });
@@ -351,6 +369,9 @@ app.post('/api/deals/:dealId/upvote', authenticateJWT, async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Deal not found' });
         }
+
+        // Clear cache after successful upvote
+        clearCacheForItem(dealId, true);
 
         res.json(result.rows[0]);
     } catch (error) {

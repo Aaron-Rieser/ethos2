@@ -1,5 +1,7 @@
 MUST DO : 
 
+Sound for upvotes 
+
 Upvotes passing but not coming in quick
 1_ is db count of upvotes right?
 2_ how to show db count acuratenyl right away when loading
@@ -51,6 +53,8 @@ All debugging, device, browser testing
 - feed and design of page moving around when page loads (columns look uncertain and adjust on load)
 - delay on posts showing up on the feed after you go to a new feed 
 Design sprint
+
+** cache refresh time down to 1 min for node content - faster, but more server resources. 
 
 
 PRODUCT OVERALL 

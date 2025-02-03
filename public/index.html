@@ -727,8 +727,6 @@
                 const token = await auth0Client.getTokenSilently();
                 const endpoint = isDeal ? `/api/deals/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
                 
-                console.log(`Attempting to upvote ${isDeal ? 'deal' : 'post'} with ID: ${itemId}`);
-                
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: {
@@ -742,11 +740,15 @@
 
                 const updatedItem = await response.json();
                 
-                // Update the upvote count in the UI
+                // Update the UI immediately
                 const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
                 if (upvoteCountElement) {
                     upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
                 }
+
+                // Refresh the feed to ensure consistency
+                await loadCombinedFeed();
+                
             } catch (error) {
                 console.error('Error handling upvote:', error);
             }
