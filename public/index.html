@@ -419,14 +419,19 @@
             .post-content {
                 margin: 0;
                 padding: 0;
-                width: 100vw;
+                width: 100%;  /* Changed from 100vw */
                 position: relative;
-                left: 50%;
-                transform: translateX(-50%);
             }
 
+            .feed-footer {
+                position: relative;
+                z-index: 2;  /* Ensure it's above post-content */
+                padding: 0 15px;  /* Add padding instead of transform */
+            }
+
+            /* Keep this - it ensures images display properly without overflow */
             .post-content img {
-                width: 100vw;
+                width: 100%;
                 margin: 0;
                 padding: 0;
                 display: block;
