@@ -36,6 +36,48 @@ const initializeAuth0 = async () => {
     }
 };
 
+async function validateAndRefreshToken() {
+    try {
+        if (!auth0Client) {
+            await initializeAuth0();
+        }
+
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (isAuthenticated) {
+            try {
+                // Force a token refresh with retries
+                for (let i = 0; i < 3; i++) {  // Try up to 3 times
+                    try {
+                        await auth0Client.getTokenSilently({
+                            timeoutInSeconds: 60,
+                            cacheMode: 'off',  // Force token refresh
+                            authorizationParams: {
+                                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                                scope: 'openid profile email offline_access'
+                            }
+                        });
+                        console.log('Token refresh successful');
+                        return true;
+                    } catch (retryError) {
+                        console.log(`Token refresh attempt ${i + 1} failed:`, retryError);
+                        if (i === 2) throw retryError;  // Throw on last attempt
+                        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait 1s between retries
+                    }
+                }
+            } catch (refreshError) {
+                console.error('All token refresh attempts failed:', refreshError);
+                // If refresh fails, try to force a new login
+                await login();
+                return false;
+            }
+        }
+        return false;
+    } catch (error) {
+        console.error('Token validation error:', error);
+        return false;
+    }
+}
+
 const handleAuth0Callback = async () => {
     try {
         const query = window.location.search;
@@ -92,6 +134,12 @@ const getAuthToken = async () => {
         }
         
         if (await auth0Client.isAuthenticated()) {
+            // Try to validate and refresh token first
+            const isValid = await validateAndRefreshToken();
+            if (!isValid) {
+                throw new Error('Token refresh failed');
+            }
+            
             const token = await auth0Client.getTokenSilently({
                 timeoutInSeconds: 60,
                 cacheMode: 'on'
@@ -192,9 +240,24 @@ window.addEventListener('load', async () => {
     try {
         await initializeAuth0();
         
-        // Add these new checks
         const isAuthenticated = await auth0Client.isAuthenticated();
         if (isAuthenticated) {
+            // Add token validation here
+            try {
+                await auth0Client.getTokenSilently({
+                    timeoutInSeconds: 60,
+                    cacheMode: 'off',  // Force token refresh
+                    authorizationParams: {
+                        audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                        scope: 'openid profile email offline_access'
+                    }
+                });
+            } catch (error) {
+                console.error('Token refresh failed:', error);
+                // Continue with the rest of the code even if refresh fails
+            }
+
+            // Existing user UI updates
             const user = await auth0Client.getUser();
             const userCircle = document.getElementById('userInitial');
             const loginButton = document.getElementById('login');

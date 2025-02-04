@@ -2,12 +2,13 @@ MUST DO :
 
 New upvotes not on deals sending posts to the bottom.. maybe a tied time thing. Algorithm needed. 
 First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+Maybe remove music
 Main feed load quicker
 Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events
 Add dislikes (?) 
 Add direct replies
-Sounds in but is speed or anything impacted?
+Quicker sound, ensure doesn't impact speed or post logic 
 Post design on desktop and mobile
 Better comment design vs. Post vs users 
 Route real URL
