@@ -121,35 +121,41 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
 
 app.post('/api/comments', authenticateJWT, async (req, res) => {
     try {
-        const { post_id, comment, email } = req.body;  // Get email from request body
+        const { post_id, comment, post_type } = req.body;  // Add post_type to distinguish between posts and deals
         const user_id = req.auth.payload.sub;
         
-        // Add debug logging
-        console.log('Comment attempt:', {
-            post_id,
-            comment,
-            user_id,
-            email,  // Log the email we got from the form
-            auth: req.auth.payload
-        });
+        // Get username from accounts table
+        const userResult = await pool.query(
+            'SELECT username FROM accounts WHERE auth0_id = $1',
+            [user_id]
+        );
+        
+        if (userResult.rows.length === 0) {
+            return res.status(400).json({ error: 'User not found' });
+        }
+        
+        const username = userResult.rows[0].username;
 
-        if (!email) {
-            console.error('No email provided in comment request');
-            return res.status(400).json({ error: 'User email not provided' });
+        // Validate the post/deal exists first
+        const table = post_type === 'deal' ? 'deals' : 'posts';
+        const postExists = await pool.query(
+            `SELECT id FROM ${table} WHERE id = $1`,
+            [post_id]
+        );
+
+        if (postExists.rows.length === 0) {
+            return res.status(404).json({ error: 'Post/Deal not found' });
         }
 
-        // Use ensureUserAccount like we did in posts
-        const username = await ensureUserAccount(user_id, email);
-
         const result = await pool.query(
-            'INSERT INTO comments (post_id, comment, user_id, username) VALUES ($1, $2, $3, $4) RETURNING *',
-            [post_id, comment, user_id, username]
+            'INSERT INTO comments (post_id, comment, user_id, username, post_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [post_id, comment, user_id, username, post_type]
         );
 
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error adding comment:', error);
-        res.status(500).json({ error: 'Error adding comment', details: error.message });
+        res.status(500).json({ error: 'Error adding comment' });
     }
 });
 

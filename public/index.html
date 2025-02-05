@@ -729,7 +729,7 @@
                     </div>
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${item.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${item.id})">
+                        <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${item.isDeal ? 'deal' : 'post'}')">
                             <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
                             <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
                             <button type="submit">Comment</button>
@@ -746,8 +746,8 @@
                 handleUpvote(item.id, item.isDeal);
             });
 
-            loadComments(item.id);
-            
+            loadComments(item.id, item.isDeal ? 'deal' : 'post');
+                        
             return postDiv;
         }
 
@@ -785,10 +785,10 @@
             }
         }
 
-        async function loadComments(postId) {
+        async function loadComments(postId, postType = 'post') {  // Add postType parameter with default
             try {
-                // Make sure this URL matches your server endpoint
-                const response = await fetch(`/api/posts/${postId}/comments`);
+                // Add type to the URL query
+                const response = await fetch(`/api/posts/${postId}/comments?type=${postType}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -808,13 +808,12 @@
             }
         }
 
-        async function submitComment(event, postId) {
+        async function submitComment(event, postId, postType = 'post') {  // Default to 'post', override with 'deal' when needed
             event.preventDefault();
             
-            // First verify the comment input exists
             const commentInput = document.querySelector(`#comment-input-${postId}`);
             if (!commentInput) {
-                console.error(`Comment input not found for post ${postId}`);
+                console.error(`Comment input not found for ${postType} ${postId}`);
                 return;
             }
 
@@ -831,7 +830,8 @@
                     postId,
                     commentText,
                     userEmail: user.email,
-                    userId: user.sub
+                    userId: user.sub,
+                    postType
                 });
 
                 const response = await fetch('/api/comments', {
@@ -843,7 +843,8 @@
                     body: JSON.stringify({
                         post_id: parseInt(postId),
                         comment: commentText,
-                        email: user.email
+                        email: user.email,
+                        post_type: postType
                     })
                 });
 
@@ -854,7 +855,7 @@
 
                 // Clear input and refresh comments
                 commentInput.value = '';
-                await loadComments(postId);
+                await loadComments(postId, postType);
                 
             } catch (error) {
                 console.error('Comment error:', error);

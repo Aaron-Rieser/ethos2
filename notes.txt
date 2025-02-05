@@ -1,8 +1,12 @@
 MUST DO : 
 
+Comments on deals not working 
 New upvotes not on deals sending posts to the bottom.. maybe a tied time thing. Algorithm needed. 
-First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
 Maybe remove music
+Add neighbourhood notifications on map
+Map to homepage 
+Subscribe to feeds
 Main feed load quicker
 Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events
