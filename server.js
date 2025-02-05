@@ -135,41 +135,64 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
 
 app.post('/api/comments', authenticateJWT, async (req, res) => {
     try {
-        const { post_id, comment, post_type } = req.body;  // Add post_type to distinguish between posts and deals
+        const { post_id, comment, post_type } = req.body;
         const user_id = req.auth.payload.sub;
         
-        // Get username from accounts table
+        // Add debug logging
+        console.log('Attempting to add comment:', {
+            post_id,
+            comment,
+            post_type,
+            user_id
+        });
+
+        // Get username from accounts
         const userResult = await pool.query(
             'SELECT username FROM accounts WHERE auth0_id = $1',
             [user_id]
         );
         
+        console.log('User lookup result:', userResult.rows);
+
         if (userResult.rows.length === 0) {
             return res.status(400).json({ error: 'User not found' });
         }
         
         const username = userResult.rows[0].username;
 
-        // Validate the post/deal exists first
+        // Verify the post/deal exists first
         const table = post_type === 'deal' ? 'deals' : 'posts';
-        const postExists = await pool.query(
+        const itemExists = await pool.query(
             `SELECT id FROM ${table} WHERE id = $1`,
             [post_id]
         );
 
-        if (postExists.rows.length === 0) {
-            return res.status(404).json({ error: 'Post/Deal not found' });
+        console.log('Item exists check:', {
+            table,
+            post_id,
+            found: itemExists.rows.length > 0
+        });
+
+        if (itemExists.rows.length === 0) {
+            return res.status(404).json({ error: `${post_type} not found` });
         }
 
+        // Insert comment
         const result = await pool.query(
             'INSERT INTO comments (post_id, comment, user_id, username, post_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [post_id, comment, user_id, username, post_type]
         );
 
+        console.log('Comment inserted:', result.rows[0]);
+        
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error adding comment:', error);
-        res.status(500).json({ error: 'Error adding comment' });
+        console.error('Detailed error adding comment:', {
+            error: error.message,
+            stack: error.stack,
+            code: error.code  // PostgreSQL error code if present
+        });
+        res.status(500).json({ error: 'Error adding comment', details: error.message });
     }
 });
 
