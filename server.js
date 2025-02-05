@@ -98,16 +98,30 @@ const authenticateJWT = auth({
 app.get('/api/posts/:postId/comments', async (req, res) => {
     try {
         const { postId } = req.params;
-        console.log('Fetching comments for post:', postId);
+        const { type } = req.query;  // Get the type from query params
+        
+        console.log('Fetching comments for:', { postId, type });
         console.log('Request received for comments, URL:', req.url);
-        console.log('PostId:', postId);
         console.log('Request headers:', req.headers);
-
-        const comments = await pool.query(
-            'SELECT * FROM comments WHERE post_id = $1 ORDER BY created_at DESC',
+        
+        // Determine which table to check based on type
+        const table = type === 'deal' ? 'deals' : 'posts';
+        
+        // First verify the post/deal exists
+        const itemExists = await pool.query(
+            `SELECT id FROM ${table} WHERE id = $1`,
             [postId]
         );
 
+        if (itemExists.rows.length === 0) {
+            return res.status(404).json({ error: `${type || 'post'} not found` });
+        }
+
+        const comments = await pool.query(
+            'SELECT * FROM comments WHERE post_id = $1 AND post_type = $2 ORDER BY created_at DESC',
+            [postId, type || 'post']
+        );
+        
         console.log('Found comments:', comments.rows);
         console.log('Query executed, found comments:', comments.rows.length);
         
