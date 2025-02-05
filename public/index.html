@@ -747,7 +747,7 @@
             });
 
             loadComments(item.id, item.isDeal ? 'deal' : 'post');
-                                    
+
             return postDiv;
         }
 
@@ -808,9 +808,14 @@
             }
         }
 
-        async function submitComment(event, postId, postType = 'post') {  // Default to 'post', override with 'deal' when needed
+        async function submitComment(event, postId, postType) {
             event.preventDefault();
             
+            if (!postType) {
+                console.error('Post type not specified');
+                return;
+            }
+
             const commentInput = document.querySelector(`#comment-input-${postId}`);
             if (!commentInput) {
                 console.error(`Comment input not found for ${postType} ${postId}`);
@@ -821,6 +826,10 @@
                 const commentText = commentInput.value.trim();
                 if (!commentText) {
                     throw new Error('Comment cannot be empty');
+                }
+
+                if (!auth0Client) {
+                    throw new Error('Auth0 client not initialized');
                 }
 
                 const user = await auth0Client.getUser();
@@ -843,14 +852,13 @@
                     body: JSON.stringify({
                         post_id: parseInt(postId),
                         comment: commentText,
-                        email: user.email,
                         post_type: postType
                     })
                 });
 
                 if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.error || 'Failed to submit comment');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to submit comment');
                 }
 
                 // Clear input and refresh comments
@@ -863,6 +871,9 @@
                 if (errorDiv) {
                     errorDiv.textContent = error.message;
                     errorDiv.style.display = 'block';
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 3000);
                 }
             }
         }

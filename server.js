@@ -138,12 +138,12 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
         const { post_id, comment, post_type } = req.body;
         const user_id = req.auth.payload.sub;
         
-        // Add debug logging
-        console.log('Attempting to add comment:', {
+        // Add extensive logging
+        console.log('Comment request received:', {
             post_id,
-            comment,
             post_type,
-            user_id
+            user_id,
+            comment_length: comment?.length
         });
 
         // Get username from accounts
@@ -160,39 +160,62 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
         
         const username = userResult.rows[0].username;
 
-        // Verify the post/deal exists first
-        const table = post_type === 'deal' ? 'deals' : 'posts';
-        const itemExists = await pool.query(
-            `SELECT id FROM ${table} WHERE id = $1`,
-            [post_id]
-        );
+        // Try to insert comment with explicit transaction
+        await pool.query('BEGIN');
 
-        console.log('Item exists check:', {
-            table,
-            post_id,
-            found: itemExists.rows.length > 0
-        });
+        try {
+            const insertQuery = `
+                INSERT INTO comments 
+                (post_id, comment, user_id, username, post_type) 
+                VALUES ($1, $2, $3, $4, $5) 
+                RETURNING *
+            `;
+            
+            console.log('Executing insert with params:', {
+                post_id,
+                comment_preview: comment?.substring(0, 20),
+                user_id,
+                username,
+                post_type
+            });
 
-        if (itemExists.rows.length === 0) {
-            return res.status(404).json({ error: `${post_type} not found` });
+            const result = await pool.query(insertQuery, [
+                post_id,
+                comment,
+                user_id,
+                username,
+                post_type || 'post'  // Default to 'post' if not specified
+            ]);
+
+            await pool.query('COMMIT');
+            console.log('Comment inserted successfully:', result.rows[0]);
+            
+            res.json(result.rows[0]);
+        } catch (insertError) {
+            await pool.query('ROLLBACK');
+            console.error('Insert transaction failed:', {
+                error: insertError.message,
+                code: insertError.code,
+                detail: insertError.detail,
+                constraint: insertError.constraint
+            });
+            throw insertError;
         }
-
-        // Insert comment
-        const result = await pool.query(
-            'INSERT INTO comments (post_id, comment, user_id, username, post_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [post_id, comment, user_id, username, post_type]
-        );
-
-        console.log('Comment inserted:', result.rows[0]);
-        
-        res.json(result.rows[0]);
     } catch (error) {
-        console.error('Detailed error adding comment:', {
-            error: error.message,
+        console.error('Full error details:', {
+            message: error.message,
             stack: error.stack,
-            code: error.code  // PostgreSQL error code if present
+            code: error.code,
+            detail: error.detail,
+            constraint: error.constraint,
+            where: error.where
         });
-        res.status(500).json({ error: 'Error adding comment', details: error.message });
+        
+        res.status(500).json({ 
+            error: 'Error adding comment',
+            details: error.message,
+            code: error.code
+        });
     }
 });
 
