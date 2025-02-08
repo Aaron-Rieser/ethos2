@@ -289,9 +289,9 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { neighbourhood, post, latitude, longitude } = req.body;
+        const { neighbourhood, post, title, latitude, longitude } = req.body;
         
-        if (!neighbourhood || !post) {
+        if (!neighbourhood || !post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -300,15 +300,15 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         // Simplified query without post_type
         const query = `
             INSERT INTO posts (
-                neighbourhood, username, post, latitude, longitude, 
+                neighbourhood, username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood, username, post, latitude, longitude, 
+            neighbourhood, username, post, title, latitude, longitude, 
             image_url, user_id
         ];
 
@@ -362,16 +362,16 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
     res.setHeader('Content-Type', 'application/json');
     
     try {
-        console.log('Deals endpoint hit');  // Debug log
-        console.log('Headers:', req.headers);  // Debug log
-        console.log('Body:', req.body);  // Debug log
+        console.log('Deals endpoint hit');
+        console.log('Headers:', req.headers);
+        console.log('Body:', req.body);
         console.log('Full auth payload:', req.auth.payload);
-        console.log('Form Data:', req.body);
 
         const user_id = req.auth.payload.sub;
         const email = req.body.email;
 
         console.log('Email from form:', email);
+        console.log('Raw price value:', req.body.price); // Add price logging
 
         if (!email) {
             console.error('No email provided in request');
@@ -381,35 +381,68 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { neighbourhood, post, price, latitude, longitude } = req.body;
+        const { neighbourhood, post, title, price, latitude, longitude } = req.body;
         
-        // Validate price
+        // Enhanced price validation
         const numericPrice = parseFloat(price);
-        if (!neighbourhood || !post || !price || isNaN(numericPrice)) {
-            return res.status(400).json({ error: 'Missing required fields or invalid price' });
+        console.log('Parsed price:', numericPrice);
+
+        if (!neighbourhood || !post || !title) {
+            console.error('Missing required fields:', { neighbourhood, post, title });
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (!price || isNaN(numericPrice)) {
+            console.error('Invalid price value:', { price, numericPrice });
+            return res.status(400).json({ error: 'Invalid price format' });
+        }
+
+        if (numericPrice < 0 || numericPrice > 999999999.99) {
+            console.error('Price out of range:', numericPrice);
+            return res.status(400).json({ error: 'Price must be between 0 and 999,999,999.99' });
         }
 
         const image_url = req.file ? req.file.path : null;
         
+        // Log the final values before database insertion
+        console.log('Inserting deal with values:', {
+            neighbourhood,
+            username,
+            post,
+            title,
+            price: numericPrice,
+            latitude,
+            longitude,
+            image_url,
+            user_id
+        });
+
         const query = `
             INSERT INTO deals (
-                neighbourhood, username, post, price, latitude, longitude, 
+                neighbourhood, username, post, title, price, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood, username, post, numericPrice, latitude, longitude, 
+            neighbourhood, username, post, title, numericPrice, latitude, longitude, 
             image_url, user_id
         ];
 
         const result = await pool.query(query, values);
+        console.log('Deal inserted successfully:', result.rows[0]);
         
         res.json(result.rows[0]);
     } catch (err) {
-        console.error('Detailed error:', err);
+        console.error('Detailed error:', {
+            message: err.message,
+            stack: err.stack,
+            code: err.code,
+            detail: err.detail
+        });
+
         if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
             return res.status(400).json({ 
                 error: 'File too large', 
@@ -419,7 +452,11 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         if (err.name === 'MulterError') {
             return res.status(400).json({ error: 'File upload error', details: err.message });
         }
-        res.status(500).json({ error: 'Server Error', details: err.message });
+        res.status(500).json({ 
+            error: 'Server Error', 
+            details: err.message,
+            code: err.code 
+        });
     }
 });
 

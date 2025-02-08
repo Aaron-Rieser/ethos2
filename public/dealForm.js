@@ -4,6 +4,13 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
     const errorMessage = document.getElementById('dealErrorMessage');
     const submitButton = e.target.querySelector('button[type="submit"]');
     const loadingIndicator = document.getElementById('dealLoadingIndicator');
+
+    const title = document.getElementById('dealTitle').value;
+    if (!title) {
+        errorMessage.textContent = 'Please enter a title';
+        errorMessage.style.display = 'block';
+        return;
+    }
     
     try {
         // Check auth0 initialization and authentication
@@ -26,6 +33,7 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         // Debug logging
         console.log('Deal submission data:', {
             neighbourhood: formData.get('neighbourhood'),
+            title: formData.get('title'),  // Add title to debug logging
             price: formData.get('price'),
             post: formData.get('post'),
             email: formData.get('email'),

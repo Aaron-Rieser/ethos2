@@ -440,6 +440,16 @@
         .comment-form {
             display: none; /* Hide by default */
         }
+        .post-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .deal .post-title {
+            margin-top: 10px;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -762,6 +772,7 @@
             postDiv.innerHTML = `
                 <div class="post-content">
                     ${dealHtml}
+                    <div class="post-title">${item.title || 'Title'}</div>
                     <p>${item.post || 'No content available'}</p>
                     ${imageHtml}
                     <small>${item.username || 'Anonymous'} in <strong>${item.neighbourhood || 'Unknown location'}</strong> ${formattedTime}</small>

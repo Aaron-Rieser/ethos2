@@ -5,6 +5,13 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
     const submitButton = e.target.querySelector('button[type="submit"]');
     const loadingIndicator = document.getElementById('loadingIndicator');
     
+    const title = document.getElementById('title').value;
+    if (!title) {
+        errorMessage.textContent = 'Please enter a title';
+        errorMessage.style.display = 'block';
+        return;
+    }
+    
     // Check authentication
     if (!auth0Client) {
         try {
@@ -56,6 +63,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         formData.append('user_id', user.sub);
         formData.append('email', user.email);
         formData.append('neighbourhood', document.getElementById('neighbourhood').value);
+        formData.append('title', document.getElementById('title').value); // Add this line
         formData.append('post', document.getElementById('post').value);
 
         let lat = null;
@@ -115,7 +123,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         } catch (err) {
             console.log('Sound play failed:', err);
         }
-        
+
         window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
