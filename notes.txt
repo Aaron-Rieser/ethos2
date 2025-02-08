@@ -1,7 +1,9 @@
 MUST DO : 
 
 Downvote button
-Post/deal title data columns and new post styling considering
+Move comment button beside upvote 
+Post styling, consistent post size on desktop that's a bit wider
+Post styling, mobile titles are all out of line with deals outline nd not, fix 
 Lost full width images 
 Email notifications for user actions (maybe send grid free tier)
 Map to homepage 
