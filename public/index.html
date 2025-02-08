@@ -394,14 +394,51 @@
             box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
         }
         .upvote-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
             min-width: 44px;
             min-height: 44px;
-            padding: 12px;
-            cursor: pointer;
-            position: relative;
-            touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             -webkit-tap-highlight-color: transparent;
-            user-select: none;
+        }
+
+        .upvote-button:focus {
+            outline: none;
+        }
+
+        /* Optional: add a subtle hover effect */
+        .upvote-button:hover {
+            opacity: 0.8;
+        }
+        .comment-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .comment-button:focus {
+            outline: none;
+        }
+
+        .comment-button:hover {
+            opacity: 0.8;
+        }
+
+        .comment-form {
+            display: none; /* Hide by default */
         }
 
         @media screen and (max-width: 768px) {
@@ -695,6 +732,16 @@
             const postDiv = document.createElement('div');
             postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}`;
             
+            // Format the date
+            const date = new Date(item.created_at);
+            const formattedTime = date.toLocaleString('en-US', {
+                month: 'short', // "Jan"
+                day: 'numeric', // "1"
+                hour: 'numeric', // "12"
+                minute: '2-digit', // "00"
+                hour12: true // Use AM/PM
+            });
+            
             let imageHtml = item.image_url 
                 ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
@@ -712,19 +759,16 @@
                 }
             }
 
-            const createdAt = item.created_at 
-                ? new Date(item.created_at).toLocaleString() 
-                : 'Unknown date';
-            
             postDiv.innerHTML = `
-               <div class="post-content">
+                <div class="post-content">
                     ${dealHtml}
                     <p>${item.post || 'No content available'}</p>
                     ${imageHtml}
-                    <small>Posted by ${item.username || 'Anonymous'} in ${item.neighbourhood || 'Unknown location'} on ${createdAt}</small>
+                    <small>${item.username || 'Anonymous'} in <strong>${item.neighbourhood || 'Unknown location'}</strong> ${formattedTime}</small>
                     
                     <div class="feed-footer">
-                        <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️ Upvote</button>
+                        <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
+                        <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
@@ -744,6 +788,14 @@
             upvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault(); // Prevent any default touch behavior
                 handleUpvote(item.id, item.isDeal);
+            });
+
+            const commentButton = postDiv.querySelector('.comment-button');
+            const commentForm = postDiv.querySelector('.comment-form');
+            commentButton.addEventListener('click', () => {
+                commentForm.style.display = commentForm.style.display === 'none' || commentForm.style.display === '' 
+                    ? 'flex' 
+                    : 'none';
             });
 
             loadComments(item.id, item.isDeal ? 'deal' : 'post');
@@ -864,6 +916,11 @@
                 // Clear input and refresh comments
                 commentInput.value = '';
                 await loadComments(postId, postType);
+
+                const commentForm = document.querySelector(`#comments-${postId}`).nextElementSibling;
+                if (commentForm && commentForm.classList.contains('comment-form')) {
+                    commentForm.style.display = 'none';
+                }
                 
             } catch (error) {
                 console.error('Comment error:', error);
