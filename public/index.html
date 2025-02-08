@@ -287,8 +287,10 @@
         }
 
         .comment {
-            padding: 8px 0;
-            border-bottom: 1px solid #f5f5f5;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
         .comment-user {
@@ -297,7 +299,7 @@
         }
 
         .comment-text {
-            margin: 5px 0;
+            color: #333;
         }
 
         .comment-form {
@@ -854,9 +856,8 @@
             }
         }
 
-        async function loadComments(postId, postType = 'post') {  // Add postType parameter with default
+        async function loadComments(postId, postType = 'post') {  // Keep the postType parameter
             try {
-                // Add type to the URL query
                 const response = await fetch(`/api/posts/${postId}/comments?type=${postType}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -864,11 +865,11 @@
                 const comments = await response.json();
                 
                 const commentsContainer = document.getElementById(`comments-${postId}`);
-                if (commentsContainer) {  // Add null check for container
+                if (commentsContainer) {  // Keep the null check
                     commentsContainer.innerHTML = comments.map(comment => `
                         <div class="comment">
-                            <small class="comment-user">${comment.username}</small>
-                            <p class="comment-text">${comment.comment}</p>
+                            <span class="comment-user">${comment.username}</span>
+                            <span class="comment-text">${comment.comment}</span>
                         </div>
                     `).join('');
                 }
