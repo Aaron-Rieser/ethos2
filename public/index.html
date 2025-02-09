@@ -288,18 +288,20 @@
 
         .comment {
             display: flex;
-            align-items: baseline;
-            gap: 8px;
             margin-bottom: 8px;
         }
 
         .comment-user {
             font-weight: bold;
             color: #666;
+            flex-shrink: 0;  /* Prevent username from shrinking */
+            margin-right: 8px;  /* Consistent spacing */
         }
 
         .comment-text {
             color: #333;
+            flex: 1;  /* Take remaining space */
+            word-break: break-word;  /* Prevent text overflow */
         }
 
         .comment-form {

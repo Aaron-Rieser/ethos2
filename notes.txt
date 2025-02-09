@@ -13,7 +13,7 @@ Still persisting - First time trying to post in a new session, error = Missing R
 - just force reset 
 Subscribe to feed 
 Notifications on the map
-Comment design 
+Comment design for two lines 
 User action notifications
 Maybe remove music
 Subscribe to feeds
