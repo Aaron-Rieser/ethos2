@@ -287,21 +287,28 @@
         }
 
         .comment {
-            display: flex;
+            position: relative;
+            padding-left: 0;
             margin-bottom: 8px;
         }
 
         .comment-user {
             font-weight: bold;
             color: #666;
-            flex-shrink: 0;  /* Prevent username from shrinking */
-            margin-right: 8px;  /* Consistent spacing */
+            display: inline;
         }
 
         .comment-text {
             color: #333;
-            flex: 1;  /* Take remaining space */
-            word-break: break-word;  /* Prevent text overflow */
+            display: inline;
+            margin-left: 8px;
+        }
+
+        /* Add this to handle long words */
+        .comment-text, .comment-user {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
         }
 
         .comment-form {
