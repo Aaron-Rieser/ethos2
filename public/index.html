@@ -484,15 +484,29 @@
 
             .post-content {
                 margin: 0;
-                padding: 0;
-                width: 100%;  /* Changed from 100vw */
-                position: relative;
+                padding: 0;  /* Remove padding here */
+                width: 100%;
+            }
+
+            .post-content p {
+                margin: 0 0 15px 0;
+                padding: 0 15px;  /* Move padding to paragraph */
+            }
+
+            .post-title {
+                margin: 0 0 10px 0;  /* Reset margins */
+            }
+
+            /* Remove any individual padding that might be causing misalignment */
+            .post-content > * {
+                padding-left: 0;
+                padding-right: 0;
             }
 
             .feed-footer {
                 position: relative;
                 z-index: 2;  /* Ensure it's above post-content */
-                padding: 0 15px;  /* Add padding instead of transform */
+                padding: 0 15px;  /* Consistent padding with other elements */
             }
 
             /* Keep this - it ensures images display properly without overflow */
@@ -502,6 +516,12 @@
                 padding: 0;
                 display: block;
             }
+            .post-card.deal {
+                border: 2px solid #3388ff;
+                box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
+                margin: 20px 15px 20px -5px;  /* keeps the extended box */
+                padding: 0 5px;  /* Add inner spacing from the border */
+            }
             .header-content {
                 padding: 0 10px;
             }
@@ -510,13 +530,6 @@
                 margin-top: 30px; /* Adjust based on header height */
             }
 
-            /* Add padding only to text elements */
-            .post-content p,
-            .post-content small {
-                padding: 0 15px;
-                margin: 15px 0;
-                display: block;
-            }
             .site-title,
             .main-title,
             .neighbourhood-select,
@@ -790,7 +803,7 @@
                 <div class="post-content">
                     ${dealHtml}
                     <div class="post-title">${item.title || 'Title'}</div>
-                    <p>${item.post || 'No content available'}</p>
+                    <div class="post-text">${item.post || 'No content available'}</div>  
                     ${imageHtml}
                     <small>${item.username || 'Anonymous'} in <strong>${item.neighbourhood || 'Unknown location'}</strong> ${formattedTime}</small>
                     
