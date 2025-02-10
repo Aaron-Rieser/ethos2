@@ -525,11 +525,8 @@
                 padding-left: 0;
                 padding-right: 0;
             }
-
-            .feed-footer {
-                position: relative;
-                z-index: 2;  /* Ensure it's above post-content */
-                padding: 0 15px;  /* Consistent padding with other elements */
+            .post-text {
+                margin-bottom: 10px;
             }
 
             .post-content img {
@@ -576,21 +573,18 @@
                 padding-left: 0; /* Remove any existing nav padding */
                 margin-top: 15px; /* Add some space after the title */
             }
-            .upvote-button {
-                min-width: 48px;      /* Slightly larger for mobile */
-                min-height: 48px;     /* Slightly larger for mobile */
-                padding: 15px;        /* More padding for mobile */
-                display: inline-flex; /* Mobile-specific layout */
-                align-items: center;
-                justify-content: center;
+            .upvote-button,
+            .downvote-button,
+            .comment-button {
+                padding: 8px 4px;
+                margin-left: -15px; 
+                min-width: 40px; /* Slightly smaller touch targets but still accessible */
+                min-height: 40px;
+                margin-top: 6px;
             }
-            .downvote-button {
-                min-width: 48px;
-                min-height: 48px;
-                padding: 15px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
+
+            .feed-footer {
+                padding: 0 10px; /* Slightly reduced padding on mobile */
             }
 
         }

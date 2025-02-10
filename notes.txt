@@ -1,11 +1,9 @@
 MUST DO : 
 
-Downvote button
-Move comment button beside upvote 
-Lost full width images 
 Post styling, consistent post size on desktop that's a bit wider
 Post styling, comments crowded on mobile maybe desktop, buttons tighter
 Email notifications for user actions (maybe send grid free tier)
+Downvote notification or design when done 
 Map to homepage 
 Page and comments and likes all jittering around 
 New upvotes not on deals sending posts to the bottom.. a tied time thing. Algorithm needed. 
