@@ -358,6 +358,27 @@ app.post('/api/posts/:postId/upvote', authenticateJWT, async (req, res) => {
     }
 });
 
+app.post('/api/posts/:postId/downvote', authenticateJWT, async (req, res) => {
+    const { postId } = req.params;
+
+    try {
+        const result = await pool.query(
+            'UPDATE posts SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
+            [postId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        clearCacheForItem(postId, false);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating downvotes for post:', error);
+        res.status(500).json({ error: 'Error updating downvotes' });
+    }
+});
+
 app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
@@ -480,6 +501,27 @@ app.post('/api/deals/:dealId/upvote', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('Error updating upvotes for deal:', error);
         res.status(500).json({ error: 'Error updating upvotes' });
+    }
+});
+
+app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
+    const { dealId } = req.params;
+
+    try {
+        const result = await pool.query(
+            'UPDATE deals SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
+            [dealId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Deal not found' });
+        }
+
+        clearCacheForItem(dealId, true);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating downvotes for deal:', error);
+        res.status(500).json({ error: 'Error updating downvotes' });
     }
 });
 

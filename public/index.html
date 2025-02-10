@@ -432,6 +432,29 @@
         .upvote-button:hover {
             opacity: 0.8;
         }
+
+        .downvote-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .downvote-button:focus {
+            outline: none;
+        }
+
+        .downvote-button:hover {
+            opacity: 0.8;
+        }
+
         .comment-button {
             background: none;
             border: none;
@@ -558,6 +581,14 @@
                 min-height: 48px;     /* Slightly larger for mobile */
                 padding: 15px;        /* More padding for mobile */
                 display: inline-flex; /* Mobile-specific layout */
+                align-items: center;
+                justify-content: center;
+            }
+            .downvote-button {
+                min-width: 48px;
+                min-height: 48px;
+                padding: 15px;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
@@ -810,6 +841,7 @@
                     
                     <div class="feed-footer">
                         <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
+                        <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
                         <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
@@ -830,6 +862,13 @@
             upvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault(); // Prevent any default touch behavior
                 handleUpvote(item.id, item.isDeal);
+            });
+
+            const downvoteButton = postDiv.querySelector('.downvote-button');
+            downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isDeal));
+            downvoteButton.addEventListener('touchend', (e) => {
+                e.preventDefault(); // Prevent any default touch behavior
+                handleDownvote(item.id, item.isDeal);
             });
 
             const commentButton = postDiv.querySelector('.comment-button');
@@ -876,6 +915,30 @@
                 
             } catch (error) {
                 console.error('Error handling upvote:', error);
+            }
+        }
+
+        async function handleDownvote(itemId, isDeal) {
+            try {
+                const token = await auth0Client.getTokenSilently();
+                const endpoint = isDeal ? `/api/deals/${itemId}/downvote` : `/api/posts/${itemId}/downvote`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to downvote');
+                }
+
+                // Refresh the feed to ensure consistency
+                await loadCombinedFeed();
+                
+            } catch (error) {
+                console.error('Error handling downvote:', error);
             }
         }
 
