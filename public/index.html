@@ -509,10 +509,11 @@
                 padding: 0 15px;  /* Consistent padding with other elements */
             }
 
-            /* Keep this - it ensures images display properly without overflow */
             .post-content img {
-                width: 100%;
-                margin: 0;
+                width: 100vw !important;  /* Force full viewport width */
+                max-width: none !important;  /* Override any max-width */
+                margin-left: -15px;  /* Compensate for container padding */
+                margin-right: -15px;
                 padding: 0;
                 display: block;
             }
