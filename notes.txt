@@ -1,5 +1,6 @@
 MUST DO : 
 
+Remove sounds 
 Post styling, consistent post size on desktop that's a bit wider
 Post styling, comments crowded on mobile maybe desktop, buttons tighter
 Email notifications for user actions (maybe send grid free tier)
@@ -19,7 +20,6 @@ Main feed load quicker
 Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events (Maybe event brite api integration) 
 Add direct replies
-Quicker sound, ensure doesn't impact speed or post logic 
 Post design on desktop and mobile
 Better comment design vs. Post vs users 
 Content moderation tools in server .. somewhere outside public 
