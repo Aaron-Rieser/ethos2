@@ -1,31 +1,28 @@
 MUST DO : 
 
-Remove sounds 
-Post styling, consistent post size on desktop that's a bit wider
-Post styling, comments crowded on mobile maybe desktop, buttons tighter
+Add direct replies
+Add conversations able
+Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
+Map to homepage 
+Subscribe to feeds
+Notifications on the map
+Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+CSS consistent post size on desktop that's a bit wider
+CSS comment slight indent with an arrow for the first one, spacing for when there's multiple  
+CSS black icons for all functions
 Email notifications for user actions (maybe send grid free tier)
 Downvote notification or design when done 
-Map to homepage 
 Page and comments and likes all jittering around 
 New upvotes not on deals sending posts to the bottom.. a tied time thing. Algorithm needed. 
-Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
-- just force reset 
-Subscribe to feed 
-Notifications on the map
-Comment design for two lines 
 User action notifications
-Maybe remove music
-Subscribe to feeds
 Main feed load quicker
 Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events (Maybe event brite api integration) 
-Add direct replies
 Post design on desktop and mobile
 Better comment design vs. Post vs users 
 Content moderation tools in server .. somewhere outside public 
 Route real URL
 Change username function
-Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
 Add multiple photos on an item, restricted numbers
 Need to learn to actually kill servers. Not working and is needed every time we add a new endpoint
 And add all functions back in for them 
@@ -63,6 +60,18 @@ All debugging, device, browser testing
 Design sprint
 
 ** cache refresh time down to 1 min for node content - faster, but more server resources. 
+
+CONVERSATIONS TABLE FEEDBACK 
+
+CREATE TABLE conversations (
+    id SERIAL PRIMARY KEY,
+    participant1_id VARCHAR(255) NOT NULL,
+    participant2_id VARCHAR(255) NOT NULL,
+    last_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (participant1_id) REFERENCES accounts(auth0_id),
+    FOREIGN KEY (participant2_id) REFERENCES accounts(auth0_id),
+    UNIQUE(participant1_id, participant2_id)
+);
 
 
 PRODUCT OVERALL 

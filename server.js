@@ -525,6 +525,44 @@ app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
     }
 });
 
+app.post('/api/messages', authenticateJWT, async (req, res) => {
+    try {
+        const { recipient_id, message, reference_id, reference_type } = req.body;
+        const sender_id = req.auth.payload.sub;
+        
+        // Add validation
+        if (!message || message.length > 1000) { // Adjust max length as needed
+            return res.status(400).json({ 
+                error: 'Invalid message',
+                details: 'Message must be between 1 and 1000 characters'
+            });
+        }
+
+        // Validate recipient exists
+        const recipientExists = await pool.query(
+            'SELECT 1 FROM accounts WHERE auth0_id = $1',
+            [recipient_id]
+        );
+
+        if (recipientExists.rows.length === 0) {
+            return res.status(400).json({ error: 'Recipient not found' });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO messages 
+             (sender_id, recipient_id, message, reference_id, reference_type) 
+             VALUES ($1, $2, $3, $4, $5) 
+             RETURNING *`,
+            [sender_id, recipient_id, message, reference_id, reference_type]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error sending message:', error);
+        res.status(500).json({ error: 'Error sending message' });
+    }
+});
+
 // Define feeds
 const FEEDS = [
     // Weather Feed
@@ -726,6 +764,55 @@ app.get('/api/deals', async (req, res) => {
 
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: './public' });
+});
+
+app.get('/api/messages/inbox', authenticateJWT, async (req, res) => {
+    try {
+        const user_id = req.auth.payload.sub;
+        
+        const messages = await pool.query(
+            `SELECT 
+                m.*,
+                a.username as sender_username,
+                CASE 
+                    WHEN m.reference_type = 'post' THEN p.title
+                    WHEN m.reference_type = 'deal' THEN d.title
+                END as reference_title
+             FROM messages m
+             JOIN accounts a ON m.sender_id = a.auth0_id
+             LEFT JOIN posts p ON m.reference_type = 'post' AND m.reference_id = p.id
+             LEFT JOIN deals d ON m.reference_type = 'deal' AND m.reference_id = d.id
+             WHERE m.recipient_id = $1
+             ORDER BY m.created_at DESC`,
+            [user_id]
+        );
+        
+        res.json(messages.rows);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: 'Error fetching messages' });
+    }
+});
+
+// Mark message as read
+app.put('/api/messages/:messageId/read', authenticateJWT, async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const user_id = req.auth.payload.sub;
+
+        const result = await pool.query(
+            `UPDATE messages 
+             SET read_at = CURRENT_TIMESTAMP 
+             WHERE id = $1 AND recipient_id = $2
+             RETURNING *`,
+            [messageId, user_id]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error marking message as read:', error);
+        res.status(500).json({ error: 'Error marking message as read' });
+    }
 });
 
 const PORT = process.env.PORT || 3000;

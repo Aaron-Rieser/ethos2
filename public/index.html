@@ -490,6 +490,27 @@
         .deal .post-title {
             margin-top: 10px;
         }
+        .message-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .message-button:focus {
+            outline: none;
+        }
+
+        .message-button:hover {
+            opacity: 0.8;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -575,7 +596,8 @@
             }
             .upvote-button,
             .downvote-button,
-            .comment-button {
+            .comment-button 
+            .message-button {
                 padding: 8px 4px;
                 margin-left: -15px; 
                 min-width: 40px; /* Slightly smaller touch targets but still accessible */
@@ -614,6 +636,7 @@
                     <div id="userInitial" class="user-circle" style="display: none;"></div>
                     <div class="dropdown-content">
                         <span class="user-email"></span>
+                        <a href="/account.html">My Account & Messages</a>
                         <button id="logout">Logout</button>
                     </div>
                 </div>
@@ -835,6 +858,7 @@
                         <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
                         <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
                         <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
+                        <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
@@ -847,6 +871,9 @@
                     </div>
                 </div>
             `;
+            
+            const messageButton = postDiv.querySelector('.message-button');
+            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, item.isDeal ? 'deal' : 'post'));
 
             // Add event listener for upvote button
             const upvoteButton = postDiv.querySelector('.upvote-button');
@@ -1025,6 +1052,42 @@
                         errorDiv.style.display = 'none';
                     }, 3000);
                 }
+            }
+        }
+
+        async function handleMessage(itemId, recipientId, itemType) {
+            try {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    alert('Please log in to send messages');
+                    return;
+                }
+
+                const message = prompt('Enter your message:');
+                if (!message) return;
+
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        recipient_id: recipientId,
+                        message: message,
+                        reference_id: itemId,
+                        reference_type: itemType
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send message');
+                }
+
+                alert('Message sent successfully!');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
             }
         }
 

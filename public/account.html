@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Messages</title>
+    <link rel="stylesheet" href="fonts.css">
+    <style>
+        .message-card {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .message-unread {
+            background-color: #f0f8ff;
+            border-left: 3px solid #3388ff;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .message-content {
+            margin: 10px 0;
+        }
+
+        .message-reference {
+            font-size: 0.9em;
+            color: #3388ff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .inbox-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .inbox-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .empty-inbox {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .message-card {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="sticky-header">
+        <div class="header-content">
+            <a href="/index.html" style="text-decoration: none; color: inherit;">
+                <h1 class="site-title">gumshoe</h1>
+            </a>
+            <div class="auth-section">
+                <button id="login">Log In</button>
+                <div class="user-dropdown">
+                    <div id="userInitial" class="user-circle" style="display: none;"></div>
+                    <div class="dropdown-content">
+                        <span class="user-email"></span>
+                        <button id="logout">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="inbox-container">
+            <h2 class="inbox-title">Inbox</h2>
+            <div id="messages-container">
+                <!-- Messages will be inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function loadMessages() {
+        try {
+            const token = await auth0Client.getTokenSilently();
+            const response = await fetch('/api/messages/inbox', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch messages');
+            }
+
+            const messages = await response.json();
+            const container = document.getElementById('messages-container');
+            
+            if (messages.length === 0) {
+                container.innerHTML = '<div class="empty-inbox">No messages yet</div>';
+                return;
+            }
+
+            container.innerHTML = messages.map(message => `
+                <div class="message-card ${!message.read_at ? 'message-unread' : ''}" 
+                     data-message-id="${message.id}">
+                    <div class="message-sender">${message.sender_username}</div>
+                    <div class="message-time">${new Date(message.created_at).toLocaleString()}</div>
+                    <div class="message-content">${message.message}</div>
+                    ${message.reference_id ? `
+                        <div class="message-reference" 
+                             onclick="viewReference('${message.reference_type}', ${message.reference_id})">
+                            View ${message.reference_type}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            // Add click handlers to mark messages as read
+            document.querySelectorAll('.message-unread').forEach(card => {
+                card.addEventListener('click', () => markAsRead(card.dataset.messageId));
+            });
+        } catch (error) {
+            console.error('Error loading messages:', error);
+            const container = document.getElementById('messages-container');
+            container.innerHTML = '<div class="empty-inbox">Error loading messages. Please try again later.</div>';
+        }
+    }
+
+        async function markAsRead(messageId) {
+            try {
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch(`/api/messages/${messageId}/read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const messageCard = document.querySelector(`[data-message-id="${messageId}"]`);
+                    messageCard.classList.remove('message-unread');
+                }
+            } catch (error) {
+                console.error('Error marking message as read:', error);
+            }
+        }
+
+        function viewReference(type, id) {
+            window.location.href = `/index.html?view=${type}&id=${id}`;
+        }
+
+        // Load messages when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initializeAuth0();
+                const isAuthenticated = await auth0Client.isAuthenticated();
+                if (!isAuthenticated) {
+                    window.location.href = '/index.html';
+                    return;
+                }
+                await loadMessages();
+            } catch (error) {
+                console.error('Error initializing page:', error);
+            }
+        });
+    </script>
+
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth.js"></script>
+    <script src="dropdown.js"></script>
+</body>
+</html>
