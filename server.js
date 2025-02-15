@@ -530,36 +530,76 @@ app.post('/api/messages', authenticateJWT, async (req, res) => {
         const { recipient_id, message, reference_id, reference_type } = req.body;
         const sender_id = req.auth.payload.sub;
         
-        // Add validation
-        if (!message || message.length > 1000) { // Adjust max length as needed
-            return res.status(400).json({ 
-                error: 'Invalid message',
-                details: 'Message must be between 1 and 1000 characters'
-            });
-        }
-
-        // Validate recipient exists
-        const recipientExists = await pool.query(
-            'SELECT 1 FROM accounts WHERE auth0_id = $1',
-            [recipient_id]
+        // Get or create conversation
+        const conversationResult = await pool.query(
+            `SELECT id FROM conversations 
+             WHERE (participant1_id = $1 AND participant2_id = $2)
+             OR (participant1_id = $2 AND participant2_id = $1)`,
+            [sender_id, recipient_id]
         );
 
-        if (recipientExists.rows.length === 0) {
-            return res.status(400).json({ error: 'Recipient not found' });
+        let conversation_id;
+        if (conversationResult.rows.length === 0) {
+            const newConversation = await pool.query(
+                `INSERT INTO conversations (participant1_id, participant2_id)
+                 VALUES ($1, $2) RETURNING id`,
+                [sender_id, recipient_id]
+            );
+            conversation_id = newConversation.rows[0].id;
+        } else {
+            conversation_id = conversationResult.rows[0].id;
         }
 
+        // Update conversation last_message_at
+        await pool.query(
+            `UPDATE conversations 
+             SET last_message_at = CURRENT_TIMESTAMP 
+             WHERE id = $1`,
+            [conversation_id]
+        );
+
+        // Insert message
         const result = await pool.query(
             `INSERT INTO messages 
-             (sender_id, recipient_id, message, reference_id, reference_type) 
-             VALUES ($1, $2, $3, $4, $5) 
+             (sender_id, recipient_id, message, reference_id, reference_type, conversation_id) 
+             VALUES ($1, $2, $3, $4, $5, $6) 
              RETURNING *`,
-            [sender_id, recipient_id, message, reference_id, reference_type]
+            [sender_id, recipient_id, message, reference_id, reference_type, conversation_id]
         );
 
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error sending message:', error);
         res.status(500).json({ error: 'Error sending message' });
+    }
+});
+
+app.post('/api/conversations', authenticateJWT, async (req, res) => {
+    try {
+        const { recipient_id } = req.body;
+        const sender_id = req.auth.payload.sub;
+
+        // Try to find existing conversation
+        let result = await pool.query(
+            `SELECT id FROM conversations 
+             WHERE (participant1_id = $1 AND participant2_id = $2)
+             OR (participant1_id = $2 AND participant2_id = $1)`,
+            [sender_id, recipient_id]
+        );
+
+        // If no conversation exists, create one
+        if (result.rows.length === 0) {
+            result = await pool.query(
+                `INSERT INTO conversations (participant1_id, participant2_id)
+                 VALUES ($1, $2) RETURNING id`,
+                [sender_id, recipient_id]
+            );
+        }
+
+        res.json({ conversation_id: result.rows[0].id });
+    } catch (error) {
+        console.error('Error with conversation:', error);
+        res.status(500).json({ error: 'Error managing conversation' });
     }
 });
 
@@ -770,26 +810,100 @@ app.get('/api/messages/inbox', authenticateJWT, async (req, res) => {
     try {
         const user_id = req.auth.payload.sub;
         
-        const messages = await pool.query(
+        const conversations = await pool.query(
             `SELECT 
-                m.*,
-                a.username as sender_username,
+                c.id as conversation_id,
+                c.last_message_at,
                 CASE 
-                    WHEN m.reference_type = 'post' THEN p.title
-                    WHEN m.reference_type = 'deal' THEN d.title
-                END as reference_title
+                    WHEN c.participant1_id = $1 THEN a2.username
+                    ELSE a1.username
+                END as other_participant_username,
+                (SELECT message FROM messages 
+                 WHERE conversation_id = c.id 
+                 ORDER BY created_at DESC LIMIT 1) as last_message
+             FROM conversations c
+             JOIN accounts a1 ON c.participant1_id = a1.auth0_id
+             JOIN accounts a2 ON c.participant2_id = a2.auth0_id
+             WHERE c.participant1_id = $1 OR c.participant2_id = $1
+             ORDER BY c.last_message_at DESC`,
+            [user_id]
+        );
+        
+        res.json(conversations.rows);
+    } catch (error) {
+        console.error('Error fetching conversations:', error);
+        res.status(500).json({ error: 'Error fetching conversations' });
+    }
+});
+
+app.get('/api/messages/unread/count', authenticateJWT, async (req, res) => {
+    try {
+        const user_id = req.auth.payload.sub;
+        
+        const result = await pool.query(
+            `SELECT COUNT(*) 
+             FROM messages 
+             WHERE recipient_id = $1 
+             AND read_at IS NULL`,
+            [user_id]
+        );
+        
+        res.json({ count: parseInt(result.rows[0].count) });
+    } catch (error) {
+        console.error('Error counting unread messages:', error);
+        res.status(500).json({ error: 'Error counting unread messages' });
+    }
+});
+
+app.post('/api/conversations/:conversationId/mark-read', authenticateJWT, async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const user_id = req.auth.payload.sub;
+        
+        await pool.query(
+            `UPDATE messages 
+             SET read_at = CURRENT_TIMESTAMP 
+             WHERE conversation_id = $1 
+             AND recipient_id = $2 
+             AND read_at IS NULL`,
+            [conversationId, user_id]
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error marking messages as read:', error);
+        res.status(500).json({ error: 'Error marking messages as read' });
+    }
+});
+
+app.get('/api/conversations/:conversationId/messages', authenticateJWT, async (req, res) => {
+    try {
+        const { conversationId } = req.params;
+        const user_id = req.auth.payload.sub;
+        
+        // Verify user is part of this conversation
+        const conversationCheck = await pool.query(
+            `SELECT id FROM conversations 
+             WHERE id = $1 AND (participant1_id = $2 OR participant2_id = $2)`,
+            [conversationId, user_id]
+        );
+        
+        if (conversationCheck.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized to view this conversation' });
+        }
+
+        const messages = await pool.query(
+            `SELECT m.*, a.username as sender_username
              FROM messages m
              JOIN accounts a ON m.sender_id = a.auth0_id
-             LEFT JOIN posts p ON m.reference_type = 'post' AND m.reference_id = p.id
-             LEFT JOIN deals d ON m.reference_type = 'deal' AND m.reference_id = d.id
-             WHERE m.recipient_id = $1
-             ORDER BY m.created_at DESC`,
-            [user_id]
+             WHERE m.conversation_id = $1
+             ORDER BY m.created_at ASC`,
+            [conversationId]
         );
         
         res.json(messages.rows);
     } catch (error) {
-        console.error('Error fetching messages:', error);
+        console.error('Error fetching conversation messages:', error);
         res.status(500).json({ error: 'Error fetching messages' });
     }
 });

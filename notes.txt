@@ -1,35 +1,33 @@
-MUST DO : 
+MVP
 
-Add direct replies
 Add conversations able
+- show all messages in a single convo, and reply from account page 
+- reply notification, reply page in constant branding  
 Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
+Constant refresh to see messages live 
 Map to homepage 
 Subscribe to feeds
+Overall notifications function
 Notifications on the map
 Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
 CSS consistent post size on desktop that's a bit wider
 CSS comment slight indent with an arrow for the first one, spacing for when there's multiple  
-CSS black icons for all functions
+CSS icons for all functions
 Email notifications for user actions (maybe send grid free tier)
 Downvote notification or design when done 
 Page and comments and likes all jittering around 
 New upvotes not on deals sending posts to the bottom.. a tied time thing. Algorithm needed. 
-User action notifications
-Main feed load quicker
+Main feed load quicker - there's a delay on posts 
 Text line breaks on post feed. Avail in postING mode but not in final feed 
 Next - need to add deals, blind and events (Maybe event brite api integration) 
 Post design on desktop and mobile
 Better comment design vs. Post vs users 
 Content moderation tools in server .. somewhere outside public 
 Route real URL
-Change username function
+Change username function to account page
 Add multiple photos on an item, restricted numbers
-Need to learn to actually kill servers. Not working and is needed every time we add a new endpoint
-And add all functions back in for them 
-- separate design
-Local env the feed pulls are in the wrong spot
+Prod feeds gone, env feeds wrong - action button
 Post classes:, party, article 
-Likes and dislikes on posts 
 Flow from map to post is not clear, can be more logical
 Algorithm that serves these post classes based on likes, recency and proximity 
 Specific points and clout class for deals that ties to account
@@ -38,28 +36,20 @@ Specific privacy class for usernames for blinds
 Specific privacy class for location for party
 Privacy option for some communities
 Pinned deal, party, blind, article and post 'of the day' based on algorithm 
-Ability to change username
-Account pages
 Nav as clean as possible 
 Better auth design and an auth page
 Show location on default if possible, tried and failed before (Geolocation api implementation to reduce requests?)
-Clean up comment design
 Clean up post design
 Shared CSS file for all design items?
-Condense and design the feed pull 
+Frontpoint w. Stripe for deals 
 Ads integrated 
-Payment feature added for corporate deals or other items.
 Proper logo
 Splash page intro
-Gumshoe organization page link from header with a contact us?
-Backend content moderation system 
-Backend hidden stats page
+Corporate gumshoe page from header 
+Analytics 
 All debugging, device, browser testing
-- feed and design of page moving around when page loads (columns look uncertain and adjust on load)
-- delay on posts showing up on the feed after you go to a new feed 
 Design sprint
 
-** cache refresh time down to 1 min for node content - faster, but more server resources. 
 
 CONVERSATIONS TABLE FEEDBACK 
 
@@ -84,6 +74,7 @@ PRODUCT OVERALL
 
 LAUNCH & NEXT MAR 21 
 
+- CMF
 - Wilbur 
 - Cathy 
 - Investor deck

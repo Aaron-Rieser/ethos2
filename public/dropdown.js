@@ -1,20 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const userInitial = document.getElementById('userInitial');
-    
-    if (userInitial) {
-        // Toggle dropdown when clicking user circle
-        userInitial.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const dropdown = document.querySelector('.dropdown-content');
-            dropdown.classList.toggle('show');
-        });
+    // Wait a short moment to ensure Auth0 has initialized
+    setTimeout(() => {
+        const userInitial = document.getElementById('userInitial');
+        const dropdownContent = document.querySelector('.dropdown-content');
+        
+        if (userInitial && dropdownContent) {
+            // Toggle dropdown when clicking user circle
+            userInitial.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('User circle clicked');
+                dropdownContent.classList.toggle('show');
+            });
 
-        // Close dropdown when clicking anywhere else
-        window.addEventListener('click', () => {
-            const dropdown = document.querySelector('.dropdown-content');
-            if (dropdown && dropdown.classList.contains('show')) {
-                dropdown.classList.remove('show');
-            }
-        });
-    }
+            // Close dropdown when clicking anywhere else
+            window.addEventListener('click', (e) => {
+                if (!userInitial.contains(e.target) && dropdownContent.classList.contains('show')) {
+                    dropdownContent.classList.remove('show');
+                }
+            });
+        } else {
+            console.log('Dropdown elements not found:', {
+                userInitial: !!userInitial,
+                dropdownContent: !!dropdownContent
+            });
+        }
+    }, 1000); // Wait 1 second for Auth0 to initialize
 });

@@ -43,35 +43,25 @@ async function validateAndRefreshToken() {
         }
 
         const isAuthenticated = await auth0Client.isAuthenticated();
-        if (isAuthenticated) {
-            try {
-                // Force a token refresh with retries
-                for (let i = 0; i < 3; i++) {  // Try up to 3 times
-                    try {
-                        await auth0Client.getTokenSilently({
-                            timeoutInSeconds: 60,
-                            cacheMode: 'off',  // Force token refresh
-                            authorizationParams: {
-                                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
-                                scope: 'openid profile email offline_access'
-                            }
-                        });
-                        console.log('Token refresh successful');
-                        return true;
-                    } catch (retryError) {
-                        console.log(`Token refresh attempt ${i + 1} failed:`, retryError);
-                        if (i === 2) throw retryError;  // Throw on last attempt
-                        await new Promise(resolve => setTimeout(resolve, 1000));  // Wait 1s between retries
-                    }
-                }
-            } catch (refreshError) {
-                console.error('All token refresh attempts failed:', refreshError);
-                // If refresh fails, try to force a new login
-                await login();
-                return false;
-            }
+        if (!isAuthenticated) {
+            return false;
         }
-        return false;
+
+        // Single token refresh attempt with better options
+        try {
+            await auth0Client.getTokenSilently({
+                timeoutInSeconds: 3600, // Increase timeout to 1 hour
+                cacheMode: 'on',  // Use cache by default
+                authorizationParams: {
+                    audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                    scope: 'openid profile email offline_access'
+                }
+            });
+            return true;
+        } catch (error) {
+            console.error('Token refresh failed:', error);
+            return false;
+        }
     } catch (error) {
         console.error('Token validation error:', error);
         return false;
@@ -158,6 +148,61 @@ const getAuthToken = async () => {
     }
 };
 
+async function checkUnreadMessages() {
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (!isAuthenticated) {
+            return;
+        }
+
+        const token = await auth0Client.getTokenSilently({
+            cacheMode: 'on'
+        });
+
+        const response = await fetch('/api/messages/unread/count', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch unread count');
+        }
+
+        const { count } = await response.json();
+        
+        const userCircle = document.getElementById('userInitial');
+        if (!userCircle) return;
+
+        let badge = userCircle.querySelector('.notification-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'notification-badge';
+            userCircle.appendChild(badge);
+        }
+        
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error checking unread messages:', error);
+        if (error.error === 'login_required') {
+            clearInterval(messageCheckInterval);
+            messageCheckInterval = null;
+        }
+    }
+}
+
+function clearMessageCheck() {
+    if (messageCheckInterval) {
+        clearInterval(messageCheckInterval);
+        messageCheckInterval = null;
+    }
+}
+
 const updateUI = async () => {
     try {
         const isAuthenticated = await auth0Client.isAuthenticated();
@@ -189,6 +234,8 @@ const updateUI = async () => {
                 const truncatedEmail = user.email.split('@')[0];
                 userEmailDisplay.textContent = truncatedEmail;
             }
+
+            await checkUnreadMessages();
         } else {
             if (userProfile) userProfile.textContent = '';
             if (userCircle) userCircle.style.display = 'none';
@@ -210,8 +257,8 @@ const login = async () => {
                 redirect_uri: window.location.origin,
                 scope: 'openid profile email offline_access',
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
-                response_type: 'token id_token',  // Add this from the shorter version
-                prompt: 'consent'  // Keep this from your current version
+                response_type: 'token id_token',
+                prompt: 'consent'
             }
         });
         console.log('Login redirect initiated');
@@ -226,6 +273,7 @@ const logout = async () => {
         if (!auth0Client) {
             throw new Error('Auth0 client not initialized');
         }
+        clearMessageCheck();
         await auth0Client.logout({
             returnTo: window.location.href
         });
@@ -239,43 +287,70 @@ window.addEventListener('load', async () => {
     console.log('Page loaded, initializing Auth0');
     try {
         await initializeAuth0();
-        
         const isAuthenticated = await auth0Client.isAuthenticated();
+        
         if (isAuthenticated) {
-            // Add token validation here
+            // Token validation with better error handling
             try {
                 await auth0Client.getTokenSilently({
-                    timeoutInSeconds: 60,
-                    cacheMode: 'off',  // Force token refresh
+                    timeoutInSeconds: 3600, // Increase to 1 hour
+                    cacheMode: 'on',  // Use cache by default
                     authorizationParams: {
                         audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                         scope: 'openid profile email offline_access'
                     }
                 });
+                
+                // Start message check interval only if not already running
+                if (!messageCheckInterval) {
+                    await checkUnreadMessages(); // Check immediately
+                    messageCheckInterval = setInterval(checkUnreadMessages, 30000);
+                }
+
+                // Get user info and update UI elements
+                const user = await auth0Client.getUser();
+                const userCircle = document.getElementById('userInitial');
+                const loginButton = document.getElementById('login');
+                const logoutButton = document.getElementById('logout');
+                const userEmailDisplay = document.querySelector('.dropdown-content .user-email');
+                
+                if (userCircle) {
+                    userCircle.textContent = user.email.charAt(0).toUpperCase();
+                    userCircle.style.display = 'flex';
+                    userCircle.title = user.email;
+                }
+                if (loginButton) loginButton.style.display = 'none';
+                if (logoutButton) logoutButton.style.display = 'block';
+                if (userEmailDisplay) {
+                    const truncatedEmail = user.email.split('@')[0];
+                    userEmailDisplay.textContent = truncatedEmail;
+                }
+
+                // Check messages immediately
+                await checkUnreadMessages();
+                
             } catch (error) {
                 console.error('Token refresh failed:', error);
-                // Continue with the rest of the code even if refresh fails
+                // Don't clear interval here - let checkUnreadMessages handle that
             }
-
-            // Existing user UI updates
-            const user = await auth0Client.getUser();
-            const userCircle = document.getElementById('userInitial');
-            const loginButton = document.getElementById('login');
-            const logoutButton = document.getElementById('logout');
-            
-            if (userCircle) {
-                userCircle.textContent = user.email.charAt(0).toUpperCase();
-                userCircle.style.display = 'flex';
-                userCircle.title = user.email;
+        } else {
+            // Clear interval if user is not authenticated
+            if (messageCheckInterval) {
+                clearInterval(messageCheckInterval);
+                messageCheckInterval = null;
             }
-            if (loginButton) loginButton.style.display = 'none';
-            if (logoutButton) logoutButton.style.display = 'block';
         }
         
         console.log('Auth status on page load:', isAuthenticated);
         await handleAuth0Callback();
+        
     } catch (error) {
         console.error('Error during page load:', error);
+        // Clear interval on error
+        if (messageCheckInterval) {
+            clearInterval(messageCheckInterval);
+            messageCheckInterval = null;
+        }
     }
 });
 
@@ -353,5 +428,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error('Error in DOMContentLoaded:', error);
+    }
+});
+
+let messageCheckInterval;
+
+window.addEventListener('unload', () => {
+    if (messageCheckInterval) {
+        clearInterval(messageCheckInterval);
     }
 });

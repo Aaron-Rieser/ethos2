@@ -175,6 +175,167 @@
             border-radius: 8px;
             margin-top: 20px;
         }
+        .conversation-card {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .conversation-card:hover {
+            background-color: #f8f9fa;
+        }
+
+        .conversation-participant {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .conversation-preview {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .conversation-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .unread-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: #3388ff;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .view-conversation-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .view-conversation-btn:hover {
+            background-color: #2266dd;
+        }
+
+        .conversation-view {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .back-button {
+            margin-bottom: 20px;
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 70%;
+            margin: 5px 0;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+        }
+
+        .message.received {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 10px;
+            border-radius: 12px;
+            background-color: #f0f0f0;
+        }
+
+        .message.sent .message-bubble {
+            background-color: #3388ff;
+            color: white;
+        }
+
+        .message-sender {
+            font-size: 0.8em;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .message-time {
+            font-size: 0.7em;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+        .reply-form {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .reply-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .reply-button {
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .reply-button:hover {
+            background-color: #2266dd;
+        }
+
+        .messages-list {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .user-circle {
+            position: relative; /* Add this to position the badge */
+        }
 
         @media screen and (max-width: 768px) {
             .message-card {
@@ -182,6 +343,7 @@
             }
         }
     </style>
+        <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
 <body>
     <header class="sticky-header">
@@ -221,51 +383,168 @@
 
     <script>
         async function loadMessages() {
-        try {
-            const token = await auth0Client.getTokenSilently();
-            const response = await fetch('/api/messages/inbox', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
+            try {
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch('/api/messages/inbox', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch messages');
                 }
-            });
 
-            if (!response.ok) {
-                throw new Error('Failed to fetch messages');
-            }
+                const conversations = await response.json();
+                const container = document.getElementById('messages-container');
+                
+                if (conversations.length === 0) {
+                    container.innerHTML = '<div class="empty-inbox">No messages yet</div>';
+                    return;
+                }
 
-            const messages = await response.json();
-            const container = document.getElementById('messages-container');
-            
-            if (messages.length === 0) {
-                container.innerHTML = '<div class="empty-inbox">No messages yet</div>';
-                return;
-            }
-
-            container.innerHTML = messages.map(message => `
-                <div class="message-card ${!message.read_at ? 'message-unread' : ''}" 
-                     data-message-id="${message.id}">
-                    <div class="message-sender">${message.sender_username}</div>
-                    <div class="message-time">${new Date(message.created_at).toLocaleString()}</div>
-                    <div class="message-content">${message.message}</div>
-                    ${message.reference_id ? `
-                        <div class="message-reference" 
-                             onclick="viewReference('${message.reference_type}', ${message.reference_id})">
-                            View ${message.reference_type}
+                container.innerHTML = conversations.map(conversation => `
+                    <div class="conversation-card">
+                        <div class="conversation-participant">
+                            ${conversation.last_message ? '<span class="unread-indicator"></span>' : ''}
+                            ${conversation.other_participant_username}
                         </div>
-                    ` : ''}
-                </div>
-            `).join('');
+                        <div class="conversation-preview">
+                            ${conversation.last_message || 'No messages yet'}
+                        </div>
+                        <div class="conversation-time">
+                            ${new Date(conversation.last_message_at).toLocaleString()}
+                        </div>
+                        <button class="view-conversation-btn" onclick="event.stopPropagation(); viewConversation('${conversation.conversation_id}')">
+                            View Full Conversation
+                        </button>
+                    </div>
+                `).join('');
 
-            // Add click handlers to mark messages as read
-            document.querySelectorAll('.message-unread').forEach(card => {
-                card.addEventListener('click', () => markAsRead(card.dataset.messageId));
-            });
-        } catch (error) {
-            console.error('Error loading messages:', error);
-            const container = document.getElementById('messages-container');
-            container.innerHTML = '<div class="empty-inbox">Error loading messages. Please try again later.</div>';
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '<div class="empty-inbox">Error loading messages. Please try again later.</div>';
+            }
         }
-    }
+
+        async function viewConversation(conversationId) {
+            try {
+                console.log('Viewing conversation:', conversationId);
+                const token = await auth0Client.getTokenSilently();
+                const currentUser = await auth0Client.getUser();
+                
+                const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                await fetch(`/api/conversations/${conversationId}/mark-read`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                await checkUnreadMessages();
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch conversation messages');
+                }
+
+                const messages = await response.json();
+                console.log('Received messages:', messages);
+                
+                // Get the other participant's info from the first message
+                const otherParticipant = messages[0]?.sender_id === currentUser.sub 
+                    ? messages[0]?.recipient_id 
+                    : messages[0]?.sender_id;
+                
+                const container = document.getElementById('messages-container');
+                
+                container.innerHTML = `
+                    <div class="conversation-view">
+                        <button onclick="loadMessages()" class="back-button">← Back to Inbox</button>
+                        <div class="messages-list">
+                            ${messages.map(message => `
+                                <div class="message ${message.sender_id === currentUser.sub ? 'sent' : 'received'}">
+                                    <div class="message-bubble">
+                                        <div class="message-sender">${message.sender_username}</div>
+                                        <div class="message-text">${message.message}</div>
+                                        <div class="message-time">
+                                            ${new Date(message.created_at).toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="reply-form">
+                            <textarea 
+                                id="reply-message" 
+                                placeholder="Type your reply..."
+                                rows="3"
+                                class="reply-input"
+                            ></textarea>
+                            <button 
+                                onclick="sendReply('${conversationId}', '${otherParticipant}')" 
+                                class="reply-button"
+                            >
+                                Send Reply
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error viewing conversation:', error);
+                const container = document.getElementById('messages-container');
+                container.innerHTML = `
+                    <div class="conversation-view">
+                        <button onclick="loadMessages()" class="back-button">← Back to Inbox</button>
+                        <div class="error-message">
+                            Error loading conversation messages.<br>
+                            Error details: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        async function sendReply(conversationId, recipientId) {
+            try {
+                const messageInput = document.getElementById('reply-message');
+                const message = messageInput.value.trim();
+                
+                if (!message) {
+                    alert('Please enter a message');
+                    return;
+                }
+
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        recipient_id: recipientId,
+                        message: message,
+                        conversation_id: conversationId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send message');
+                }
+
+                // Clear input and refresh conversation
+                messageInput.value = '';
+                await viewConversation(conversationId);
+            } catch (error) {
+                console.error('Error sending reply:', error);
+                alert('Error sending message. Please try again.');
+            }
+        }
 
         async function markAsRead(messageId) {
             try {
