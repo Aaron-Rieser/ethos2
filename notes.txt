@@ -1,8 +1,7 @@
-MVP
+MVP___ nmake a backup
 
-Add conversations able
-- show all messages in a single convo, and reply from account page 
-- reply notification, reply page in constant branding  
+Send message design on homepage 
+Splash page
 Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
 Constant refresh to see messages live 
 Map to homepage 
@@ -10,6 +9,7 @@ Subscribe to feeds
 Overall notifications function
 Notifications on the map
 Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+Chat + reply widget (it's resizing when you try and type) and overall function and design etc. 
 CSS consistent post size on desktop that's a bit wider
 CSS comment slight indent with an arrow for the first one, spacing for when there's multiple  
 CSS icons for all functions
