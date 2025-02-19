@@ -9,9 +9,18 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
+const path = require('path');  // Add at top of file with other requires
 
 app.use(express.json());
 app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'splash.html'));
+});
+
+app.get('/main', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));  // Points to index.html
+});
 
 // Verify required environment variables
 const requiredEnvVars = [
@@ -800,10 +809,6 @@ app.get('/api/deals', async (req, res) => {
         console.error('Error fetching deals:', error);
         res.status(500).json({ error: 'Error fetching deals', details: error.message });
     }
-});
-
-app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: './public' });
 });
 
 app.get('/api/messages/inbox', authenticateJWT, async (req, res) => {

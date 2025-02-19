@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gumshoe</title>
+    <link rel="stylesheet" href="fonts.css">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: white;
+        }
+
+        .main-title {
+            font-size: 48px;
+            opacity: 0;
+            font-family: 'Sixtyfour', sans-serif;
+        }
+
+        .main-title span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .subtitle {
+            margin-top: 20px;
+            font-size: 24px;
+            opacity: 0;
+            transform: translateY(20px);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="main-title">
+        <!-- Each letter in its own span -->
+        <span>g</span>
+        <span>u</span>
+        <span>m</span>
+        <span>s</span>
+        <span>h</span>
+        <span>o</span>
+        <span>e</span>
+    </h1>
+    <div class="subtitle">Discover your city</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const letters = document.querySelectorAll('.main-title span');
+            const subtitle = document.querySelector('.subtitle');
+            const mainTitle = document.querySelector('.main-title');
+            
+            // Show main title container
+            mainTitle.style.opacity = 1;
+            
+            // Animate each letter
+            letters.forEach((letter, index) => {
+                setTimeout(() => {
+                    letter.style.transition = 'all 0.3s ease';
+                    letter.style.opacity = 1;
+                    letter.style.transform = 'translateY(0)';
+                }, index * (3000 / letters.length)); // Spread over 3 seconds
+            });
+
+            // Show subtitle after main title
+            setTimeout(() => {
+                subtitle.style.transition = 'all 0.5s ease';
+                subtitle.style.opacity = 1;
+                subtitle.style.transform = 'translateY(0)';
+            }, 3000);
+
+            // Redirect after complete animation
+            setTimeout(() => {
+                window.location.href = '/index.html';  // This will route to index.html via the /main endpoint
+            }, 4500); // Give extra time to see complete animation
+        });
+    </script>
+</body>
+</html>

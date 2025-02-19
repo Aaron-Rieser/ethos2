@@ -1,5 +1,6 @@
-MVP___ nmake a backup
+MVP___ 
 
+Do we swap from map to distance based? Or keep neighbourhoods? Distance = easily scalable. Neighbourhood = 100x more buzz worthy in Canada. Both functions, hood for subscription and distance for feed 
 Send message design on homepage 
 Splash page
 Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
