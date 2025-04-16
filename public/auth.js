@@ -70,17 +70,18 @@ async function validateAndRefreshToken() {
 
 const handleAuth0Callback = async () => {
     try {
+        console.log('Checking for callback...');
         const query = window.location.search;
         if (query.includes("code=") && query.includes("state=")) {
+            console.log('Processing callback...');
             await auth0Client.handleRedirectCallback();
             
-            // Force UI update after callback
             const isAuthenticated = await auth0Client.isAuthenticated();
             if (isAuthenticated) {
                 const user = await auth0Client.getUser();
                 console.log('User authenticated:', user);
-                console.log('Auth0 user object:', user);  // Add this debug line
-                console.log('Auth0 email:', user.email);  // Add this debug line
+                console.log('Auth0 user object:', user);  // Keep debug line
+                console.log('Auth0 email:', user.email);  // Keep debug line
                 
                 // Create/update account in database
                 try {
@@ -96,7 +97,7 @@ const handleAuth0Callback = async () => {
                     console.error('Error creating/updating account:', error);
                 }
                 
-                // Explicitly update UI elements
+                // Keep explicit UI element updates
                 const loginButton = document.getElementById('login');
                 const logoutButton = document.getElementById('logout');
                 const userCircle = document.getElementById('userInitial');
@@ -110,10 +111,15 @@ const handleAuth0Callback = async () => {
                 }
             }
             
+            // Clear the URL parameters
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     } catch (err) {
-        console.error('Error handling Auth0 callback:', err);
+        console.error('Callback error details:', {
+            message: err.message,
+            error: err,
+            stack: err.stack
+        });
     }
 };
 
@@ -249,8 +255,10 @@ const updateUI = async () => {
 const login = async () => {
     try {
         if (!auth0Client) {
-            throw new Error('Auth0 client not initialized');
+            console.log('Auth0 not initialized, initializing now...');
+            await initializeAuth0();
         }
+        
         console.log('Login attempt started');
         await auth0Client.loginWithRedirect({
             authorizationParams: {
@@ -258,12 +266,17 @@ const login = async () => {
                 scope: 'openid profile email offline_access',
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 response_type: 'token id_token',
-                prompt: 'consent'
+                prompt: 'login'
             }
         });
         console.log('Login redirect initiated');
     } catch (err) {
-        console.error('Login error:', err);
+        console.error('Login error:', {
+            message: err.message,
+            error: err,
+            stack: err.stack,
+            description: err.error_description
+        });
         alert('Login failed. Please try again.');
     }
 };
@@ -288,10 +301,11 @@ window.addEventListener('load', async () => {
     try {
         await initializeAuth0();
         const isAuthenticated = await auth0Client.isAuthenticated();
+        console.log('Auth status on page load:', isAuthenticated);
         
         if (isAuthenticated) {
-            // Token validation with better error handling
             try {
+                // Token validation with better error handling
                 await auth0Client.getTokenSilently({
                     timeoutInSeconds: 3600, // Increase to 1 hour
                     cacheMode: 'on',  // Use cache by default
@@ -341,11 +355,14 @@ window.addEventListener('load', async () => {
             }
         }
         
-        console.log('Auth status on page load:', isAuthenticated);
         await handleAuth0Callback();
         
     } catch (error) {
-        console.error('Error during page load:', error);
+        console.error('Error during page load:', {
+            message: error.message,
+            error: error,
+            stack: error.stack
+        });
         // Clear interval on error
         if (messageCheckInterval) {
             clearInterval(messageCheckInterval);

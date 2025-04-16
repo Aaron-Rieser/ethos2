@@ -667,7 +667,7 @@
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
                 <nav>
-                    <a href="/map.html">Choose  neighbourhood feed</a>
+                    <a href="/map.html">Change post range</a>
                     <a href="/create.html" id="createPostLink">Create New Post</a>                               
                 </nav>
 
@@ -676,8 +676,10 @@
                 </div>
                 
                 <div id="filter-info" class="filter-info">
-                    Showing posts from: <span id="current-filter"></span>
-                    <span class="clear-filter" onclick="showAllPosts()">Show All Posts</span>
+                    <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
+                        Within <span id="current-radius">1</span>km
+                    </span>
+                    <a href="/map.html" class="change-range-btn" style="margin-left: 10px; color: #3388ff;">Change Range</a>
                 </div>
 
                 <div id="posts-container">
@@ -689,149 +691,121 @@
     </main>
 
     <script>
-        function getNeighbourhoodFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get('neighbourhood');
-        }
 
         // Update the filter info display
         function updateFilterDisplay() {
-            const neighbourhood = getNeighbourhoodFromURL();
-            const currentFilterSpan = document.getElementById('current-filter');
+            const urlParams = new URLSearchParams(window.location.search);
+            const radius = urlParams.get('radius') || '1';
             const filterInfo = document.getElementById('filter-info');
-            const clearFilter = document.querySelector('.clear-filter');
             
-            if (neighbourhood) {
-                // Showing specific neighborhood
-                currentFilterSpan.textContent = neighbourhood;
-                clearFilter.style.display = 'inline';  // Show the "Show All Posts" link
-            } else {
-                // Showing all neighborhoods
-                currentFilterSpan.textContent = 'All Neighbourhoods';
-                clearFilter.style.display = 'none';    // Hide the "Show All Posts" link
+            if (filterInfo) {
+                // Update the radius display
+                const currentRadius = document.getElementById('current-radius');
+                if (currentRadius) {
+                    currentRadius.textContent = radius;
+                }
+                
+                // Show the filter info section
+                filterInfo.style.display = 'block';
             }
+        }
+
+        function isWithinRange(postLat, postLng, userLat, userLng, radius) {
+            // Use the Haversine formula to calculate distance
+            const R = 6371; // Earth's radius in km
+            const dLat = (postLat - userLat) * Math.PI / 180;
+            const dLon = (postLng - userLng) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(userLat * Math.PI / 180) * Math.cos(postLat * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
             
-            filterInfo.style.display = 'block';
+            return distance <= radius;
         }
-
-        // Function to show all posts
-        function showAllPosts() {
-            window.location.href = 'index.html';
-        }
-
-        // updated jan29 for deals table
+        
+        // replacing with radius based loading 
         async function loadCombinedFeed() {
             try {
-                if (!auth0Client) {
-                    await initializeAuth0();
-                }
-                
-                const neighbourhood = getNeighbourhoodFromURL();
-                updateFilterDisplay();
-                
-                let headers = {};
-                try {
-                    if (await auth0Client.isAuthenticated()) {
-                        const token = await auth0Client.getTokenSilently();
-                        headers.Authorization = `Bearer ${token}`;
-                    }
-                } catch (error) {
-                    console.error('Error with authentication:', error);
+                // Get parameters from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const radius = urlParams.get('radius') || '1';
+                const userLat = urlParams.get('lat');
+                const userLng = urlParams.get('lng');
+
+                console.log('Loading feed with parameters:', { radius, userLat, userLng });
+
+                // Check for location parameters
+                if (!userLat || !userLng) {
+                    const postsContainer = document.getElementById('posts-container');
+                    postsContainer.innerHTML = `
+                        <div class="error-message">
+                            Please select a location from the map first. 
+                            <a href="/map.html">Go to Map</a>
+                        </div>`;
+                    return;
                 }
 
-                // Fetch both endpoints in parallel
+                // Add loading indicator
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = '<div class="loading">Loading posts...</div>';
+
+                // Prepare headers
+                const headers = {};
+                if (auth0Client && await auth0Client.isAuthenticated()) {
+                    const token = await auth0Client.getTokenSilently();
+                    headers.Authorization = `Bearer ${token}`;
+                }
+
+                // Fetch posts and deals in parallel
                 const [postsResponse, dealsResponse] = await Promise.all([
-                    fetch(`/api/posts${neighbourhood ? `?neighbourhood=${encodeURIComponent(neighbourhood)}` : ''}`, { headers }),
-                    fetch(`/api/deals${neighbourhood ? `?neighbourhood=${encodeURIComponent(neighbourhood)}` : ''}`, { headers })
+                    fetch(`/api/posts?lat=${userLat}&lng=${userLng}&radius=${radius}`, { headers }),
+                    fetch(`/api/deals?lat=${userLat}&lng=${userLng}&radius=${radius}`, { headers })
                 ]);
 
-                if (!postsResponse.ok) throw new Error(`Posts response error: ${postsResponse.status}`);
-                if (!dealsResponse.ok) throw new Error(`Deals response error: ${dealsResponse.status}`);
+                if (!postsResponse.ok || !dealsResponse.ok) {
+                    throw new Error('Failed to fetch content');
+                }
 
                 const [posts, deals] = await Promise.all([
                     postsResponse.json(),
                     dealsResponse.json()
                 ]);
 
-                // Validate items before processing
-                const validPosts = posts.filter(post => 
-                    post && 
-                    post.id && 
-                    post.post && // Must have content
-                    post.created_at && 
-                    post.neighbourhood // Must have neighborhood
+                // Add isDeal flag to deals
+                const dealsWithFlag = deals.map(deal => ({ ...deal, isDeal: true }));
+
+                // Combine and sort by date
+                const allContent = [...posts, ...dealsWithFlag].sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
                 );
 
-                const validDeals = deals.filter(deal => 
-                    deal && 
-                    deal.id && 
-                    deal.post && // Must have content
-                    deal.created_at && 
-                    deal.neighbourhood && // Must have neighborhood
-                    deal.price // Must have price for deals
-                );
-
-                // Safe date parsing
-                const parseDate = (dateStr) => {
-                    try {
-                        const date = new Date(dateStr);
-                        return isNaN(date.getTime()) ? new Date() : date;
-                    } catch (e) {
-                        console.error('Date parsing error for:', dateStr);
-                        return new Date();
-                    }
-                };
-
-                // Combine only valid content
-                const combinedContent = [
-                    ...validPosts.map(post => ({
-                        ...post,
-                        isPost: true,
-                        isDeal: false,
-                        created_at: parseDate(post.created_at).toISOString()
-                    })),
-                    ...validDeals.map(deal => ({
-                        ...deal,
-                        isPost: false,
-                        isDeal: true,
-                        created_at: parseDate(deal.created_at).toISOString()
-                    }))
-                ].sort((a, b) => parseDate(b.created_at) - parseDate(a.created_at));
-
-                const postsContainer = document.querySelector('#posts-container');
+                // Clear loading indicator and display content
                 postsContainer.innerHTML = '';
-                
-                if (combinedContent.length === 0) {
-                    postsContainer.innerHTML = `
-                        <div class="post-card">
-                            ${neighbourhood 
-                                ? `No posts yet from ${neighbourhood}. Be the first to post!` 
-                                : 'No posts yet.'}
-                        </div>`;
-                    return;
+                if (allContent.length === 0) {
+                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found in this area</div>';
+                } else {
+                    allContent.forEach(item => {
+                        const postElement = createPostElement(item);
+                        postsContainer.appendChild(postElement);
+                    });
                 }
 
-                // Add debug logging
-                console.log('Combined content before rendering:', combinedContent);
+                // Update filter display
+                updateFilterDisplay();
 
-                combinedContent.forEach(item => {
-                    if (item && item.id && item.post) { // Additional validation before creating element
-                        const element = createPostElement(item);
-                        postsContainer.appendChild(element);
-                    }
-                });
             } catch (error) {
                 console.error('Error loading combined feed:', error);
-                const postsContainer = document.querySelector('#posts-container');
-                if (postsContainer) {
-                    postsContainer.innerHTML = `
-                        <div class="error-message">
-                            Failed to load posts. Please try refreshing the page.
-                            ${error.message ? `<br>Error: ${error.message}` : ''}
-                        </div>`;
-                }
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = '<div class="error-message">Error loading posts. Please try again later.</div>';
             }
         }
+
+        // Call loadCombinedFeed when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCombinedFeed();
+        });
         // Create post element function, updated jan 29 for deals
         function createPostElement(item) {
             const postDiv = document.createElement('div');
@@ -870,8 +844,7 @@
                     <div class="post-title">${item.title || 'Title'}</div>
                     <div class="post-text">${item.post || 'No content available'}</div>  
                     ${imageHtml}
-                    <small>${item.username || 'Anonymous'} in <strong>${item.neighbourhood || 'Unknown location'}</strong> ${formattedTime}</small>
-                    
+                    <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
                     <div class="feed-footer">
                         <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
                         <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>

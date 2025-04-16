@@ -200,6 +200,29 @@
         .user-circle {
             position: relative; /* Add this to position the badge */
         }
+        .range-control {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-slider {
+            width: 200px;
+        }
+
+        .range-value {
+            min-width: 60px;
+            text-align: center;
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -231,6 +254,16 @@
         </div>
     </header>
 
+    <div class="range-control">
+        <input type="range" 
+               class="range-slider" 
+               min="1" 
+               max="10" 
+               value="1" 
+               step="1">
+        <span class="range-value">1 km</span>
+    </div>
+
     <main class="main-content">
         <div id="map"></div>
     </main>
@@ -239,9 +272,10 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        let map;
-        let neighborhoodsLayer;
+       let map;
         let userMarker;
+        let radiusCircle;
+        let userLocation;
 
         // Initialize the map centered on Toronto
         map = L.map('map').setView([43.66, -79.4460], 12.5);
@@ -251,101 +285,65 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Function to load GeoJSON data
-        async function loadNeighborhoods() {
-            try {
-                const response = await fetch('Toronto_New_Neighbourhoods.geojson');
-                const data = await response.json();
+        // Function to update the radius circle
+        function updateRadius(radius) {
+            if (userLocation) {
+                if (radiusCircle) {
+                    map.removeLayer(radiusCircle);
+                }
                 
-                neighborhoodsLayer = L.geoJSON(data, {
-                    style: {
-                        color: '#3388ff',
-                        weight: 2,
-                        opacity: 0.6,
-                        fillOpacity: 0.1
-                    },
-                    onEachFeature: function(feature, layer) {
-                        // Add popup that appears on hover
-                        layer.bindTooltip(feature.properties.name, {
-                            permanent: false,
-                            direction: 'center',
-                            className: 'neighbourhood-tooltip'
-                        });
-
-                        // Change style on hover
-                        layer.on('mouseover', function () {
-                            layer.setStyle({
-                                fillOpacity: 0.3,
-                                fillColor: '#3388ff'
-                            });
-                        });
-
-                        // Reset style when mouse leaves
-                        layer.on('mouseout', function () {
-                            layer.setStyle({
-                                fillOpacity: 0.1,
-                                fillColor: '#3388ff'
-                            });
-                        });
-
-                        // Click handler
-                        layer.on('click', function() {
-                            window.location.href = `index.html?neighbourhood=${encodeURIComponent(feature.properties.name)}`;
-                        });
-                    }
+                radiusCircle = L.circle(userLocation, {
+                    radius: radius * 1000, // Convert km to meters
+                    color: '#3388ff',
+                    fillColor: '#3388ff',
+                    fillOpacity: 0.1,
+                    weight: 2
                 }).addTo(map);
-            } catch (error) {
-                console.error('Error loading GeoJSON:', error);
+
+                // Update the range display
+                document.querySelector('.range-value').textContent = `${radius} km`;
             }
         }
 
-        // Function to get user's location and find their neighborhood
+        // Function to get user's location
         function getUserLocation() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(function(position) {
-
-                    // Store permission status when location is successfully obtained
-                    localStorage.setItem('locationPermissionGranted', 'true');
-
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
+                    userLocation = [userLat, userLng];
 
                     // Add or update user marker
                     if (userMarker) {
-                        userMarker.setLatLng([userLat, userLng]);
+                        userMarker.setLatLng(userLocation);
                     } else {
-                        userMarker = L.marker([userLat, userLng]).addTo(map);
+                        userMarker = L.marker(userLocation).addTo(map);
                     }
 
-                    // Find which neighborhood the user is in
-                    let userPoint = {
-                        type: "Feature",
-                        geometry: {
-                            type: "Point",
-                            coordinates: [userLng, userLat]
-                        }
-                    };
+                    // Create popup with link to feed
+                    const popupContent = document.createElement('div');
+                    popupContent.innerHTML = `
+                        <div style="text-align: center;">
+                            <p>You are here</p>
+                            <button onclick="showFeed()" 
+                                    style="padding: 8px 16px; 
+                                           background: #3388ff; 
+                                           color: white; 
+                                           border: none; 
+                                           border-radius: 4px; 
+                                           cursor: pointer;">
+                                Show Feed
+                            </button>
+                        </div>`;
+                    
+                    userMarker.bindPopup(popupContent).openPopup();
 
-                    neighborhoodsLayer.eachLayer(function(layer) {
-                        if (turf.booleanPointInPolygon(userPoint, layer.feature)) {
-                            const neighbourhoodName = layer.feature.properties.name;
-                            
-                            // Create a clickable popup
-                            const popupContent = document.createElement('div');
-                            popupContent.className = 'neighborhood-popup';
-                            popupContent.innerHTML = `You are in ${neighbourhoodName}.<br>Click here to see local posts!`;
-                            
-                            // Add click handler to the popup content
-                            popupContent.addEventListener('click', function() {
-                                window.location.href = `index.html?neighbourhood=${encodeURIComponent(neighbourhoodName)}`;
-                            });
-
-                            userMarker.bindPopup(popupContent).openPopup();
-                        }
-                    });
+                    // Initial radius circle
+                    updateRadius(1);
 
                     // Center map on user location
-                    map.setView([userLat, userLng], 14);
+                    map.setView(userLocation, 14);
+
                 }, function(error) {
                     console.error('Error getting location:', error);
                     alert('Unable to get your location. Please enable location services.');
@@ -355,10 +353,32 @@
             }
         }
 
-        // Load neighborhoods when page loads
-        loadNeighborhoods();
+        // Function to handle showing feed
+        function showFeed() {
+            if (!userLocation) {
+                alert('Please wait for your location to be determined');
+                return;
+            }
 
-        // Ask for user location when page loads
+            const radius = document.querySelector('.range-slider').value;
+            
+            // Add precision to coordinates
+            const params = new URLSearchParams({
+                lat: userLocation[0].toFixed(8),
+                lng: userLocation[1].toFixed(8),
+                radius: radius
+            });
+
+            console.log('Redirecting with parameters:', params.toString());
+            window.location.href = `index.html?${params.toString()}`;
+        }
+
+        // Add range slider event listener
+        document.querySelector('.range-slider').addEventListener('input', function(e) {
+            updateRadius(parseInt(e.target.value));
+        });
+
+        // Initialize location when page loads
         window.onload = function() {
             getUserLocation();
         }

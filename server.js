@@ -9,18 +9,9 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-const path = require('path');  // Add at top of file with other requires
 
 app.use(express.json());
 app.use(express.static('public'));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'splash.html'));
-});
-
-app.get('/main', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));  // Points to index.html
-});
 
 // Verify required environment variables
 const requiredEnvVars = [
@@ -722,93 +713,148 @@ async function fetchAllFeeds() {
     }
 }
 
-// changing feb 1 load comb feed - not doing so properly now 
+// radius based
 app.get('/api/posts', async (req, res) => {
     try {
-        console.log('Fetching posts and feeds...');
-        const { neighbourhood } = req.query;
+        const { lat, lng, radius } = req.query;
         
-        // Check cache first
-        const cacheKey = `posts_${neighbourhood || 'all'}`;
-        const cachedContent = cache.get(cacheKey);
-        if (cachedContent) {
-            return res.json(cachedContent);
+        console.log('Received request for posts:', { lat, lng, radius });
+        
+        if (!lat || !lng || !radius) {
+            console.log('Missing parameters:', { lat, lng, radius });
+            return res.status(400).json({ 
+                error: 'Missing location parameters',
+                details: { lat, lng, radius }
+            });
         }
 
-        // Build query for posts only
-        let postsQuery = 'SELECT * FROM posts';  // Remove the text conversion for now
-        let values = [];
+        const radiusInKm = parseFloat(radius);
+        console.log('Executing query with radius:', radiusInKm);
+        
+        const query = `
+            SELECT 
+                p.*,
+                a.username,
+                (
+                    6371 * acos(
+                        cos(radians($1)) * 
+                        cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * 
+                        sin(radians(latitude))
+                    )
+                ) AS distance
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+            ORDER BY p.created_at DESC
+        `;
+        
+        const values = [parseFloat(lat), parseFloat(lng), radiusInKm];
+        console.log('Executing query with values:', values);
 
-        if (neighbourhood) {
-            postsQuery += ' WHERE neighbourhood = $1';
-            values = [neighbourhood];
-        }
-        
-        postsQuery += ' ORDER BY created_at DESC';
-        
-        console.log('Executing posts query:', postsQuery, values);
-        const postsResult = await pool.query(postsQuery, values);
+        const postsResult = await pool.query(query, values);
         console.log(`Found ${postsResult.rows.length} posts`);
 
-        // Format dates consistently
-        const allContent = postsResult.rows.map(post => ({
-            ...post,
-            created_at: new Date(post.created_at).toISOString()
-        }));
+        // Format dates and add feeds
+        const formattedPosts = postsResult.rows.map(post => {
+            console.log('Processing post:', post.id);
+            return {
+                ...post,
+                created_at: new Date(post.created_at).toISOString()
+            };
+        });
 
         // Add feeds if they exist
+        console.log('Fetching additional feed items...');
         const feedItems = await fetchAllFeeds();
-        const combinedContent = [...allContent, ...feedItems];
+        console.log(`Found ${feedItems.length} additional feed items`);
 
-        // Cache the result
-        cache.set(cacheKey, combinedContent);
+        const combinedContent = [...formattedPosts, ...feedItems];
+        console.log(`Returning ${combinedContent.length} total items`);
 
         res.json(combinedContent);
+
     } catch (err) {
-        console.error('Error fetching content:', err);
-        res.status(500).json({ error: 'Server Error', details: err.message });
+        console.error('Error in /api/posts:', err);
+        res.status(500).json({ 
+            error: 'Server Error', 
+            details: err.message,
+            stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
 app.get('/api/deals', async (req, res) => {
     try {
-        const { neighbourhood } = req.query;
+        const { lat, lng, radius } = req.query;
         
-        // Check cache first
-        const cacheKey = `deals_${neighbourhood || 'all'}`;
-        const cachedContent = cache.get(cacheKey);
-        if (cachedContent) {
-            return res.json(cachedContent);
+        // Add detailed validation logging
+        console.log('Received location parameters:', { lat, lng, radius });
+        
+        if (!lat || !lng || !radius) {
+            console.log('Missing parameters:', { lat, lng, radius });
+            return res.status(400).json({ 
+                error: 'Missing location parameters',
+                details: {
+                    lat: !!lat,
+                    lng: !!lng,
+                    radius: !!radius
+                }
+            });
         }
 
-        let query = 'SELECT * FROM deals';  // Remove the text conversion
-        let values = [];
+        const radiusInKm = parseFloat(radius);
         
-        if (neighbourhood) {
-            query += ' WHERE neighbourhood = $1';
-            values.push(neighbourhood);
-        }
+        const query = `
+            SELECT *, 
+            (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) AS distance
+            FROM deals
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+            ORDER BY created_at DESC
+        `;
         
-        query += ' ORDER BY created_at DESC';
-        
-        console.log('Executing deals query:', query, values);
+        const values = [parseFloat(lat), parseFloat(lng), radiusInKm];
         const result = await pool.query(query, values);
-        console.log(`Found ${result.rows.length} deals`);
 
-        // Format dates consistently
         const formattedDeals = result.rows.map(deal => ({
             ...deal,
             created_at: new Date(deal.created_at).toISOString()
         }));
-
-        // Cache the result
-        cache.set(cacheKey, formattedDeals);
         
         res.json(formattedDeals);
     } catch (error) {
         console.error('Error fetching deals:', error);
         res.status(500).json({ error: 'Error fetching deals', details: error.message });
     }
+});
+
+app.get('/', (req, res) => {
+    res.sendFile('index.html', { root: './public' });
 });
 
 app.get('/api/messages/inbox', authenticateJWT, async (req, res) => {

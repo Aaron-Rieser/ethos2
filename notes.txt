@@ -1,5 +1,15 @@
 MVP___ 
 
+Current status: Map page is on distance
+- Making progress, BUT we need to fix post loading and distance display on homepage. Things are moving better, but we're stuck on a 'loading posts' screen 
+-- map, index, server, check with this status - from JUST blank to the loading feed stuck 
+-- check consoles again but on first blush its a login issue
+- gate the map / radius of posting to the city of Toronto 
+Then, 
+Proceed on PRD 
+
+
+Splash
 Do we swap from map to distance based? Or keep neighbourhoods? Distance = easily scalable. Neighbourhood = 100x more buzz worthy in Canada. Both functions, hood for subscription and distance for feed 
 Send message design on homepage 
 Splash page
@@ -52,6 +62,8 @@ All debugging, device, browser testing
 Design sprint
 
 
+
+
 CONVERSATIONS TABLE FEEDBACK 
 
 CREATE TABLE conversations (
@@ -63,6 +75,11 @@ CREATE TABLE conversations (
     FOREIGN KEY (participant2_id) REFERENCES accounts(auth0_id),
     UNIQUE(participant1_id, participant2_id)
 );
+
+CALLBACK URL FEEDBACK 
+
+- remnoving https://ethos2-production.up.railway.app/callback, https://ethos2-production.up.railway.app/main, http://localhost:3000/callback, http://localhost:3000/main
+
 
 
 PRODUCT OVERALL 
