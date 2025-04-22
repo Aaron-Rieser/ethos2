@@ -528,6 +528,16 @@
         .user-circle {
             position: relative; /* Add this to position the badge */
         }
+        #locationNotification {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            max-width: 90%;
+            width: 400px;
+        }
+        
+        #locationNotification a {
+            margin-top: 10px;
+            display: inline-block;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -726,24 +736,33 @@
         }
         
         // replacing with radius based loading 
-        async function loadCombinedFeed() {
+        async function loadCombinedFeed(lat = null, lng = null, radius = null) {
             try {
-                // Get parameters from URL
-                const urlParams = new URLSearchParams(window.location.search);
-                const radius = urlParams.get('radius') || '1';
-                const userLat = urlParams.get('lat');
-                const userLng = urlParams.get('lng');
+                let latitude, longitude, selectedRadius;
 
-                console.log('Loading feed with parameters:', { radius, userLat, userLng });
+                // First check URL parameters (for map clicks)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('lat') && urlParams.has('lng')) {
+                    latitude = urlParams.get('lat');
+                    longitude = urlParams.get('lng');
+                    selectedRadius = urlParams.get('radius') || 2;
+                    
+                    // Store the selected values
+                    localStorage.setItem('selectedLat', latitude);
+                    localStorage.setItem('selectedLng', longitude);
+                    localStorage.setItem('selectedRadius', selectedRadius);
+                } else {
+                    // Use passed parameters or localStorage values
+                    latitude = lat || localStorage.getItem('selectedLat');
+                    longitude = lng || localStorage.getItem('selectedLng');
+                    selectedRadius = radius || localStorage.getItem('selectedRadius') || 2;
+                }
+
+                console.log('Loading feed with parameters:', { latitude, longitude, selectedRadius });
 
                 // Check for location parameters
-                if (!userLat || !userLng) {
-                    const postsContainer = document.getElementById('posts-container');
-                    postsContainer.innerHTML = `
-                        <div class="error-message">
-                            Please select a location from the map first. 
-                            <a href="/map.html">Go to Map</a>
-                        </div>`;
+                if (!latitude || !longitude) {
+                    showLocationPrompt();
                     return;
                 }
 
@@ -760,8 +779,8 @@
 
                 // Fetch posts and deals in parallel
                 const [postsResponse, dealsResponse] = await Promise.all([
-                    fetch(`/api/posts?lat=${userLat}&lng=${userLng}&radius=${radius}`, { headers }),
-                    fetch(`/api/deals?lat=${userLat}&lng=${userLng}&radius=${radius}`, { headers })
+                    fetch(`/api/posts?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers }),
+                    fetch(`/api/deals?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers })
                 ]);
 
                 if (!postsResponse.ok || !dealsResponse.ok) {
@@ -790,6 +809,13 @@
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
+                }
+
+                // Update the radius display
+                const radiusInfo = document.querySelector('.radius-info');
+                if (radiusInfo) {
+                    radiusInfo.textContent = `Showing posts within ${selectedRadius}km`;
+                    radiusInfo.style.display = 'block';
                 }
 
                 // Update filter display
@@ -1158,16 +1184,45 @@
             return feedDiv;
         }
         // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', async function() { // Add async here
+        document.addEventListener('DOMContentLoaded', async function() {
             try {
                 // Initialize Auth0 first
                 await initializeAuth0();
-                // Then load the feed
-                await loadCombinedFeed();
+
+                // Get stored radius from localStorage or default to 2
+                const storedRadius = localStorage.getItem('selectedRadius') || 2;
                 
-                // Remove duplicate loadCombinedFeed call
-                // loadCombinedFeed(); // Remove this line since we already called it above
+                // Try to get user's location automatically
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(async function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Store the location
+                        localStorage.setItem('selectedLat', lat);
+                        localStorage.setItem('selectedLng', lng);
+                        
+                        // Update the UI to show the current radius
+                        const radiusInfo = document.querySelector('.radius-info');
+                        if (radiusInfo) {
+                            radiusInfo.textContent = `Showing posts within ${storedRadius}km`;
+                            radiusInfo.style.display = 'block';
+                        }
+                        
+                        // Load the feed with the detected location
+                        await loadCombinedFeed(lat, lng, storedRadius);
+                    }, function(error) {
+                        // Handle geolocation errors
+                        console.error('Geolocation error:', error);
+                        handleGeolocationError(error);
+                    });
+                } else {
+                    // Fallback if geolocation is not available
+                    console.error('Geolocation not available');
+                    showLocationPrompt();
+                }
                 
+                // Setup create post link handlers
                 document.querySelectorAll('.create-post-link').forEach(link => {
                     link.addEventListener('click', async (e) => {
                         if (!await auth0Client.isAuthenticated()) {
@@ -1186,7 +1241,7 @@
                 // Setup bottom nav scroll behavior
                 const topNav = document.querySelector('nav');
                 const bottomNav = document.querySelector('.bottom-nav');
-                if (topNav && bottomNav) { // Add null checks
+                if (topNav && bottomNav) {
                     let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
 
                     // Initially hide bottom nav
@@ -1213,6 +1268,50 @@
                 console.error('Error in DOMContentLoaded:', error);
             }
         });
+        function handleGeolocationError(error) {
+            let message = 'Unable to detect your location. ';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message += 'Please enable location access or select a location from the map.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message += 'Location information unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    message += 'Location request timed out.';
+                    break;
+                default:
+                    message += 'An unknown error occurred.';
+            }
+            showLocationPrompt(message);
+        }
+
+        function showLocationPrompt(message = 'Please select your location to see nearby posts.') {
+            // Create or update a notification element
+            let notification = document.getElementById('locationNotification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'locationNotification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #f8d7da;
+                    color: #721c24;
+                    padding: 15px;
+                    border-radius: 5px;
+                    text-align: center;
+                    z-index: 1000;
+                `;
+                document.body.appendChild(notification);
+            }
+            
+            notification.innerHTML = `
+                ${message}<br>
+                <a href="map.html" style="color: #721c24; text-decoration: underline;">Open Map</a>
+            `;
+        }
     </script>
 
     <div class="bottom-nav">

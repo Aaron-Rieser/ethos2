@@ -1,6 +1,5 @@
 MVP___ 
 
-Vet all comments, upvotes, message function works 
 Fix homepage load - make it load to a default to your location 
 Fix change distance so it can be adjusted right in feed 
 Change button to see more posts in map splash 
@@ -11,7 +10,10 @@ Proceed on PRD
 
 Post references ON the map (or notifications custom to you)
 Add city boundaries w/ geojson
-
+Persistent login issues / splash that notifies you if not logged in 
+Message notification design 
+Like UI design when you complete the action 
+Fix weather/traffic information
 
 
 Splash
