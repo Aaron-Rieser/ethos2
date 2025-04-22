@@ -5,6 +5,7 @@ Fix change distance so it can be adjusted right in feed
 Change button to see more posts in map splash 
 Add upvotes to algorithm 
 Keyword search next 
+Parse float to server query for long/lat
 
 Proceed on PRD 
 

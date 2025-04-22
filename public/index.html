@@ -1184,41 +1184,42 @@
         // Load posts when page loads
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                // Initialize Auth0 first
-                await initializeAuth0();
+            // Initialize Auth0 first
+            await initializeAuth0();
 
-                // Get stored radius from localStorage or default to 2
-                const storedRadius = localStorage.getItem('selectedRadius') || 2;
+            // First check if we have URL parameters (coming from map)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('lat') && urlParams.has('lng')) {
+                // Use the coordinates from URL without prompting
+                const lat = urlParams.get('lat');
+                const lng = urlParams.get('lng');
+                const radius = urlParams.get('radius') || '2';
                 
-                // Try to get user's location automatically
+                // Load feed with these parameters
+                await loadCombinedFeed(lat, lng, radius);
+            } else {
+                // No URL parameters, try to get user's location automatically
                 if ("geolocation" in navigator) {
                     navigator.geolocation.getCurrentPosition(async function(position) {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
+                        const storedRadius = localStorage.getItem('selectedRadius') || 2;
                         
                         // Store the location
                         localStorage.setItem('selectedLat', lat);
                         localStorage.setItem('selectedLng', lng);
                         
-                        // Update the UI to show the current radius
-                        const radiusInfo = document.querySelector('.radius-info');
-                        if (radiusInfo) {
-                            radiusInfo.textContent = `Showing posts within ${storedRadius}km`;
-                            radiusInfo.style.display = 'block';
-                        }
-                        
                         // Load the feed with the detected location
                         await loadCombinedFeed(lat, lng, storedRadius);
                     }, function(error) {
-                        // Handle geolocation errors
                         console.error('Geolocation error:', error);
                         handleGeolocationError(error);
                     });
                 } else {
-                    // Fallback if geolocation is not available
                     console.error('Geolocation not available');
                     showLocationPrompt();
                 }
+            }
                 
                 // Setup create post link handlers
                 document.querySelectorAll('.create-post-link').forEach(link => {
