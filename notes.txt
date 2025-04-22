@@ -1,16 +1,20 @@
 MVP___ 
 
-Current status: Map page is on distance
-- Making progress, BUT we need to fix post loading and distance display on homepage. Things are moving better, but we're stuck on a 'loading posts' screen 
--- map, index, server, check with this status - from JUST blank to the loading feed stuck 
--- check consoles again but on first blush its a login issue
-- gate the map / radius of posting to the city of Toronto 
-Then, 
+Vet all comments, upvotes, message function works 
+Fix homepage load - make it load to a default to your location 
+Fix change distance so it can be adjusted right in feed 
+Change button to see more posts in map splash 
+Add upvotes to algorithm 
+Keyword search next 
+
 Proceed on PRD 
+
+Post references ON the map (or notifications custom to you)
+Add city boundaries w/ geojson
+
 
 
 Splash
-Do we swap from map to distance based? Or keep neighbourhoods? Distance = easily scalable. Neighbourhood = 100x more buzz worthy in Canada. Both functions, hood for subscription and distance for feed 
 Send message design on homepage 
 Splash page
 Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it

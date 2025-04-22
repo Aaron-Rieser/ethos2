@@ -912,13 +912,14 @@
 
                 const updatedItem = await response.json();
                 
-                // Update the UI immediately
+                // Update only the upvote count element
                 const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
                 if (upvoteCountElement) {
                     upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
                 }
 
-                await loadCombinedFeed();
+                // Remove this line to prevent page reload
+                // await loadCombinedFeed();
                 
             } catch (error) {
                 console.error('Error handling upvote:', error);
@@ -941,8 +942,16 @@
                     throw new Error('Failed to downvote');
                 }
 
-                // Refresh the feed to ensure consistency
-                await loadCombinedFeed();
+                const updatedItem = await response.json();
+                
+                // Update only the upvote count element
+                const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
+                if (upvoteCountElement) {
+                    upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
+                }
+
+                // Remove this line to prevent page reload
+                // await loadCombinedFeed();
                 
             } catch (error) {
                 console.error('Error handling downvote:', error);
