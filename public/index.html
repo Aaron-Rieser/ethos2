@@ -687,7 +687,7 @@
                 
                 <div id="filter-info" class="filter-info">
                     <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
-                        Within <span id="current-radius">1</span>km
+                        Within <span id="current-radius">2</span>km
                     </span>
                     <a href="/map.html" class="change-range-btn" style="margin-left: 10px; color: #3388ff;">Change Range</a>
                 </div>
@@ -705,7 +705,7 @@
         // Update the filter info display
         function updateFilterDisplay() {
             const urlParams = new URLSearchParams(window.location.search);
-            const radius = urlParams.get('radius') || '1';
+            const radius = urlParams.get('radius') || '2';
             const filterInfo = document.getElementById('filter-info');
             
             if (filterInfo) {
@@ -758,11 +758,9 @@
                     selectedRadius = radius || localStorage.getItem('selectedRadius') || 2;
                 }
 
-                console.log('Loading feed with parameters:', { latitude, longitude, selectedRadius });
-
-                // Check for location parameters
+                // Only show location prompt if we have no coordinates from any source
                 if (!latitude || !longitude) {
-                    showLocationPrompt();
+                    // Remove the manual prompt here - let the browser's geolocation handle it
                     return;
                 }
 
