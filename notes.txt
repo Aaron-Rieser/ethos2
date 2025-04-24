@@ -1,6 +1,10 @@
 MVP___ 
 
-Fix homepage load - make it load to a default to your location 
+Chrome; distance scale broken - unable to get location services, please enable... but think this.. is new?
+**change log in cursor - present about to implement an HTML check fix. But there's more steps further up to see. 
+Lindy way, choose on map as a fallback, add this. 
+First time viewing; Error loading messages. Please try again later. (Msg or posts) - but when we nav back after another page it works
+The post page (create) needs new taxonomy
 Fix change distance so it can be adjusted right in feed 
 Change button to see more posts in map splash 
 Add upvotes to algorithm 
@@ -15,6 +19,7 @@ Persistent login issues / splash that notifies you if not logged in
 Message notification design 
 Like UI design when you complete the action 
 Fix weather/traffic information
+.error-message duplicate in map.html
 
 
 Splash
