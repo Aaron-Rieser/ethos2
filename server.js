@@ -716,11 +716,11 @@ async function fetchAllFeeds() {
 // radius based
 app.get('/api/posts', async (req, res) => {
     try {
-        const { lat, lng, radius } = req.query;
+        const { lat, lng, radius = 2 } = req.query;  // Default radius to 2
         
         console.log('Received request for posts:', { lat, lng, radius });
         
-        if (!lat || !lng || !radius) {
+        if (!lat || !lng) {
             console.log('Missing parameters:', { lat, lng, radius });
             return res.status(400).json({ 
                 error: 'Missing location parameters',
@@ -729,6 +729,13 @@ app.get('/api/posts', async (req, res) => {
         }
 
         const radiusInKm = parseFloat(radius);
+        if (isNaN(radiusInKm)) {
+            return res.status(400).json({ 
+                error: 'Invalid radius parameter',
+                details: { provided: radius }
+            });
+        }
+
         console.log('Executing query with radius:', radiusInKm);
         
         const query = `

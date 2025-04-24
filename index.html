@@ -1,0 +1,119 @@
+let isLoadingFeed = false;  // Add this flag to prevent duplicate calls
+
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Initialize Auth0 first
+        await initializeAuth0();
+
+        // Show loading state immediately
+        document.getElementById('locationLoading').style.display = 'block';
+
+        // First check if we have URL parameters (coming from map)
+        const urlParams = new URLSearchParams(window.location.search);
+        let lat, lng, radius;
+
+        if (urlParams.has('lat') && urlParams.has('lng')) {
+            lat = parseFloat(urlParams.get('lat'));
+            lng = parseFloat(urlParams.get('lng'));
+            radius = urlParams.get('radius') || '2';
+            
+            // Store the location
+            localStorage.setItem('selectedLat', lat);
+            localStorage.setItem('selectedLng', lng);
+            localStorage.setItem('selectedRadius', radius);
+            
+            // Load feed with these parameters
+            await loadCombinedFeed(lat, lng, radius);
+        } else {
+            // Try to get stored coordinates first
+            lat = localStorage.getItem('selectedLat');
+            lng = localStorage.getItem('selectedLng');
+            radius = localStorage.getItem('selectedRadius') || '2';
+
+            if (lat && lng) {
+                await loadCombinedFeed(lat, lng, radius);
+            } else {
+                // No stored coordinates, try geolocation
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        });
+                    });
+
+                    lat = position.coords.latitude;
+                    lng = position.coords.longitude;
+                    
+                    // Store the location
+                    localStorage.setItem('selectedLat', lat);
+                    localStorage.setItem('selectedLng', lng);
+                    
+                    await loadCombinedFeed(lat, lng, radius);
+                } catch (error) {
+                    console.error('Geolocation error:', error);
+                    handleGeolocationError(error);
+                    
+                    // Fall back to Toronto coordinates
+                    await loadCombinedFeed(43.6532, -79.3832, 2);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error in DOMContentLoaded:', error);
+        handleError('Error initializing page');
+    } finally {
+        document.getElementById('locationLoading').style.display = 'none';
+    }
+});
+
+async function loadCombinedFeed(lat = null, lng = null, radius = null, retryCount = 0) {
+    if (isLoadingFeed) return;  // Add this line
+    isLoadingFeed = true;  // Add this line
+
+    try {
+        // Clear any existing error messages first
+        const errorDiv = document.getElementById('locationError');
+        if (errorDiv) errorDiv.style.display = 'none';
+
+        // Show loading state
+        const loadingDiv = document.getElementById('locationLoading');
+        if (loadingDiv) loadingDiv.style.display = 'block';
+
+        if (!lat || !lng) {
+            throw new Error('Location coordinates required');
+        }
+
+        // Update the filter info display
+        const currentRadius = document.getElementById('current-radius');
+        if (currentRadius) {
+            currentRadius.textContent = radius || '2';
+        }
+        const filterInfo = document.getElementById('filter-info');
+        if (filterInfo) filterInfo.style.display = 'block';
+
+        // Rest of your existing loadCombinedFeed code...
+
+    } catch (error) {
+        console.error('Error loading combined feed:', error);
+        const errorMessage = retryCount >= 2 ? 
+            'Unable to load posts. Please refresh the page to try again.' : 
+            'Loading posts...';
+        
+        const postsContainer = document.getElementById('posts-container');
+        if (postsContainer) {
+            postsContainer.innerHTML = `<div class="error-message">${errorMessage}</div>`;
+        }
+        
+        if (retryCount < 2) {
+            setTimeout(() => {
+                loadCombinedFeed(lat, lng, radius, retryCount + 1);
+            }, 2000);
+        }
+    } finally {
+        isLoadingFeed = false;  // Add this line
+        const loadingDiv = document.getElementById('locationLoading');
+        if (loadingDiv) loadingDiv.style.display = 'none';
+    }
+} 
