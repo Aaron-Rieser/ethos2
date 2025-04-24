@@ -987,6 +987,59 @@ app.put('/api/messages/:messageId/read', authenticateJWT, async (req, res) => {
     }
 });
 
+// Add this new endpoint for search
+app.get('/api/search', async (req, res) => {
+    try {
+        const searchTerm = req.query.q;
+        if (!searchTerm) {
+            return res.status(400).json({ error: 'Search term is required' });
+        }
+
+        // Search in both posts and deals tables
+        const postsQuery = `
+            SELECT 
+                p.*,
+                'post' as item_type,
+                a.username
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE 
+                (LOWER(p.title) LIKE LOWER($1) OR 
+                 LOWER(p.post) LIKE LOWER($1))
+        `;
+
+        const dealsQuery = `
+            SELECT 
+                d.*,
+                'deal' as item_type,
+                true as isDeal,
+                a.username
+            FROM deals d
+            LEFT JOIN accounts a ON d.user_id = a.auth0_id
+            WHERE 
+                (LOWER(d.title) LIKE LOWER($1) OR 
+                 LOWER(d.post) LIKE LOWER($1))
+        `;
+
+        const searchPattern = `%${searchTerm}%`;
+        
+        const [postsResult, dealsResult] = await Promise.all([
+            pool.query(postsQuery, [searchPattern]),
+            pool.query(dealsQuery, [searchPattern])
+        ]);
+
+        // Combine and sort results by date
+        const allResults = [...postsResult.rows, ...dealsResult.rows]
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        res.json(allResults);
+
+    } catch (error) {
+        console.error('Search error:', error);
+        res.status(500).json({ error: 'Error performing search' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

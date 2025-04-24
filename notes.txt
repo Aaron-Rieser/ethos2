@@ -1,6 +1,6 @@
 MVP___ 
 
-Error loading posts please try again - first time on safari it often prompts this on main feed only. In Chrome + Safari, first time on main after "detecting" location shows up wrong locale, then map fixes 
+Error loading homepage location 
 **change log in cursor - present about to implement an HTML check fix. But there's more steps further up to see. 
 Lindy way, choose on map as a fallback, add this. 
 First time viewing; Error loading messages. Please try again later. (Msg or posts) - but when we nav back after another page it works
@@ -10,6 +10,7 @@ Change button to see more posts in map splash
 Add upvotes to algorithm 
 Keyword search next 
 Parse float to server query for long/lat
+Add some UI action noises back 
 
 Proceed on PRD 
 

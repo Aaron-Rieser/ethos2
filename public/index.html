@@ -538,6 +538,42 @@
             margin-top: 10px;
             display: inline-block;
         }
+        .search-container {
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .search-toggle {
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #searchBox {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #searchInput {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        #searchButton {
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -677,8 +713,14 @@
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
                 <nav>
-                    <a href="/map.html">Change post range</a>
-                    <a href="/create.html" id="createPostLink">Create New Post</a>                               
+                    <a href="/create.html" id="createPostLink">Create New Post</a>     
+                    <div class="search-container" style="margin-top: 15px;">
+                        <button id="searchToggle" class="search-toggle">Search Posts</button>
+                        <div id="searchBox" style="display: none; margin-top: 10px;">
+                            <input type="text" id="searchInput" placeholder="Enter search terms...">
+                            <button id="searchButton">Search</button>
+                        </div>
+                    </div>                          
                 </nav>
 
                 <div id="loginPrompt" class="error-message" style="display: none;">
@@ -1336,6 +1378,51 @@
                 });
             }
         });
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchToggle = document.getElementById('searchToggle');
+            const searchBox = document.getElementById('searchBox');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+
+            searchToggle.addEventListener('click', () => {
+                searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
+            });
+
+            searchButton.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        });
+
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) return;
+
+            try {
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = '<div class="loading">Searching...</div>';
+
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) throw new Error('Search failed');
+
+                const results = await response.json();
+                
+                postsContainer.innerHTML = '';
+                if (results.length === 0) {
+                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
+                } else {
+                    results.forEach(item => {
+                        const postElement = createPostElement(item);
+                        postsContainer.appendChild(postElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
+            }
+        }
     </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script> 
