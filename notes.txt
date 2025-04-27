@@ -1,5 +1,20 @@
 MVP___ 
 
+Cursor input / extra files 
+Blind items (new DB for blinds/missed connections) 
+Before hard logon - account is identified but posts/deals = missing refresh token. Hard login works though (out and in) ALSO error loading posts. Same as a successful  "choose location" but flashes then shows deals.. connected?
+Keyword Map
+Anonymous DM 
+Reveal DM 
+Blind item class and any others (blind uses a rule based communication exchange) 
+- Deal still work?
+Rules based communities (email - uni, work - self drawn boundaries, passcode) 
+- Users set up and top displayed on HP wth ability to hide 
+Rules based information exchange 
+- like blind but other collection - email, address, form intake, for groups to collect and communicate easier w/ constituents  without intermediary services but only based on location 
+Rando' meet feature 
+Search UI 
+Search Design 
 Error loading homepage location 
 **change log in cursor - present about to implement an HTML check fix. But there's more steps further up to see. 
 Lindy way, choose on map as a fallback, add this. 
@@ -8,7 +23,6 @@ The post page (create) needs new taxonomy
 Fix change distance so it can be adjusted right in feed 
 Change button to see more posts in map splash 
 Add upvotes to algorithm 
-Keyword search next 
 Parse float to server query for long/lat
 Add some UI action noises back 
 
