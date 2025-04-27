@@ -30,6 +30,13 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         // Add email to formData
         formData.append('email', user.email);
 
+        const lat = localStorage.getItem('selectedLat');
+        const lng = localStorage.getItem('selectedLng');
+        if (lat && lng) {
+            formData.append('latitude', lat);
+            formData.append('longitude', lng);
+        }
+
         // Debug logging
         console.log('Deal submission data:', {
             neighbourhood: formData.get('neighbourhood'),
@@ -37,7 +44,9 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
             price: formData.get('price'),
             post: formData.get('post'),
             email: formData.get('email'),
-            image: formData.get('image')
+            image: formData.get('image'),
+            latitude: formData.get('latitude'),
+            longitude: formData.get('longitude')
         });
 
         // Disable submit button and show loading

@@ -1,5 +1,7 @@
 MVP___ 
 
+Are deals actually in the feed? 
+- Problem with deals on env showing up w/ lat/Long at all - show up in search but not feed 
 Cursor input / extra files 
 Blind items (new DB for blinds/missed connections) 
 Before hard logon - account is identified but posts/deals = missing refresh token. Hard login works though (out and in) ALSO error loading posts. Same as a successful  "choose location" but flashes then shows deals.. connected?
