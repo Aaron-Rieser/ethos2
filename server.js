@@ -406,6 +406,8 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         
         // Enhanced price validation
         const numericPrice = parseFloat(price);
+        const numericLatitude = parseFloat(latitude);  
+        const numericLongitude = parseFloat(longitude); 
         console.log('Parsed price:', numericPrice);
 
         if (!neighbourhood || !post || !title) {
