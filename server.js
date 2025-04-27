@@ -1042,6 +1042,76 @@ app.get('/api/search', async (req, res) => {
     }
 });
 
+app.get('/api/combined-feed', async (req, res) => {
+    try {
+        const { lat, lng, radius = 2 } = req.query;
+        if (!lat || !lng) {
+            return res.status(400).json({ error: 'Missing location parameters' });
+        }
+        const radiusInKm = parseFloat(radius);
+
+        // Fetch posts
+        const postsQuery = `
+            SELECT 
+                p.*, 
+                a.username,
+                false as "isDeal"
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const postsResult = await pool.query(postsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedPosts = postsResult.rows.map(post => ({
+            ...post,
+            isDeal: false,
+            created_at: new Date(post.created_at).toISOString()
+        }));
+
+        // Fetch deals
+        const dealsQuery = `
+            SELECT 
+                d.*, 
+                a.username,
+                true as "isDeal"
+            FROM deals d
+            LEFT JOIN accounts a ON d.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const dealsResult = await pool.query(dealsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedDeals = dealsResult.rows.map(deal => ({
+            ...deal,
+            isDeal: true,
+            created_at: new Date(deal.created_at).toISOString()
+        }));
+
+        // Combine and sort by recency
+        const allContent = [...formattedPosts, ...formattedDeals].sort((a, b) => 
+            new Date(b.created_at) - new Date(a.created_at)
+        );
+
+        res.json(allContent);
+    } catch (error) {
+        console.error('Error in /api/combined-feed:', error);
+        res.status(500).json({ error: 'Server Error', details: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

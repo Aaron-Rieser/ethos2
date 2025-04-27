@@ -817,28 +817,12 @@
                     headers.Authorization = `Bearer ${token}`;
                 }
 
-                // Fetch posts and deals in parallel
-                const [postsResponse, dealsResponse] = await Promise.all([
-                    fetch(`/api/posts?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers }),
-                    fetch(`/api/deals?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers })
-                ]);
-
-                if (!postsResponse.ok || !dealsResponse.ok) {
+                // Fetch combined feed from the new endpoint
+                const response = await fetch(`/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers });
+                if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
-
-                const [posts, deals] = await Promise.all([
-                    postsResponse.json(),
-                    dealsResponse.json()
-                ]);
-
-                // Add isDeal flag to deals
-                const dealsWithFlag = deals.map(deal => ({ ...deal, isDeal: true }));
-
-                // Combine and sort by date
-                const allContent = [...posts, ...dealsWithFlag].sort((a, b) => 
-                    new Date(b.created_at) - new Date(a.created_at)
-                );
+                const allContent = await response.json();
 
                 // Clear loading indicator and display content
                 postsContainer.innerHTML = '';
