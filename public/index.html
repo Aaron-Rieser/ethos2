@@ -575,6 +575,27 @@
             cursor: pointer;
         }
 
+        .missed-connection {
+            border-left: 4px solid #ff69b4;
+        }
+
+        .missed-header {
+            margin-bottom: 10px;
+        }
+
+        .missed-tag {
+            background-color: #ff69b4;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+
+        .missed-connection .post-content {
+            background-color: #fff0f5;
+        }
+
         @media screen and (max-width: 768px) {
             body {
                 overflow-x: hidden;
@@ -859,52 +880,58 @@
         // Create post element function, updated jan 29 for deals
         function createPostElement(item) {
             const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}`;
+            postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}${item.isMissedConnection ? ' missed-connection' : ''}`;
             
             // Format the date
             const date = new Date(item.created_at);
             const formattedTime = date.toLocaleString('en-US', {
-                month: 'short', // "Jan"
-                day: 'numeric', // "1"
-                hour: 'numeric', // "12"
-                minute: '2-digit', // "00"
-                hour12: true // Use AM/PM
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
             });
             
             let imageHtml = item.image_url 
                 ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
             
-            let dealHtml = '';
+            let typeHtml = '';
             if (item.isDeal && item.price) {
                 const price = parseFloat(item.price);
                 if (!isNaN(price)) {
-                    dealHtml = `
+                    typeHtml = `
                         <div class="deal-header">
                             <div class="deal-tag">Deal</div>
                             <div class="deal-price">$${price.toFixed(2)}</div>
                         </div>
                     `;
                 }
+            } else if (item.isMissedConnection) {
+                typeHtml = `
+                    <div class="missed-header">
+                        <div class="missed-tag">Missed Connection</div>
+                    </div>
+                `;
             }
 
             postDiv.innerHTML = `
                 <div class="post-content">
-                    ${dealHtml}
+                    ${typeHtml}
                     <div class="post-title">${item.title || 'Title'}</div>
                     <div class="post-text">${item.post || 'No content available'}</div>  
                     ${imageHtml}
                     <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
                     <div class="feed-footer">
-                        <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
-                        <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
-                        <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
-                        <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
+                        <button class="upvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬆️</button>
+                        <button class="downvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬇️</button>
+                        <button class="comment-button" data-id="${item.id}" data-type="${getItemType(item)}">💬</button>
+                        <button class="message-button" data-id="${item.id}" data-type="${getItemType(item)}" data-user-id="${item.user_id}">✉️</button>
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${item.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${item.isDeal ? 'deal' : 'post'}')">
+                        <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${getItemType(item)}')">
                             <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
                             <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
                             <button type="submit">Comment</button>
@@ -914,20 +941,20 @@
             `;
             
             const messageButton = postDiv.querySelector('.message-button');
-            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, item.isDeal ? 'deal' : 'post'));
+            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, getItemType(item)));
 
             // Add event listener for upvote button
             const upvoteButton = postDiv.querySelector('.upvote-button');
             upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
             upvoteButton.addEventListener('touchend', (e) => {
-                e.preventDefault(); // Prevent any default touch behavior
+                e.preventDefault();
                 handleUpvote(item.id, item.isDeal);
             });
 
             const downvoteButton = postDiv.querySelector('.downvote-button');
             downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isDeal));
             downvoteButton.addEventListener('touchend', (e) => {
-                e.preventDefault(); // Prevent any default touch behavior
+                e.preventDefault();
                 handleDownvote(item.id, item.isDeal);
             });
 
@@ -939,9 +966,16 @@
                     : 'none';
             });
 
-            loadComments(item.id, item.isDeal ? 'deal' : 'post');
+            loadComments(item.id, getItemType(item));
 
             return postDiv;
+        }
+
+        // Helper function to determine the type of item
+        function getItemType(item) {
+            if (item.isDeal) return 'deal';
+            if (item.isMissedConnection) return 'missed';
+            return 'post';
         }
 
         async function handleUpvote(itemId, isDeal) {

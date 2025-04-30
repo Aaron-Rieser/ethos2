@@ -527,6 +527,51 @@ app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
     }
 });
 
+app.post('/api/missed-connections', authenticateJWT, upload.single('image'), async (req, res) => {    
+    res.setHeader('Content-Type', 'application/json');
+    
+    try {
+        const user_id = req.auth.payload.sub;
+        const email = req.body.email;
+
+        if (!email) {
+            return res.status(400).json({ error: 'User email not provided' });
+        }
+        
+        const username = await ensureUserAccount(user_id, email);
+        
+        const { neighbourhood, post, title, latitude, longitude } = req.body;
+        
+        if (!neighbourhood || !post || !title) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const image_url = req.file ? req.file.path : null;
+        
+        const query = `
+            INSERT INTO missed_connections (
+                neighbourhood, username, post, title, latitude, longitude, 
+                image_url, user_id
+            ) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            RETURNING *
+        `;
+        
+        const values = [
+            neighbourhood, username, post, title, 
+            latitude ? parseFloat(latitude) : null, 
+            longitude ? parseFloat(longitude) : null,
+            image_url, user_id
+        ];
+
+        const result = await pool.query(query, values);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error creating missed connection:', error);
+        res.status(500).json({ error: 'Failed to create missed connection' });
+    }
+});
+
 app.post('/api/messages', authenticateJWT, async (req, res) => {
     try {
         const { recipient_id, message, reference_id, reference_type } = req.body;
@@ -1055,7 +1100,8 @@ app.get('/api/combined-feed', async (req, res) => {
             SELECT 
                 p.*, 
                 a.username,
-                false as "isDeal"
+                false as "isDeal",
+                'post' as "type"
             FROM posts p
             LEFT JOIN accounts a ON p.user_id = a.auth0_id
             WHERE (
@@ -1080,7 +1126,8 @@ app.get('/api/combined-feed', async (req, res) => {
             SELECT 
                 d.*, 
                 a.username,
-                true as "isDeal"
+                true as "isDeal",
+                'deal' as "type"
             FROM deals d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE (
@@ -1100,8 +1147,35 @@ app.get('/api/combined-feed', async (req, res) => {
             created_at: new Date(deal.created_at).toISOString()
         }));
 
+        // Fetch missed connections
+        const missedQuery = `
+            SELECT 
+                m.*, 
+                a.username,
+                false as "isDeal",
+                'missed' as "type"
+            FROM missed_connections m
+            LEFT JOIN accounts a ON m.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedMissed = missedResult.rows.map(missed => ({
+            ...missed,
+            isDeal: false,
+            isMissedConnection: true,
+            created_at: new Date(missed.created_at).toISOString()
+        }));
+
         // Combine and sort by recency
-        const allContent = [...formattedPosts, ...formattedDeals].sort((a, b) => 
+        const allContent = [...formattedPosts, ...formattedDeals, ...formattedMissed].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
 

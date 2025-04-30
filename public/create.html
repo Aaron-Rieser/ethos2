@@ -269,6 +269,20 @@
         .user-circle {
             position: relative; /* Add this to position the badge */
         }
+        .missed-connection {
+            border-left: 4px solid #ff69b4;  /* Pink border for missed connections */
+            background-color: #fff0f5;  /* Light pink background */
+        }
+
+        .missed-connection .post-type-tag {
+            background-color: #ff69b4;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -304,6 +318,7 @@
             <div class="post-type-buttons">
                 <button id="postButton" class="type-button active">Post</button>
                 <button id="dealButton" class="type-button">Deal</button>
+                <button id="missedButton" class="type-button">Missed Connection</button>
             </div>
         
             <form id="postForm">
@@ -377,6 +392,35 @@
                 <div id="dealErrorMessage" class="error-message" style="display: none;"></div>
                 <div id="dealLoadingIndicator" style="display: none;">Uploading your deal...</div>
             </form>
+
+            <form id="missedConnectionForm" style="display: none;">
+                <div class="form-group">
+                    <label for="neighbourhood">Neighbourhood:</label>
+                    <select id="neighbourhood" name="neighbourhood" required>
+                        <option value="">Select a neighbourhood</option>
+                    </select>
+                </div>
+            
+                <div class="form-group">
+                    <label for="missedTitle">Title:</label>
+                    <input type="text" id="missedTitle" name="title" required maxlength="255">
+                </div>
+                
+                <div class="form-group">
+                    <label for="post">Description:</label>
+                    <textarea id="post" name="post" required placeholder="Describe who you're looking for..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Image (optional):</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                
+                <button type="submit">Submit Missed Connection</button>
+                
+                <div id="missedErrorMessage" class="error-message" style="display: none;"></div>
+                <div id="missedLoadingIndicator" style="display: none;">Posting your missed connection...</div>
+            </form>
         </div>
     </main>
 
@@ -393,8 +437,10 @@
         // Get form elements
         const postButton = document.getElementById('postButton');
         const dealButton = document.getElementById('dealButton');
+        const missedButton = document.getElementById('missedButton');
         const postForm = document.getElementById('postForm');
         const dealForm = document.getElementById('dealForm');
+        const missedConnectionForm = document.getElementById('missedConnectionForm');
         const neighbourhoodDropdown = document.getElementById('neighbourhood');
 
         // Populate neighborhoods
@@ -416,25 +462,40 @@
         postButton.classList.add('active');
         postForm.style.display = 'block';
         dealForm.style.display = 'none';
+        missedConnectionForm.style.display = 'none';
 
         postButton.addEventListener('click', function() {
             postButton.classList.add('active');
             dealButton.classList.remove('active');
+            missedButton.classList.remove('active');
             postForm.style.display = 'block';
             dealForm.style.display = 'none';
+            missedConnectionForm.style.display = 'none';
         });
 
         dealButton.addEventListener('click', function() {
             dealButton.classList.add('active');
             postButton.classList.remove('active');
+            missedButton.classList.remove('active');
             postForm.style.display = 'none';
             dealForm.style.display = 'block';
+            missedConnectionForm.style.display = 'none';
+        });
+
+        missedButton.addEventListener('click', function() {
+            missedButton.classList.add('active');
+            postButton.classList.remove('active');
+            dealButton.classList.remove('active');
+            postForm.style.display = 'none';
+            dealForm.style.display = 'none';
+            missedConnectionForm.style.display = 'block';
         });
     });
     </script>
     
     <script src="form.js"></script>
     <script src="dealForm.js"></script>
+    <script src="missedConnectionForm.js"></script>
 
     <div class="bottom-nav">
         <a href="index.html">Home</a>
