@@ -1186,6 +1186,70 @@ app.get('/api/combined-feed', async (req, res) => {
     }
 });
 
+app.get('/api/map-posts', async (req, res) => {
+    try {
+        const { bounds } = req.query;  // Will contain map viewport bounds
+        const mapBounds = JSON.parse(bounds);
+        
+        const query = `
+            SELECT 
+                p.id,
+                p.title,
+                p.post,
+                p.image_url,
+                p.latitude,
+                p.longitude,
+                p.upvotes,
+                'post' as type,
+                p.created_at
+            FROM posts p
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            UNION ALL
+            SELECT 
+                d.id,
+                d.title,
+                d.post,
+                d.image_url,
+                d.latitude,
+                d.longitude,
+                d.upvotes,
+                'deal' as type,
+                d.created_at
+            FROM deals d
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            UNION ALL
+            SELECT 
+                m.id,
+                m.title,
+                m.post,
+                m.image_url,
+                m.latitude,
+                m.longitude,
+                m.upvotes,
+                'missed' as type,
+                m.created_at
+            FROM missed_connections m
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            ORDER BY upvotes DESC, created_at DESC
+            LIMIT 50`;  // Limit to prevent overloading
+
+        const result = await pool.query(query, [
+            mapBounds.south,
+            mapBounds.north,
+            mapBounds.west,
+            mapBounds.east
+        ]);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching map posts:', error);
+        res.status(500).json({ error: 'Failed to fetch map posts' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

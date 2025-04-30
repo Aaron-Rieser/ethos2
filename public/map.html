@@ -250,6 +250,12 @@
             border: 1px solid #b8daff;
             text-align: center;
         }
+        .post-marker {
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000; /* Add this */
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -464,6 +470,265 @@
         window.onload = function() {
             getUserLocation();
         }
+
+        let postMarkers = L.layerGroup().addTo(map);
+        let postCircles = L.layerGroup().addTo(map);
+        let currentInfoWindow = null;
+
+        // Function to create post preview content
+        function createPreviewContent(post) {
+            const previewLength = 100;
+            const truncatedText = post.post.length > previewLength ? 
+                post.post.substring(0, previewLength) + '...' : 
+                post.post;
+
+            let content = `
+                <div class="post-preview" style="max-width: 250px;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 16px;">${post.title}</h3>`;
+            
+            if (post.image_url) {
+                content += `<img src="${post.image_url}" style="max-width: 100%; height: auto; margin: 5px 0;">`;
+            } else {
+                content += `<p style="margin: 5px 0;">${truncatedText}</p>`;
+            }
+
+            content += `
+                    <div style="margin-top: 5px;">
+                        <span style="color: #666;">⬆️ ${post.upvotes || 0}</span>
+                        <button onclick="viewFullPost(${post.id}, '${post.type}')" 
+                                style="float: right; padding: 5px 10px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            View Post
+                        </button>
+                    </div>
+                </div>`;
+
+            return content;
+        }
+
+        // Function to handle marker clustering and display
+        let updateTimeout;
+        let currentFetchController;
+
+        function updateMapMarkers() {
+            // Clear any pending update
+            if (updateTimeout) clearTimeout(updateTimeout);
+            
+            // Cancel any in-flight fetch
+            if (currentFetchController) {
+                currentFetchController.abort();
+            }
+
+            updateTimeout = setTimeout(() => {
+                // Show loading indicator
+                let loadingDiv = document.getElementById('map-loading');
+                if (!loadingDiv) {
+                    loadingDiv = document.createElement('div');
+                    loadingDiv.id = 'map-loading';
+                    loadingDiv.innerHTML = 'Loading posts...';
+                    loadingDiv.style.cssText = `
+                        position: fixed;
+                        top: 70px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 1001;
+                        background-color: white;
+                        padding: 10px 20px;
+                        border-radius: 4px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    `;
+                    document.body.appendChild(loadingDiv);
+                }
+
+                // Clear existing markers
+                clearMarkers();
+
+                // Get map bounds
+                const bounds = map.getBounds();
+                const boundsObj = {
+                    north: bounds.getNorth(),
+                    south: bounds.getSouth(),
+                    east: bounds.getEast(),
+                    west: bounds.getWest()
+                };
+
+                // Setup new fetch controller
+                currentFetchController = new AbortController();
+
+                fetch(`/api/map-posts?bounds=${JSON.stringify(boundsObj)}`, {
+                    signal: currentFetchController.signal
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(posts => {
+                        if (!Array.isArray(posts)) {
+                            console.warn('Received non-array posts data:', posts);
+                            return;
+                        }
+
+                        // Calculate how many posts to show based on screen size
+                        const width = window.innerWidth;
+                        const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
+
+                        // Sort posts by upvotes before slicing
+                        const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+
+                        sortedPosts.slice(0, maxPosts).forEach((post, index) => {
+                            if (!post.latitude || !post.longitude) {
+                                console.warn('Post missing coordinates:', post);
+                                return;
+                            }
+
+                            // Add a 250m radius circle
+                            const circle = L.circle([post.latitude, post.longitude], {
+                                radius: 250,
+                                color: getPostTypeColor(post.type),
+                                fillColor: getPostTypeColor(post.type),
+                                fillOpacity: 0.1,
+                                weight: 1,
+                                zIndex: 1000 + index // Higher index posts appear above others
+                            });
+
+                            // Add the marker
+                            const marker = L.marker([post.latitude, post.longitude], {
+                                icon: L.divIcon({
+                                    className: `post-marker ${post.type}-marker`,
+                                    html: getMarkerContent(post),
+                                    iconSize: [40, 40]
+                                }),
+                                zIndexOffset: 2000 + index // Ensure markers are above circles
+                            });
+
+                            // Bind popup with preview content
+                            const popup = L.popup({
+                                maxWidth: 250,
+                                className: 'post-popup'
+                            }).setContent(createPreviewContent(post));
+
+                            marker.bindPopup(popup);
+
+                            // Add touch event handling
+                            marker.on('touchend', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                marker.openPopup();
+                            });
+
+                            // Add click event handling
+                            marker.on('click', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                }
+                                currentInfoWindow = popup;
+                            });
+
+                            // Store references for cleanup
+                            circle.markerId = post.id;
+                            marker.markerId = post.id;
+
+                            postCircles.addLayer(circle);
+                            postMarkers.addLayer(marker);
+                        });
+                    })
+                    .catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log('Fetch aborted');
+                        } else {
+                            console.error('Error fetching map posts:', error);
+                            showLocationError('Failed to load posts. Please try again.');
+                        }
+                    })
+                    .finally(() => {
+                        // Remove loading indicator
+                        if (loadingDiv && loadingDiv.parentNode) {
+                            loadingDiv.parentNode.removeChild(loadingDiv);
+                        }
+                        currentFetchController = null;
+                    });
+            }, 300); // 300ms debounce
+        }
+
+        // Helper function to clear markers
+        function clearMarkers() {
+            postMarkers.eachLayer((layer) => {
+                if (layer.off) layer.off();
+                if (layer.remove) layer.remove();
+            });
+            postCircles.eachLayer((layer) => {
+                if (layer.off) layer.off();
+                if (layer.remove) layer.remove();
+            });
+            postMarkers.clearLayers();
+            postCircles.clearLayers();
+        }
+
+        // Add cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (currentFetchController) {
+                currentFetchController.abort();
+            }
+            clearMarkers();
+        });
+        function getPostTypeColor(type) {
+            switch(type) {
+                case 'deal': return '#3388ff';
+                case 'missed': return '#ff69b4';
+                default: return '#28a745';
+            }
+        }
+
+        function getMarkerContent(post) {
+            if (post.image_url) {
+                return `<div class="marker-preview" style="width: 40px; height: 40px; border-radius: 50%; background-image: url('${post.image_url}'); background-size: cover; border: 2px solid ${getPostTypeColor(post.type)};"></div>`;
+            }
+            return `<div class="marker-preview" style="width: 40px; height: 40px; border-radius: 50%; background-color: ${getPostTypeColor(post.type)}; color: white; display: flex; align-items: center; justify-content: center;">📝</div>`;
+        }
+
+        function viewFullPost(id, type) {
+            window.location.href = `index.html?post=${id}&type=${type}`;
+        }
+        // Add CSS for markers
+        const style = document.createElement('style');
+        style.textContent = `
+            .post-marker {
+                border-radius: 50%;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            .marker-preview {
+                transition: transform 0.2s;
+            }
+            .marker-preview:hover {
+                transform: scale(1.1);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Update markers when map moves
+        map.on('moveend', updateMapMarkers);
+        map.on('zoomend', updateMapMarkers);
+
+        // Initial load
+        updateMapMarkers();
+
+        map.on('click', function(e) {
+        // Only handle clicks not on markers
+        if (e.originalEvent.target.classList.contains('marker-preview')) {
+            return;
+        }
+
+        if (userMarker) {
+            userMarker.setLatLng(e.latlng);
+            userLocation = [e.latlng.lat, e.latlng.lng];
+            if (radiusCircle) {
+                const radius = document.querySelector('.range-slider').value;
+                updateRadius(parseInt(radius));
+            }
+        }
+    });
     </script>
 
     <!-- Turf.js for spatial analysis -->

@@ -2,6 +2,7 @@ MVP___
 
 Cursor extra files
 Blind items (new DB for blinds/missed connections) 
+Missing refresh token for posts without re-login (fix RE login )
 Like, time and proximity based algorithm 
 Location issues: before a hard logon - account is identified but posts/deals = missing refresh token. Hard login works though (out and in) ALSO error loading posts. Same as a successful  "choose location" but flashes then shows deals.. connected?
 Keyword Map
@@ -30,6 +31,7 @@ Message notification design
 Like UI design when you complete the action 
 Fix weather/traffic information
 .error-message duplicate in map.html
+Search database
 
 
 Splash
