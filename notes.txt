@@ -1,6 +1,7 @@
 MVP___ 
 
 Cursor extra files
+Text posts on map show weird / images working - still too many tho 
 Blind items (new DB for blinds/missed connections) 
 Missing refresh token for posts without re-login (fix RE login )
 Like, time and proximity based algorithm 
