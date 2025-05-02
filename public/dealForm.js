@@ -39,7 +39,6 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
 
         // Debug logging
         console.log('Deal submission data:', {
-            neighbourhood: formData.get('neighbourhood'),
             title: formData.get('title'),  // Add title to debug logging
             price: formData.get('price'),
             post: formData.get('post'),
@@ -73,7 +72,8 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         }
 
         // Redirect on success
-        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
+        window.location.href = 'index.html';
+        
     } catch (error) {
         console.error('Deal submission error:', error);
         errorMessage.textContent = error.message;

@@ -1,7 +1,11 @@
 MVP___ 
 
 Cursor extra files
-Text posts on map show weird / images working - still too many tho 
+New nav 
+Text on map styling 
+\ cluster on map too much 
+Deals not showing up on map
+Text on map privacy 
 Blind items (new DB for blinds/missed connections) 
 Missing refresh token for posts without re-login (fix RE login )
 Like, time and proximity based algorithm 

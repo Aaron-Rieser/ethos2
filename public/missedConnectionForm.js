@@ -45,8 +45,8 @@ document.getElementById('missedConnectionForm').addEventListener('submit', async
             const errorData = await response.text();
             throw new Error(errorData || 'Failed to submit missed connection');
         }
+        window.location.href = 'index.html';
 
-        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Missed connection submission error:', error);
         errorMessage.textContent = error.message;

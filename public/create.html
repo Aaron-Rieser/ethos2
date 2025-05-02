@@ -323,13 +323,6 @@
         
             <form id="postForm">
                 <div class="form-group">
-                    <label for="neighbourhood">Neighbourhood:</label>
-                    <select id="neighbourhood" name="neighbourhood" required>
-                        <option value="">Select a neighbourhood</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="title">Title:</label>
                     <input type="text" id="title" name="title" required maxlength="255">
                 </div>
@@ -364,13 +357,6 @@
                         required
                     >
                 </div>
-                
-                <div class="form-group">
-                    <label for="neighbourhood">Neighbourhood:</label>
-                    <select id="neighbourhood" name="neighbourhood" required>
-                        <option value="">Select a neighbourhood</option>
-                    </select>
-                </div>
 
                 <div class="form-group">
                     <label for="dealTitle">Title:</label>
@@ -394,12 +380,6 @@
             </form>
 
             <form id="missedConnectionForm" style="display: none;">
-                <div class="form-group">
-                    <label for="neighbourhood">Neighbourhood:</label>
-                    <select id="neighbourhood" name="neighbourhood" required>
-                        <option value="">Select a neighbourhood</option>
-                    </select>
-                </div>
             
                 <div class="form-group">
                     <label for="missedTitle">Title:</label>
@@ -441,22 +421,6 @@
         const postForm = document.getElementById('postForm');
         const dealForm = document.getElementById('dealForm');
         const missedConnectionForm = document.getElementById('missedConnectionForm');
-        const neighbourhoodDropdown = document.getElementById('neighbourhood');
-
-        // Populate neighborhoods
-        function populateNeighborhoods(dropdown) {
-            if (window.neighborhoods && window.neighborhoods.features) {
-                window.neighborhoods.features.forEach(feature => {
-                    const option = document.createElement('option');
-                    option.value = feature.properties.name;
-                    option.textContent = feature.properties.name;
-                    dropdown.appendChild(option);
-                });
-            }
-        }
-
-        // Initialize forms and dropdown
-        populateNeighborhoods(neighbourhoodDropdown);
 
         // Set initial state and handle toggles
         postButton.classList.add('active');

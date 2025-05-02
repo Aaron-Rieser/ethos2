@@ -62,7 +62,6 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         const formData = new FormData();
         formData.append('user_id', user.sub);
         formData.append('email', user.email);
-        formData.append('neighbourhood', document.getElementById('neighbourhood').value);
         formData.append('title', document.getElementById('title').value); // Add this line
         formData.append('post', document.getElementById('post').value);
 
@@ -114,17 +113,8 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
-        try {
-            await submitSound.play();
-            // Wait for the sound to finish playing
-            await new Promise(resolve => {
-                submitSound.addEventListener('ended', resolve, { once: true });
-            });
-        } catch (err) {
-            console.log('Sound play failed:', err);
-        }
+        window.location.href = 'index.html';
 
-        window.location.href = `index.html?neighbourhood=${encodeURIComponent(formData.get('neighbourhood'))}`;
     } catch (error) {
         console.error('Error:', error);
         errorMessage.textContent = error.message;

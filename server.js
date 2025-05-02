@@ -289,9 +289,9 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { neighbourhood, post, title, latitude, longitude } = req.body;
+        const { post, title, latitude, longitude } = req.body;
         
-        if (!neighbourhood || !post || !title) {
+        if (!post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -300,15 +300,15 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         // Simplified query without post_type
         const query = `
             INSERT INTO posts (
-                neighbourhood, username, post, title, latitude, longitude, 
+                username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood, username, post, title, latitude, longitude, 
+            username, post, title, latitude, longitude, 
             image_url, user_id
         ];
 
@@ -402,7 +402,7 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { neighbourhood, post, title, price, latitude, longitude } = req.body;
+        const { post, title, price, latitude, longitude } = req.body;
         
         // Enhanced price validation
         const numericPrice = parseFloat(price);
@@ -410,8 +410,8 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const numericLongitude = parseFloat(longitude); 
         console.log('Parsed price:', numericPrice);
 
-        if (!neighbourhood || !post || !title) {
-            console.error('Missing required fields:', { neighbourhood, post, title });
+        if (!post || !title) {
+            console.error('Missing required fields:', { post, title });
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -429,7 +429,6 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         
         // Log the final values before database insertion
         console.log('Inserting deal with values:', {
-            neighbourhood,
             username,
             post,
             title,
@@ -442,15 +441,15 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
 
         const query = `
             INSERT INTO deals (
-                neighbourhood, username, post, title, price, latitude, longitude, 
+                username, post, title, price, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood, username, post, title, numericPrice, latitude, longitude, 
+            username, post, title, numericPrice, latitude, longitude, 
             image_url, user_id
         ];
 
@@ -540,9 +539,9 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         
         const username = await ensureUserAccount(user_id, email);
         
-        const { neighbourhood, post, title, latitude, longitude } = req.body;
+        const { post, title, latitude, longitude } = req.body;
         
-        if (!neighbourhood || !post || !title) {
+        if (!post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -550,15 +549,15 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         
         const query = `
             INSERT INTO missed_connections (
-                neighbourhood, username, post, title, latitude, longitude, 
+                username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
         const values = [
-            neighbourhood, username, post, title, 
+            username, post, title, 
             latitude ? parseFloat(latitude) : null, 
             longitude ? parseFloat(longitude) : null,
             image_url, user_id
