@@ -80,8 +80,8 @@ const upload = multer({
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
 
-function clearCacheForItem(id, isDeal) {
-    const itemType = isDeal ? 'deals' : 'posts';
+function clearCacheForItem(id, isFree) {
+    const itemType = isFree ? 'free' : 'posts';
     // Clear both specific neighborhood cache and all items cache
     cache.keys().forEach(key => {
         if (key.startsWith(itemType)) {
@@ -105,9 +105,9 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
         console.log('Request headers:', req.headers);
         
         // Determine which table to check based on type
-        const table = type === 'deal' ? 'deals' : 'posts';
+        const table = type === 'free' ? 'free' : 'posts';
         
-        // First verify the post/deal exists
+        // First verify the post/free exists
         const itemExists = await pool.query(
             `SELECT id FROM ${table} WHERE id = $1`,
             [postId]
@@ -379,11 +379,11 @@ app.post('/api/posts/:postId/downvote', authenticateJWT, async (req, res) => {
     }
 });
 
-app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res) => {    
+app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
     try {
-        console.log('Deals endpoint hit');
+        console.log('Free endpoint hit');
         console.log('Headers:', req.headers);
         console.log('Body:', req.body);
         console.log('Full auth payload:', req.auth.payload);
@@ -392,7 +392,6 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const email = req.body.email;
 
         console.log('Email from form:', email);
-        console.log('Raw price value:', req.body.price); // Add price logging
 
         if (!email) {
             console.error('No email provided in request');
@@ -402,37 +401,23 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { post, title, price, latitude, longitude } = req.body;
+        const { post, title, latitude, longitude } = req.body;
         
-        // Enhanced price validation
-        const numericPrice = parseFloat(price);
         const numericLatitude = parseFloat(latitude);  
         const numericLongitude = parseFloat(longitude); 
-        console.log('Parsed price:', numericPrice);
 
         if (!post || !title) {
             console.error('Missing required fields:', { post, title });
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        if (!price || isNaN(numericPrice)) {
-            console.error('Invalid price value:', { price, numericPrice });
-            return res.status(400).json({ error: 'Invalid price format' });
-        }
-
-        if (numericPrice < 0 || numericPrice > 999999999.99) {
-            console.error('Price out of range:', numericPrice);
-            return res.status(400).json({ error: 'Price must be between 0 and 999,999,999.99' });
-        }
-
         const image_url = req.file ? req.file.path : null;
         
         // Log the final values before database insertion
-        console.log('Inserting deal with values:', {
+        console.log('Inserting free with values:', {
             username,
             post,
             title,
-            price: numericPrice,
             latitude,
             longitude,
             image_url,
@@ -440,21 +425,21 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         });
 
         const query = `
-            INSERT INTO deals (
-                username, post, title, price, latitude, longitude, 
+            INSERT INTO free (
+                username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) 
             RETURNING *
         `;
         
         const values = [
-            username, post, title, numericPrice, latitude, longitude, 
+            username, post, title, latitude, longitude, 
             image_url, user_id
         ];
 
         const result = await pool.query(query, values);
-        console.log('Deal inserted successfully:', result.rows[0]);
+        console.log('Free inserted successfully:', result.rows[0]);
         
         res.json(result.rows[0]);
     } catch (err) {
@@ -482,46 +467,46 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
     }
 });
 
-app.post('/api/deals/:dealId/upvote', authenticateJWT, async (req, res) => {
-    const { dealId } = req.params;
+app.post('/api/free/:freeId/upvote', authenticateJWT, async (req, res) => {
+    const { freeId } = req.params;
 
     try {
         const result = await pool.query(
-            'UPDATE deals SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
-            [dealId]
+            'UPDATE free SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
+            [freeId]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Deal not found' });
+            return res.status(404).json({ error: 'Free not found' });
         }
 
         // Clear cache after successful upvote
-        clearCacheForItem(dealId, true);
+        clearCacheForItem(freeId, true);
 
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error updating upvotes for deal:', error);
+        console.error('Error updating upvotes for free:', error);
         res.status(500).json({ error: 'Error updating upvotes' });
     }
 });
 
-app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
-    const { dealId } = req.params;
+app.post('/api/free/:freeId/downvote', authenticateJWT, async (req, res) => {
+    const { freeId } = req.params;
 
     try {
         const result = await pool.query(
-            'UPDATE deals SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
-            [dealId]
+            'UPDATE free SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
+            [freeId]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Deal not found' });
+            return res.status(404).json({ error: 'Giveaway not found' });
         }
 
-        clearCacheForItem(dealId, true);
+        clearCacheForItem(freeId, true);
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error updating downvotes for deal:', error);
+        console.error('Error updating downvotes for free:', error);
         res.status(500).json({ error: 'Error updating downvotes' });
     }
 });
@@ -846,7 +831,7 @@ app.get('/api/posts', async (req, res) => {
     }
 });
 
-app.get('/api/deals', async (req, res) => {
+app.get('/api/free', async (req, res) => {
     try {
         const { lat, lng, radius } = req.query;
         
@@ -878,7 +863,7 @@ app.get('/api/deals', async (req, res) => {
                     sin(radians(latitude))
                 )
             ) AS distance
-            FROM deals
+            FROM free
             WHERE (
                 6371 * acos(
                     cos(radians($1)) * 
@@ -894,15 +879,15 @@ app.get('/api/deals', async (req, res) => {
         const values = [parseFloat(lat), parseFloat(lng), radiusInKm];
         const result = await pool.query(query, values);
 
-        const formattedDeals = result.rows.map(deal => ({
-            ...deal,
-            created_at: new Date(deal.created_at).toISOString()
+        const formattedFree = result.rows.map(free => ({
+            ...free,
+            created_at: new Date(free.created_at).toISOString()
         }));
         
-        res.json(formattedDeals);
+        res.json(formattedFree);
     } catch (error) {
-        console.error('Error fetching deals:', error);
-        res.status(500).json({ error: 'Error fetching deals', details: error.message });
+        console.error('Error fetching free:', error);
+        res.status(500).json({ error: 'Error fetching free', details: error.message });
     }
 });
 
@@ -1063,7 +1048,7 @@ app.get('/api/search', async (req, res) => {
             return res.status(400).json({ error: 'Search term is required' });
         }
 
-        // Search in both posts and deals tables
+        // Search in both posts and free tables
         const postsQuery = `
             SELECT 
                 p.*,
@@ -1076,13 +1061,13 @@ app.get('/api/search', async (req, res) => {
                  LOWER(p.post) LIKE LOWER($1))
         `;
 
-        const dealsQuery = `
+        const freeQuery = `
             SELECT 
                 d.*,
-                'deal' as item_type,
-                true as isDeal,
+                'free' as item_type,
+                true as isFree,
                 a.username
-            FROM deals d
+            FROM free d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE 
                 (LOWER(d.title) LIKE LOWER($1) OR 
@@ -1091,13 +1076,13 @@ app.get('/api/search', async (req, res) => {
 
         const searchPattern = `%${searchTerm}%`;
         
-        const [postsResult, dealsResult] = await Promise.all([
+        const [postsResult, freeResult] = await Promise.all([
             pool.query(postsQuery, [searchPattern]),
-            pool.query(dealsQuery, [searchPattern])
+            pool.query(freeQuery, [searchPattern])
         ]);
 
         // Combine and sort results by date
-        const allResults = [...postsResult.rows, ...dealsResult.rows]
+        const allResults = [...postsResult.rows, ...freeResult.rows]
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(allResults);
@@ -1121,7 +1106,7 @@ app.get('/api/combined-feed', async (req, res) => {
             SELECT 
                 p.*, 
                 a.username,
-                false as "isDeal",
+                false as "isFree",
                 'post' as "type"
             FROM posts p
             LEFT JOIN accounts a ON p.user_id = a.auth0_id
@@ -1138,18 +1123,18 @@ app.get('/api/combined-feed', async (req, res) => {
         const postsResult = await pool.query(postsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
         const formattedPosts = postsResult.rows.map(post => ({
             ...post,
-            isDeal: false,
+            isFree: false,
             created_at: new Date(post.created_at).toISOString()
         }));
 
-        // Fetch deals
-        const dealsQuery = `
+        // Fetch free
+        const freeQuery = `
             SELECT 
                 d.*, 
                 a.username,
-                true as "isDeal",
-                'deal' as "type"
-            FROM deals d
+                true as "isFree",
+                'free' as "type"
+            FROM free d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE (
                 6371 * acos(
@@ -1161,11 +1146,11 @@ app.get('/api/combined-feed', async (req, res) => {
                 )
             ) <= $3
         `;
-        const dealsResult = await pool.query(dealsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedDeals = dealsResult.rows.map(deal => ({
-            ...deal,
-            isDeal: true,
-            created_at: new Date(deal.created_at).toISOString()
+        const freeResult = await pool.query(freeQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedsFree = freeResult.rows.map(free => ({
+            ...free,
+            isFree: true,
+            created_at: new Date(free.created_at).toISOString()
         }));
 
         // Fetch missed connections
@@ -1173,7 +1158,7 @@ app.get('/api/combined-feed', async (req, res) => {
             SELECT 
                 m.*, 
                 a.username,
-                false as "isDeal",
+                false as "isFree",
                 'missed' as "type"
             FROM missed_connections m
             LEFT JOIN accounts a ON m.user_id = a.auth0_id
@@ -1190,13 +1175,13 @@ app.get('/api/combined-feed', async (req, res) => {
         const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
         const formattedMissed = missedResult.rows.map(missed => ({
             ...missed,
-            isDeal: false,
+            isFree: false,
             isMissedConnection: true,
             created_at: new Date(missed.created_at).toISOString()
         }));
 
         // Combine and sort by recency
-        const allContent = [...formattedPosts, ...formattedDeals, ...formattedMissed].sort((a, b) => 
+        const allContent = [...formattedPosts, ...formattedsFree, ...formattedMissed].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
 
@@ -1235,9 +1220,9 @@ app.get('/api/map-posts', async (req, res) => {
                 d.latitude,
                 d.longitude,
                 d.upvotes,
-                'deal' as type,
+                'free' as type,
                 d.created_at
-            FROM deals d
+            FROM free d
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
             UNION ALL

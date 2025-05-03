@@ -317,7 +317,7 @@
 
             <div class="post-type-buttons">
                 <button id="postButton" class="type-button active">Post</button>
-                <button id="dealButton" class="type-button">Deal</button>
+                <button id="freeButton" class="type-button">Free</button>
                 <button id="missedButton" class="type-button">Missed Connection</button>
             </div>
         
@@ -343,24 +343,10 @@
                 <div id="loadingIndicator" style="display: none;">Uploading your post...</div>
             </form>
 
-            <form id="dealForm" style="display: none;">
+            <form id="freeForm" style="display: none;">
                 <div class="form-group">
-                    <label for="dealPrice">Price ($):</label>
-                    <input 
-                        type="number" 
-                        id="dealPrice" 
-                        name="price" 
-                        step="0.01" 
-                        min="0" 
-                        max="999999999.99"
-                        placeholder="0.00"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="dealTitle">Title:</label>
-                    <input type="text" id="dealTitle" name="title" required maxlength="255">
+                    <label for="freeTitle">Title:</label>
+                    <input type="text" id="freeTitle" name="title" required maxlength="255">
                 </div>
                 
                 <div class="form-group">
@@ -373,10 +359,10 @@
                     <input type="file" id="image" name="image" accept="image/*">
                 </div>
                 
-                <button type="submit">Submit Deal</button>
+                <button type="submit">Submit Giveaway</button>
                 
-                <div id="dealErrorMessage" class="error-message" style="display: none;"></div>
-                <div id="dealLoadingIndicator" style="display: none;">Uploading your deal...</div>
+                <div id="freeErrorMessage" class="error-message" style="display: none;"></div>
+                <div id="freeLoadingIndicator" style="display: none;">Uploading your giveaway...</div>
             </form>
 
             <form id="missedConnectionForm" style="display: none;">
@@ -416,49 +402,49 @@
 
         // Get form elements
         const postButton = document.getElementById('postButton');
-        const dealButton = document.getElementById('dealButton');
+        const freeButton = document.getElementById('freeButton');
         const missedButton = document.getElementById('missedButton');
         const postForm = document.getElementById('postForm');
-        const dealForm = document.getElementById('dealForm');
+        const freeForm = document.getElementById('freeForm');
         const missedConnectionForm = document.getElementById('missedConnectionForm');
 
         // Set initial state and handle toggles
         postButton.classList.add('active');
         postForm.style.display = 'block';
-        dealForm.style.display = 'none';
+        freeForm.style.display = 'none';
         missedConnectionForm.style.display = 'none';
 
         postButton.addEventListener('click', function() {
             postButton.classList.add('active');
-            dealButton.classList.remove('active');
+            freeButton.classList.remove('active');
             missedButton.classList.remove('active');
             postForm.style.display = 'block';
-            dealForm.style.display = 'none';
+            freeForm.style.display = 'none';
             missedConnectionForm.style.display = 'none';
         });
 
-        dealButton.addEventListener('click', function() {
-            dealButton.classList.add('active');
+        freeButton.addEventListener('click', function() {
+            freeButton.classList.add('active');
             postButton.classList.remove('active');
             missedButton.classList.remove('active');
             postForm.style.display = 'none';
-            dealForm.style.display = 'block';
+            freeForm.style.display = 'block';
             missedConnectionForm.style.display = 'none';
         });
 
         missedButton.addEventListener('click', function() {
             missedButton.classList.add('active');
             postButton.classList.remove('active');
-            dealButton.classList.remove('active');
+            freeButton.classList.remove('active');
             postForm.style.display = 'none';
-            dealForm.style.display = 'none';
+            freeForm.style.display = 'none';
             missedConnectionForm.style.display = 'block';
         });
     });
     </script>
     
     <script src="form.js"></script>
-    <script src="dealForm.js"></script>
+    <script src="freeForm.js"></script>
     <script src="missedConnectionForm.js"></script>
 
     <div class="bottom-nav">

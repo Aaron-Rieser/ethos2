@@ -4,14 +4,15 @@ CHECK PRD
 
 3x categories: Post, Blind, Free
 Choose to have a post on map or not 
-Search function on the map
 Blinds post as anon
 DM feature for Blinds with reveal button 
 - Including separate table for those maybe 
+The way posts show up on the map is not right / Humber example - spacing wrong, too likes focussed?
+View post from the map
 Cursor extra files delete 
 New nav 
 Easier nav to the fun map at the start 
-Text on map styling 
+Text on map styling, Search on Map in bottom nav
 Cluster on map too much 
 Deals not showing up on map
 Square on map for privacy 
@@ -38,14 +39,12 @@ UX design between all pages, check
 Splash page 
 Parse float to server query for long/lat
 Add some UI action noises back 
-Subscribe to areas? Multiple?
 Points for posting a deal
 CONSIDER Add city boundaries w/ geojson
 Message notification design 
 Like UI design when you complete the action 
 Fix weather/traffic information - bring back in feed
 .error-message duplicate in map.html
-Search database - store all queries
 Better send msg design on home
 Add other cities to the geojson
 Chat + reply widget (it's resizing when you try and type) and overall function and design etc. 
@@ -69,6 +68,8 @@ All debugging, device, browser testing
 
 
 FUTURE SCOPE 
+
+Subscribe to areas 
 
 Rules based communities (email - uni, work - self drawn boundaries, passcode) 
 - Users set up and top displayed on HP wth ability to hide 

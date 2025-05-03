@@ -1,11 +1,11 @@
-document.getElementById('dealForm').addEventListener('submit', async function(e) {
+document.getElementById('freeForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const errorMessage = document.getElementById('dealErrorMessage');
+    const errorMessage = document.getElementById('freeErrorMessage');
     const submitButton = e.target.querySelector('button[type="submit"]');
-    const loadingIndicator = document.getElementById('dealLoadingIndicator');
+    const loadingIndicator = document.getElementById('freeLoadingIndicator');
 
-    const title = document.getElementById('dealTitle').value;
+    const title = document.getElementById('freeTitle').value;
     if (!title) {
         errorMessage.textContent = 'Please enter a title';
         errorMessage.style.display = 'block';
@@ -38,9 +38,8 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         }
 
         // Debug logging
-        console.log('Deal submission data:', {
+        console.log('Free submission data:', {
             title: formData.get('title'),  // Add title to debug logging
-            price: formData.get('price'),
             post: formData.get('post'),
             email: formData.get('email'),
             image: formData.get('image'),
@@ -53,7 +52,7 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         loadingIndicator.style.display = 'block';
         errorMessage.style.display = 'none';
         
-        const response = await fetch('/api/deals', {
+        const response = await fetch('/api/free', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -68,14 +67,14 @@ document.getElementById('dealForm').addEventListener('submit', async function(e)
         if (!response.ok) {
             const errorData = await response.text();
             console.error('Server response:', errorData);
-            throw new Error(errorData || 'Failed to submit deal');
+            throw new Error(errorData || 'Failed to submit Giveaway');
         }
 
         // Redirect on success
         window.location.href = 'index.html';
         
     } catch (error) {
-        console.error('Deal submission error:', error);
+        console.error('Free submission error:', error);
         errorMessage.textContent = error.message;
         errorMessage.style.display = 'block';
     } finally {

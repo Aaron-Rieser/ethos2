@@ -383,31 +383,32 @@
             color: #666;
             border-bottom: 1px solid #eee;
         }
-        .deal-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
+        .free-header {
+            position: relative;
+            margin-bottom: 10px;
+            min-height: 24px;
         }
-
-        .deal-tag {
+        .free-tag {
+            position: absolute;
+            top: 0;
+            left: 0;
             background-color: #3388ff;
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
+            padding: 4px 12px;
+            border-radius: 12px 0 12px 0;
+            font-size: 0.9em;
             font-weight: bold;
+            z-index: 2;
+            display: inline-block;
         }
 
-        .deal-price {
+        .free-price {
             font-size: 1.2em;
             font-weight: bold;
             color: #3388ff;
         }
 
-        .post-card.deal {
+        .post-card.free {
             border: 2px solid #3388ff;
             box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
         }
@@ -489,7 +490,7 @@
             text-align: left;
         }
 
-        .deal .post-title {
+        .free .post-title {
             margin-top: 10px;
         }
         .message-button {
@@ -587,7 +588,7 @@
             background-color: #ff69b4;
             color: white;
             padding: 4px 8px;
-            border-radius: 12px;
+            border-radius: 12px 0 12px 0;
             display: inline-block;
             font-size: 0.9em;
         }
@@ -642,7 +643,7 @@
                 padding: 0;
                 display: block;
             }
-            .post-card.deal {
+            .post-card.free {
                 border: 2px solid #3388ff;
                 box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
                 margin: 20px 15px 20px -5px;  /* keeps the extended box */
@@ -877,10 +878,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadCombinedFeed();
         });
-        // Create post element function, updated jan 29 for deals
+        // Create post element function, updated jan 29 for free
         function createPostElement(item) {
             const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}${item.isMissedConnection ? ' missed-connection' : ''}`;
+            postDiv.className = `post post-card${item.isFree ? ' free' : ''}${item.isMissedConnection ? ' missed-connection' : ''}`;
             
             // Format the date
             const date = new Date(item.created_at);
@@ -897,16 +898,12 @@
                 : '';
             
             let typeHtml = '';
-            if (item.isDeal && item.price) {
-                const price = parseFloat(item.price);
-                if (!isNaN(price)) {
-                    typeHtml = `
-                        <div class="deal-header">
-                            <div class="deal-tag">Deal</div>
-                            <div class="deal-price">$${price.toFixed(2)}</div>
-                        </div>
-                    `;
-                }
+            if (item.isFree) {
+                typeHtml = `
+                    <div class="free-header">
+                        <div class="free-tag">Free</div>
+                    </div>
+                `;
             } else if (item.isMissedConnection) {
                 typeHtml = `
                     <div class="missed-header">
@@ -945,17 +942,17 @@
 
             // Add event listener for upvote button
             const upvoteButton = postDiv.querySelector('.upvote-button');
-            upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
+            upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isFree));
             upvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                handleUpvote(item.id, item.isDeal);
+                handleUpvote(item.id, item.isFree);
             });
 
             const downvoteButton = postDiv.querySelector('.downvote-button');
-            downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isDeal));
+            downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isFree));
             downvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                handleDownvote(item.id, item.isDeal);
+                handleDownvote(item.id, item.isFree);
             });
 
             const commentButton = postDiv.querySelector('.comment-button');
@@ -973,15 +970,15 @@
 
         // Helper function to determine the type of item
         function getItemType(item) {
-            if (item.isDeal) return 'deal';
+            if (item.isFree) return 'free';
             if (item.isMissedConnection) return 'missed';
             return 'post';
         }
 
-        async function handleUpvote(itemId, isDeal) {
+        async function handleUpvote(itemId, isFree) {
             try {
                 const token = await auth0Client.getTokenSilently();
-                const endpoint = isDeal ? `/api/deals/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
+                const endpoint = isFree ? `/api/free/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -1010,10 +1007,10 @@
             }
         }
 
-        async function handleDownvote(itemId, isDeal) {
+        async function handleDownvote(itemId, isFree) {
             try {
                 const token = await auth0Client.getTokenSilently();
-                const endpoint = isDeal ? `/api/deals/${itemId}/downvote` : `/api/posts/${itemId}/downvote`;
+                const endpoint = isFree ? `/api/free/${itemId}/downvote` : `/api/posts/${itemId}/downvote`;
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
