@@ -1,99 +1,82 @@
 MVP___ 
 
-Cursor extra files
+CHECK PRD 
+
+3x categories: Post, Blind, Free
+Choose to have a post on map or not 
+Search function on the map
+Blinds post as anon
+DM feature for Blinds with reveal button 
+- Including separate table for those maybe 
+Cursor extra files delete 
 New nav 
+Easier nav to the fun map at the start 
 Text on map styling 
-\ cluster on map too much 
+Cluster on map too much 
 Deals not showing up on map
-Text on map privacy 
-Blind items (new DB for blinds/missed connections) 
+Square on map for privacy 
 Missing refresh token for posts without re-login (fix RE login )
 Like, time and proximity based algorithm 
 Location issues: before a hard logon - account is identified but posts/deals = missing refresh token. Hard login works though (out and in) ALSO error loading posts. Same as a successful  "choose location" but flashes then shows deals.. connected?
-Keyword Map
-Anonymous DM 
-Reveal DM 
-Rules based information exchange 
-- like blind but other collection - email, address, form intake, for groups to collect and communicate easier w/ constituents  without intermediary services but only based on location 
+- need a better default experience (Lindy way, point below?) 
+- Reference Instacart location checking
+- Persistent refresh?
+Profile picture and profile styling
+- Change profile name feature
 Rando' meet feature 
+Events cluster, friend call out cluster.. now or in p1? Something to pay for..? (Stripe) p1 though
+- Party is one thing we could use...
 Search UI 
 Search Design 
-Error loading homepage location 
-**change log in cursor - present about to implement an HTML check fix. But there's more steps further up to see. 
+Add multiple photos to a post
 Lindy way, choose on map as a fallback, add this. 
-- And how to parse in feed those with Lindy selected distance and those with NO distance -- maybe not allowed for none.
+- How to treat feeds with no location even allowed 
 First time viewing; Error loading messages. Please try again later. (Msg or posts) - but when we nav back after another page it works
-The post page (create) needs new taxonomy
+Styling on create page 
 Fix change distance so it can be adjusted right in feed 
-Change button to see more posts in map splash 
-Add upvotes to algorithm 
+UX design between all pages, check 
+Splash page 
 Parse float to server query for long/lat
 Add some UI action noises back 
-Post references ON the map (or notifications custom to you)
-Add city boundaries w/ geojson
-Persistent login issues / splash that notifies you if not logged in 
+Subscribe to areas? Multiple?
+Points for posting a deal
+CONSIDER Add city boundaries w/ geojson
 Message notification design 
 Like UI design when you complete the action 
-Fix weather/traffic information
+Fix weather/traffic information - bring back in feed
 .error-message duplicate in map.html
-Search database
-
-
-Splash
-Send message design on homepage 
-Splash page
-Create real map of Toronto and Southern Ontario cities in launch with revised geojson file - ai help on drawing it
-Constant refresh to see messages live 
-Map to homepage 
-Subscribe to feeds
-Overall notifications function
-Notifications on the map
-Still persisting - First time trying to post in a new session, error = Missing Refresh Token (audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/', scope: 'openid profile email offline_access')
+Search database - store all queries
+Better send msg design on home
+Add other cities to the geojson
 Chat + reply widget (it's resizing when you try and type) and overall function and design etc. 
-CSS consistent post size on desktop that's a bit wider
-CSS comment slight indent with an arrow for the first one, spacing for when there's multiple  
-CSS icons for all functions
+Widen post column for desktop 
+Design for multiple comments, 
+Sort comments by a new ranking? Likes or chronological?
+Logo 
+Home / Corporate page 
 Email notifications for user actions (maybe send grid free tier)
-Downvote notification or design when done 
+Downvote notification ... but not shown, incorporated to Algo though 
 Page and comments and likes all jittering around 
-New upvotes not on deals sending posts to the bottom.. a tied time thing. Algorithm needed. 
-Main feed load quicker - there's a delay on posts 
-Text line breaks on post feed. Avail in postING mode but not in final feed 
-Next - need to add deals, blind and events (Maybe event brite api integration) 
-Post design on desktop and mobile
-Better comment design vs. Post vs users 
-Content moderation tools in server .. somewhere outside public 
+Delay on new posts persistent? DO posts still go to the bottom? Double check
+Content moderation tools 
+Ban list 
+Traffic tagging 
 Route real URL
-Change username function to account page
-Add multiple photos on an item, restricted numbers
-Prod feeds gone, env feeds wrong - action button
-Post classes:, party, article 
-Flow from map to post is not clear, can be more logical
-Algorithm that serves these post classes based on likes, recency and proximity 
-Specific points and clout class for deals that ties to account
-Specific privacy class for usernames for blinds
-- idea: card flip like original scavenge design - for blinds. Maybe something to apply to all post classes full screen mobile with detective dossier design
-Specific privacy class for location for party
-Privacy option for some communities
-Pinned deal, party, blind, article and post 'of the day' based on algorithm 
-Nav as clean as possible 
-Better auth design and an auth page
-Show location on default if possible, tried and failed before (Geolocation api implementation to reduce requests?)
-Clean up post design
-Shared CSS file for all design items?
-Frontpoint w. Stripe for deals 
-Ads integrated 
-Proper logo
-Corporate gumshoe page from header 
-Analytics 
+Pinned items based on popularity
+Auth page design
+Shared CSS file for all design items
 All debugging, device, browser testing
-Design sprint
 
 
 FUTURE SCOPE 
 
 Rules based communities (email - uni, work - self drawn boundaries, passcode) 
 - Users set up and top displayed on HP wth ability to hide 
+
+Rules based information exchange 
+- like blind but other collection - email, address, form intake, for groups to collect and communicate easier w/ constituents  without intermediary services but only based on location
+
+Card flip for posts or blinds, like reading newspaper?
 
 CONVERSATIONS TABLE FEEDBACK 
 

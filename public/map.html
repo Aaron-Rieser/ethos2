@@ -256,6 +256,19 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             z-index: 1000; /* Add this */
         }
+        .search-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        #searchBox {
+            display: none;
+            margin-top: 10px;
+            justify-content: center; /* Center children horizontally */
+            gap: 10px; /* Space between input and buttons */
+        }
+        #searchBox.active {
+            display: flex !important; /* Show as flex when active */
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -287,17 +300,16 @@
         </div>
     </header>
 
-    <div class="range-control">
-        <input type="range" 
-               class="range-slider" 
-               min="1" 
-               max="10" 
-               value="1" 
-               step="1">
-        <span class="range-value">1 km</span>
-    </div>
-
     <main class="main-content">
+        <div class="range-control" style="margin-top: 30px"> 
+            <input type="range" 
+                   class="range-slider" 
+                   min="1" 
+                   max="10" 
+                   value="1" 
+                   step="1">
+            <span class="range-value">1 km</span>
+        </div>
         <div id="map"></div>
     </main>
 
@@ -787,9 +799,132 @@
     <div class="bottom-nav">
         <a href="index.html">Home</a>
         <a href="create.html">Create new post</a>
+        <div class="search-container">
+            <button id="searchToggle" class="search-toggle">Search Posts</button>
+            <div id="searchBox">
+                <input type="text" id="searchInput" placeholder="Enter search terms...">
+                <button id="searchButton">Search</button>
+                <button id="clearSearchButton" style="margin-left:10px;">Clear</button>
+            </div>
+        </div>
     </div>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
     <script src="dropdown.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchToggle = document.getElementById('searchToggle');
+            const searchBox = document.getElementById('searchBox');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const clearSearchButton = document.getElementById('clearSearchButton');
+        
+            let searchResults = null; // Will hold filtered posts
+        
+            searchToggle.addEventListener('click', () => {
+                searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
+            });
+        
+            searchButton.addEventListener('click', performMapSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performMapSearch();
+            });
+            clearSearchButton.addEventListener('click', () => {
+                searchInput.value = '';
+                searchResults = null;
+                updateMapMarkers(); // Show all again
+            });
+        
+            async function performMapSearch() {
+                const searchTerm = searchInput.value.trim();
+                if (!searchTerm) return;
+        
+                // Log the search to the backend
+                fetch('/api/log-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: searchTerm })
+                });
+        
+                // Fetch search results from the backend
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) {
+                    alert('Search failed');
+                    return;
+                }
+                searchResults = await response.json();
+                updateMapMarkers();
+            }
+        
+            // Patch updateMapMarkers to use searchResults if present
+            const originalUpdateMapMarkers = updateMapMarkers;
+            updateMapMarkers = function() {
+                if (searchResults) {
+                    renderMarkers(searchResults);
+                } else {
+                    originalUpdateMapMarkers();
+                }
+            };
+        
+            // Helper to render markers from a given array
+            function renderMarkers(posts) {
+                clearMarkers();
+                posts.forEach((post, index) => {
+                    if (!post.latitude || !post.longitude) return;
+        
+                    // Add a 250m radius circle
+                    const circle = L.circle([post.latitude, post.longitude], {
+                        radius: 250,
+                        color: getPostTypeColor(post.type),
+                        fillColor: getPostTypeColor(post.type),
+                        fillOpacity: 0.1,
+                        weight: 1,
+                        zIndex: 1000 + index
+                    });
+        
+                    // Add the marker
+                    const marker = L.marker([post.latitude, post.longitude], {
+                        icon: L.divIcon({
+                            className: `post-marker ${post.type}-marker`,
+                            html: getMarkerContent(post),
+                            iconSize: [40, 40]
+                        }),
+                        zIndexOffset: 2000 + index
+                    });
+        
+                    // Bind popup with preview content
+                    const popup = L.popup({
+                        maxWidth: 250,
+                        className: 'post-popup'
+                    }).setContent(createPreviewContent(post));
+        
+                    marker.bindPopup(popup);
+        
+                    // Add touch event handling
+                    marker.on('touchend', function(e) {
+                        L.DomEvent.preventDefault(e);
+                        marker.openPopup();
+                    });
+        
+                    // Add click event handling
+                    marker.on('click', function(e) {
+                        L.DomEvent.preventDefault(e);
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
+                        }
+                        currentInfoWindow = popup;
+                    });
+        
+                    // Store references for cleanup
+                    circle.markerId = post.id;
+                    marker.markerId = post.id;
+        
+                    postCircles.addLayer(circle);
+                    postMarkers.addLayer(marker);
+                });
+            }
+        });
+        </script>
 </body>
 </html>

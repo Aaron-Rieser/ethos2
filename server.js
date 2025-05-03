@@ -980,6 +980,28 @@ app.post('/api/conversations/:conversationId/mark-read', authenticateJWT, async 
     }
 });
 
+app.post('/api/log-search', async (req, res) => {
+    const { query } = req.body;
+    // If you want to log the user, use Auth0 (optional)
+    let user_id = null;
+    try {
+        if (req.auth && req.auth.payload && req.auth.payload.sub) {
+            user_id = req.auth.payload.sub;
+        }
+    } catch (e) {}
+    if (!query) return res.status(400).json({ error: 'Missing query' });
+    try {
+        await pool.query(
+            'INSERT INTO search_logs (query, user_id) VALUES ($1, $2)',
+            [query, user_id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error logging search:', err);
+        res.status(500).json({ error: 'Failed to log search' });
+    }
+});
+
 app.get('/api/conversations/:conversationId/messages', authenticateJWT, async (req, res) => {
     try {
         const { conversationId } = req.params;
