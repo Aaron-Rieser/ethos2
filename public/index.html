@@ -576,15 +576,15 @@
             cursor: pointer;
         }
 
-        .missed-connection {
+        .blind {
             border-left: 4px solid #ff69b4;
         }
 
-        .missed-header {
+        .blind-header {
             margin-bottom: 10px;
         }
 
-        .missed-tag {
+        .blind-tag {
             background-color: #ff69b4;
             color: white;
             padding: 4px 8px;
@@ -593,7 +593,7 @@
             font-size: 0.9em;
         }
 
-        .missed-connection .post-content {
+        .blind .post-content {
             background-color: #fff0f5;
         }
 
@@ -881,7 +881,7 @@
         // Create post element function, updated jan 29 for free
         function createPostElement(item) {
             const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${item.isFree ? ' free' : ''}${item.isMissedConnection ? ' missed-connection' : ''}`;
+            postDiv.className = `post post-card${item.isFree ? ' free' : ''}${item.isBlind ? ' blind' : ''}`;
             
             // Format the date
             const date = new Date(item.created_at);
@@ -904,10 +904,10 @@
                         <div class="free-tag">Free</div>
                     </div>
                 `;
-            } else if (item.isMissedConnection) {
+            } else if (item.isBlind) {
                 typeHtml = `
-                    <div class="missed-header">
-                        <div class="missed-tag">Missed Connection</div>
+                    <div class="blind-header">
+                        <div class="blind-tag">Blind</div>
                     </div>
                 `;
             }
@@ -971,7 +971,7 @@
         // Helper function to determine the type of item
         function getItemType(item) {
             if (item.isFree) return 'free';
-            if (item.isMissedConnection) return 'missed';
+            if (item.isBlind) return 'blind';
             return 'post';
         }
 

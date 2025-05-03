@@ -1,9 +1,9 @@
-document.getElementById('missedConnectionForm').addEventListener('submit', async function(e) {
+document.getElementById('blindForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const errorMessage = document.getElementById('missedErrorMessage');
+    const errorMessage = document.getElementById('blindErrorMessage');
     const submitButton = e.target.querySelector('button[type="submit"]');
-    const loadingIndicator = document.getElementById('missedLoadingIndicator');
+    const loadingIndicator = document.getElementById('blindLoadingIndicator');
 
     try {
         if (!auth0Client) {
@@ -32,7 +32,7 @@ document.getElementById('missedConnectionForm').addEventListener('submit', async
         loadingIndicator.style.display = 'block';
         errorMessage.style.display = 'none';
         
-        const response = await fetch('/api/missed-connections', {
+        const response = await fetch('/api/blind', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -43,12 +43,12 @@ document.getElementById('missedConnectionForm').addEventListener('submit', async
 
         if (!response.ok) {
             const errorData = await response.text();
-            throw new Error(errorData || 'Failed to submit missed connection');
+            throw new Error(errorData || 'Failed to submit blind');
         }
         window.location.href = 'index.html';
 
     } catch (error) {
-        console.error('Missed connection submission error:', error);
+        console.error('Blind submission error:', error);
         errorMessage.textContent = error.message;
         errorMessage.style.display = 'block';
     } finally {

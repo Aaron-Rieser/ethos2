@@ -9,6 +9,7 @@ DM feature for Blinds with reveal button
 - Including separate table for those maybe 
 The way posts show up on the map is not right / Humber example - spacing wrong, too likes focussed?
 View post from the map
+1 account = 1 like 
 Cursor extra files delete 
 New nav 
 Easier nav to the fun map at the start 

@@ -269,12 +269,12 @@
         .user-circle {
             position: relative; /* Add this to position the badge */
         }
-        .missed-connection {
-            border-left: 4px solid #ff69b4;  /* Pink border for missed connections */
+        .blind {
+            border-left: 4px solid #ff69b4; 
             background-color: #fff0f5;  /* Light pink background */
         }
 
-        .missed-connection .post-type-tag {
+        .blind .post-type-tag {
             background-color: #ff69b4;
             color: white;
             padding: 2px 8px;
@@ -318,7 +318,7 @@
             <div class="post-type-buttons">
                 <button id="postButton" class="type-button active">Post</button>
                 <button id="freeButton" class="type-button">Free</button>
-                <button id="missedButton" class="type-button">Missed Connection</button>
+                <button id="blindButton" class="type-button">Blind</button>
             </div>
         
             <form id="postForm">
@@ -365,11 +365,11 @@
                 <div id="freeLoadingIndicator" style="display: none;">Uploading your giveaway...</div>
             </form>
 
-            <form id="missedConnectionForm" style="display: none;">
+            <form id="blindForm" style="display: none;">
             
                 <div class="form-group">
-                    <label for="missedTitle">Title:</label>
-                    <input type="text" id="missedTitle" name="title" required maxlength="255">
+                    <label for="blindTitle">Title:</label>
+                    <input type="text" id="blindTitle" name="title" required maxlength="255">
                 </div>
                 
                 <div class="form-group">
@@ -382,10 +382,10 @@
                     <input type="file" id="image" name="image" accept="image/*">
                 </div>
                 
-                <button type="submit">Submit Missed Connection</button>
+                <button type="submit">Submit Blind</button>
                 
-                <div id="missedErrorMessage" class="error-message" style="display: none;"></div>
-                <div id="missedLoadingIndicator" style="display: none;">Posting your missed connection...</div>
+                <div id="blindErrorMessage" class="error-message" style="display: none;"></div>
+                <div id="blindLoadingIndicator" style="display: none;">Posting your Blind item...</div>
             </form>
         </div>
     </main>
@@ -403,49 +403,49 @@
         // Get form elements
         const postButton = document.getElementById('postButton');
         const freeButton = document.getElementById('freeButton');
-        const missedButton = document.getElementById('missedButton');
+        const blindButton = document.getElementById('blindButton');
         const postForm = document.getElementById('postForm');
         const freeForm = document.getElementById('freeForm');
-        const missedConnectionForm = document.getElementById('missedConnectionForm');
+        const blindForm = document.getElementById('blindForm');
 
         // Set initial state and handle toggles
         postButton.classList.add('active');
         postForm.style.display = 'block';
         freeForm.style.display = 'none';
-        missedConnectionForm.style.display = 'none';
+        blindForm.style.display = 'none';
 
         postButton.addEventListener('click', function() {
             postButton.classList.add('active');
             freeButton.classList.remove('active');
-            missedButton.classList.remove('active');
+            blindButton.classList.remove('active');
             postForm.style.display = 'block';
             freeForm.style.display = 'none';
-            missedConnectionForm.style.display = 'none';
+            blindForm.style.display = 'none';
         });
 
         freeButton.addEventListener('click', function() {
             freeButton.classList.add('active');
             postButton.classList.remove('active');
-            missedButton.classList.remove('active');
+            blindButton.classList.remove('active');
             postForm.style.display = 'none';
             freeForm.style.display = 'block';
-            missedConnectionForm.style.display = 'none';
+            blindForm.style.display = 'none';
         });
 
-        missedButton.addEventListener('click', function() {
-            missedButton.classList.add('active');
+        blindButton.addEventListener('click', function() {
+            blindButton.classList.add('active');
             postButton.classList.remove('active');
             freeButton.classList.remove('active');
             postForm.style.display = 'none';
             freeForm.style.display = 'none';
-            missedConnectionForm.style.display = 'block';
+            blindForm.style.display = 'block';
         });
     });
     </script>
     
     <script src="form.js"></script>
     <script src="freeForm.js"></script>
-    <script src="missedConnectionForm.js"></script>
+    <script src="blindForm.js"></script>
 
     <div class="bottom-nav">
         <a href="index.html">Home</a>

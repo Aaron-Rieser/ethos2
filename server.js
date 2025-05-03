@@ -511,7 +511,7 @@ app.post('/api/free/:freeId/downvote', authenticateJWT, async (req, res) => {
     }
 });
 
-app.post('/api/missed-connections', authenticateJWT, upload.single('image'), async (req, res) => {    
+app.post('/api/blind', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
     try {
@@ -533,7 +533,7 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         const image_url = req.file ? req.file.path : null;
         
         const query = `
-            INSERT INTO missed_connections (
+            INSERT INTO blind (
                 username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
@@ -551,8 +551,8 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         const result = await pool.query(query, values);
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error creating missed connection:', error);
-        res.status(500).json({ error: 'Failed to create missed connection' });
+        console.error('Error creating blind:', error);
+        res.status(500).json({ error: 'Failed to create blind' });
     }
 });
 
@@ -1153,14 +1153,13 @@ app.get('/api/combined-feed', async (req, res) => {
             created_at: new Date(free.created_at).toISOString()
         }));
 
-        // Fetch missed connections
-        const missedQuery = `
+        const blindQuery = `
             SELECT 
                 m.*, 
                 a.username,
                 false as "isFree",
-                'missed' as "type"
-            FROM missed_connections m
+                'blind' as "type"
+            FROM blind m
             LEFT JOIN accounts a ON m.user_id = a.auth0_id
             WHERE (
                 6371 * acos(
@@ -1172,16 +1171,16 @@ app.get('/api/combined-feed', async (req, res) => {
                 )
             ) <= $3
         `;
-        const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedMissed = missedResult.rows.map(missed => ({
-            ...missed,
+        const blindResult = await pool.query(blindQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedBlind = blindResult.rows.map(blind => ({
+            ...blind,
             isFree: false,
-            isMissedConnection: true,
-            created_at: new Date(missed.created_at).toISOString()
+            isBlind: true,
+            created_at: new Date(blind.created_at).toISOString()
         }));
 
         // Combine and sort by recency
-        const allContent = [...formattedPosts, ...formattedsFree, ...formattedMissed].sort((a, b) => 
+        const allContent = [...formattedPosts, ...formattedsFree, ...formattedBlind].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
 
@@ -1234,9 +1233,9 @@ app.get('/api/map-posts', async (req, res) => {
                 m.latitude,
                 m.longitude,
                 m.upvotes,
-                'missed' as type,
+                'blind' as type,
                 m.created_at
-            FROM missed_connections m
+            FROM blind m
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
             ORDER BY upvotes DESC, created_at DESC
