@@ -1107,6 +1107,7 @@ app.get('/api/combined-feed', async (req, res) => {
                 p.*, 
                 a.username,
                 false as "isFree",
+                false as "isBlind",
                 'post' as "type"
             FROM posts p
             LEFT JOIN accounts a ON p.user_id = a.auth0_id
@@ -1124,6 +1125,7 @@ app.get('/api/combined-feed', async (req, res) => {
         const formattedPosts = postsResult.rows.map(post => ({
             ...post,
             isFree: false,
+            isBlind: false,
             created_at: new Date(post.created_at).toISOString()
         }));
 
@@ -1133,6 +1135,7 @@ app.get('/api/combined-feed', async (req, res) => {
                 d.*, 
                 a.username,
                 true as "isFree",
+                false as "isBlind",
                 'free' as "type"
             FROM free d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
@@ -1147,17 +1150,20 @@ app.get('/api/combined-feed', async (req, res) => {
             ) <= $3
         `;
         const freeResult = await pool.query(freeQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedsFree = freeResult.rows.map(free => ({
+        const formattedFree = freeResult.rows.map(free => ({
             ...free,
             isFree: true,
+            isBlind: false,
             created_at: new Date(free.created_at).toISOString()
         }));
 
+        // Fetch blind
         const blindQuery = `
             SELECT 
                 m.*, 
                 a.username,
                 false as "isFree",
+                true as "isBlind",
                 'blind' as "type"
             FROM blind m
             LEFT JOIN accounts a ON m.user_id = a.auth0_id
@@ -1180,9 +1186,15 @@ app.get('/api/combined-feed', async (req, res) => {
         }));
 
         // Combine and sort by recency
-        const allContent = [...formattedPosts, ...formattedsFree, ...formattedBlind].sort((a, b) => 
+        let allContent = [...formattedPosts, ...formattedFree, ...formattedBlind].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
+
+        // Extra secure step: remove username from blind posts in the API response
+        allContent = allContent.map(post => ({
+            ...post,
+            username: post.isBlind ? null : post.username
+        }));
 
         res.json(allContent);
     } catch (error) {

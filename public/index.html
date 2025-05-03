@@ -918,7 +918,7 @@
                     <div class="post-title">${item.title || 'Title'}</div>
                     <div class="post-text">${item.post || 'No content available'}</div>  
                     ${imageHtml}
-                    <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
+                    <small>${item.isBlind ? 'Blind Post' : (item.username || 'Anonymous')} • ${formattedTime}</small>                                    
                     <div class="feed-footer">
                         <button class="upvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬆️</button>
                         <button class="downvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬇️</button>
