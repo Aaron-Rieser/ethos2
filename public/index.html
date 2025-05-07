@@ -898,7 +898,7 @@
         
         // replacing with radius based loading 
         async function loadCombinedFeed(lat = null, lng = null, radius = null) {
-            console.log('loadCombinedFeed called with:', { lat, lng, radius }); // Add this line
+            console.log('loadCombinedFeed called with:', { lat, lng, radius });
             try {
                 let latitude, longitude, selectedRadius;
 
@@ -922,32 +922,60 @@
 
                 // Only show location prompt if we have no coordinates from any source
                 if (!latitude || !longitude) {
-                    // Remove the manual prompt here - let the browser's geolocation handle it
+                    console.log('No location coordinates available');
+                    showLocationPrompt('Please enable location access or select a location from the map.');
                     return;
                 }
 
                 // Add loading indicator
                 const postsContainer = document.getElementById('posts-container');
+                if (!postsContainer) {
+                    console.error('Posts container not found');
+                    return;
+                }
                 postsContainer.innerHTML = '<div class="loading">Loading posts...</div>';
 
                 // Prepare headers
                 const headers = {};
                 if (auth0Client && await auth0Client.isAuthenticated()) {
-                    const token = await auth0Client.getTokenSilently();
-                    headers.Authorization = `Bearer ${token}`;
+                    try {
+                        const token = await auth0Client.getTokenSilently();
+                        headers.Authorization = `Bearer ${token}`;
+                    } catch (authError) {
+                        console.error('Error getting auth token:', authError);
+                        // Continue without auth token - some content might still be accessible
+                    }
                 }
 
-                // Fetch combined feed from the new endpoint
-                const response = await fetch(`/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers });
+                // Fetch combined feed with timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+                const response = await fetch(
+                    `/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, 
+                    { 
+                        headers,
+                        signal: controller.signal
+                    }
+                );
+
+                clearTimeout(timeoutId);
+
                 if (!response.ok) {
-                    throw new Error('Failed to fetch content');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch content');
                 }
+
                 const allContent = await response.json();
 
                 // Clear loading indicator and display content
                 postsContainer.innerHTML = '';
                 if (allContent.length === 0) {
-                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found in this area</div>';
+                    postsContainer.innerHTML = `
+                        <div class="no-posts-message">
+                            No posts found in this area. 
+                            Try increasing your search radius or checking back later.
+                        </div>`;
                 } else {
                     allContent.forEach(item => {
                         const postElement = createPostElement(item);
@@ -968,8 +996,35 @@
             } catch (error) {
                 console.error('Error loading combined feed:', error);
                 const postsContainer = document.getElementById('posts-container');
-                postsContainer.innerHTML = '<div class="error-message">Error loading posts. Please try again later.</div>';
+                if (postsContainer) {
+                    let errorMessage = 'Error loading posts. ';
+                    
+                    if (error.name === 'AbortError') {
+                        errorMessage += 'Request timed out. Please check your connection and try again.';
+                    } else if (error.message.includes('Failed to fetch')) {
+                        errorMessage += 'Network error. Please check your connection and try again.';
+                    } else {
+                        errorMessage += error.message || 'Please try again later.';
+                    }
+
+                    postsContainer.innerHTML = `
+                        <div class="error-message">
+                            ${errorMessage}
+                            <br>
+                            <button onclick="retryLoadFeed()" style="margin-top: 10px; padding: 5px 10px;">
+                                Retry
+                            </button>
+                        </div>`;
+                }
             }
+        }
+
+        // Add a retry function
+        async function retryLoadFeed() {
+            const lat = localStorage.getItem('selectedLat');
+            const lng = localStorage.getItem('selectedLng');
+            const radius = localStorage.getItem('selectedRadius');
+            await loadCombinedFeed(lat, lng, radius);
         }
         async function performDrawerSearch() {
             const searchTerm = document.getElementById('searchInputDrawer').value.trim();
