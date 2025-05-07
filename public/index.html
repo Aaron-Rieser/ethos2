@@ -61,8 +61,8 @@
         z-index: 1000;
         height: 60px;
         box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        opacity: 0;
-        visibility: hidden;
+        opacity: 1;
+        visibility: visible;
         transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
@@ -635,6 +635,74 @@
         .top-actions .search-container {
         margin-top: 0 !important; /* remove the top margin so it's aligned */
         }
+        #searchDrawer {
+            position: fixed;
+            bottom: 60px; /* Height of the bottom nav */
+            left: 0;
+            width: 100%;
+            height: 60vh;
+            background: white;
+            z-index: 999;
+            display: none;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        #searchDrawer.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(0);
+        }
+
+        #searchDrawer input[type="text"] {
+            width: 80%;
+            max-width: 500px;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* New container for buttons */
+        #searchDrawer .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        #searchDrawer button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        #searchButtonDrawer {
+            background-color: #3388ff;
+            color: white;
+        }
+
+        #closeSearchDrawer {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        /* Adjust overlay to cover the entire area */
+        #searchDrawer::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -773,18 +841,6 @@
 
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
-                <nav>
-                    <div class="top-actions">
-                      <a href="/create.html" id="createPostLink">Create New Post</a>
-                      <div class="search-container">
-                        <button id="searchToggle" class="search-toggle">Search Posts</button>
-                        <div id="searchBox" style="display: none; margin-top: 10px;">
-                          <input type="text" id="searchInput" placeholder="Enter search terms...">
-                          <button id="searchButton">Search</button>
-                        </div>
-                      </div>
-                    </div>
-                  </nav>
 
                 <div id="loginPrompt" class="error-message" style="display: none;">
                     Please log in to create a post
@@ -1411,6 +1467,14 @@
         }
     </script>
 
+    <div id="searchDrawer">
+        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
+        <div class="button-container">
+            <button id="searchButtonDrawer">Search</button>
+            <button id="closeSearchDrawer">Close</button>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <a href="map.html" class="nav-btn" id="changeRangeBtn">Change range</a>
         <a href="/create.html" class="nav-btn" id="createPostLink">New post</a>
@@ -1423,34 +1487,67 @@
     <script>
 
         document.addEventListener('DOMContentLoaded', function() {
-        // Sticky footer show/hide logic
-        const topNav = document.querySelector('nav');
+        // 1. Sticky bar always visible (no scroll logic needed)
         const bottomNav = document.querySelector('.bottom-nav');
-        if (topNav && bottomNav) {
-            let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-            bottomNav.style.opacity = '0';
-            bottomNav.style.visibility = 'hidden';
-            window.addEventListener('scroll', function() {
-            if (window.scrollY > topNavBottom) {
-                bottomNav.style.opacity = '1';
-                bottomNav.style.visibility = 'visible';
-            } else {
-                bottomNav.style.opacity = '0';
-                bottomNav.style.visibility = 'hidden';
-            }
+        if (bottomNav) {
+            bottomNav.style.opacity = '1';
+            bottomNav.style.visibility = 'visible';
+        }
+
+        // 2. Bottom search drawer logic
+        const searchFooterBtn = document.getElementById('searchFooterBtn');
+        const searchDrawer = document.getElementById('searchDrawer');
+        const closeSearchDrawer = document.getElementById('closeSearchDrawer');
+        const searchInputDrawer = document.getElementById('searchInputDrawer');
+        const searchButtonDrawer = document.getElementById('searchButtonDrawer');
+
+        if (searchFooterBtn && searchDrawer) {
+            searchFooterBtn.addEventListener('click', function() {
+            searchDrawer.classList.add('active');
+            searchInputDrawer.focus();
             });
-            window.addEventListener('resize', function() {
-            topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+        }
+        if (closeSearchDrawer && searchDrawer) {
+            closeSearchDrawer.addEventListener('click', function() {
+            searchDrawer.classList.remove('active');
+            });
+        }
+        if (searchButtonDrawer) {
+            searchButtonDrawer.addEventListener('click', performDrawerSearch);
+        }
+        if (searchInputDrawer) {
+            searchInputDrawer.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performDrawerSearch();
             });
         }
 
-        // Footer search button logic
-        const searchFooterBtn = document.getElementById('searchFooterBtn');
-        const searchToggle = document.getElementById('searchToggle');
-        if (searchFooterBtn && searchToggle) {
-            searchFooterBtn.addEventListener('click', function() {
-            searchToggle.click();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        function performDrawerSearch() {
+            const searchTerm = searchInputDrawer.value.trim();
+            if (!searchTerm) return;
+            performSearchWithTerm(searchTerm);
+            searchDrawer.classList.remove('active');
+        }
+
+        // Helper to use your existing search logic
+        function performSearchWithTerm(term) {
+            const postsContainer = document.getElementById('posts-container');
+            postsContainer.innerHTML = '<div class="loading">Searching...</div>';
+            fetch(`/api/search?q=${encodeURIComponent(term)}`)
+            .then(response => response.json())
+            .then(results => {
+                postsContainer.innerHTML = '';
+                if (results.length === 0) {
+                postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
+                } else {
+                results.forEach(item => {
+                    const postElement = createPostElement(item);
+                    postsContainer.appendChild(postElement);
+                });
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
             });
         }
         });

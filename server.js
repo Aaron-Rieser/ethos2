@@ -1,4 +1,89 @@
-require('dotenv').config();
+function createPostElement(item) {
+    const postDiv = document.createElement('div');
+    postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}`;
+    
+    // Format the date
+    const date = new Date(item.created_at);
+    const formattedTime = date.toLocaleString('en-US', {
+        month: 'short', // "Jan"
+        day: 'numeric', // "1"
+        hour: 'numeric', // "12"
+        minute: '2-digit', // "00"
+        hour12: true // Use AM/PM
+    });
+    
+    let imageHtml = item.image_url 
+        ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
+        : '';
+    
+    let dealHtml = '';
+    if (item.isDeal && item.price) {
+        const price = parseFloat(item.price);
+        if (!isNaN(price)) {
+            dealHtml = `
+                <div class="deal-header">
+                    <div class="deal-tag">Deal</div>
+                    <div class="deal-price">$${price.toFixed(2)}</div>
+                </div>
+            `;
+        }
+    }
+
+    postDiv.innerHTML = `
+        <div class="post-content">
+            ${dealHtml}
+            <div class="post-title">${item.title || 'Title'}</div>
+            <div class="post-text">${item.post || 'No content available'}</div>  
+            ${imageHtml}
+            <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
+            <div class="feed-footer">
+                <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
+                <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
+                <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
+                <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
+                <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
+            </div>
+            <div class="comments-section">
+                <div class="comments-container" id="comments-${item.id}"></div>
+                <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${item.isDeal ? 'deal' : 'post'}')">
+                    <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
+                    <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
+                    <button type="submit">Comment</button>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    const messageButton = postDiv.querySelector('.message-button');
+    messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, item.isDeal ? 'deal' : 'post'));
+
+    // Add event listener for upvote button
+    const upvoteButton = postDiv.querySelector('.upvote-button');
+    upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
+    upvoteButton.addEventListener('touchend', (e) => {
+        e.preventDefault(); // Prevent any default touch behavior
+        handleUpvote(item.id, item.isDeal);
+    });
+
+    const downvoteButton = postDiv.querySelector('.downvote-button');
+    downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isDeal));
+    downvoteButton.addEventListener('touchend', (e) => {
+        e.preventDefault(); // Prevent any default touch behavior
+        handleDownvote(item.id, item.isDeal);
+    });
+
+    const commentButton = postDiv.querySelector('.comment-button');
+    const commentForm = postDiv.querySelector('.comment-form');
+    commentButton.addEventListener('click', () => {
+        commentForm.style.display = commentForm.style.display === 'none' || commentForm.style.display === '' 
+            ? 'flex' 
+            : 'none';
+    });
+
+    loadComments(item.id, item.isDeal ? 'deal' : 'post');
+
+    return postDiv;
+}require('dotenv').config();
 
 const express = require('express');
 const pool = require('./db');
@@ -80,8 +165,8 @@ const upload = multer({
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
 
-function clearCacheForItem(id, isFree) {
-    const itemType = isFree ? 'free' : 'posts';
+function clearCacheForItem(id, isDeal) {
+    const itemType = isDeal ? 'deals' : 'posts';
     // Clear both specific neighborhood cache and all items cache
     cache.keys().forEach(key => {
         if (key.startsWith(itemType)) {
@@ -105,9 +190,9 @@ app.get('/api/posts/:postId/comments', async (req, res) => {
         console.log('Request headers:', req.headers);
         
         // Determine which table to check based on type
-        const table = type === 'free' ? 'free' : 'posts';
+        const table = type === 'deal' ? 'deals' : 'posts';
         
-        // First verify the post/free exists
+        // First verify the post/deal exists
         const itemExists = await pool.query(
             `SELECT id FROM ${table} WHERE id = $1`,
             [postId]
@@ -289,9 +374,9 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { post, title, latitude, longitude } = req.body;
+        const { neighbourhood, post, title, latitude, longitude } = req.body;
         
-        if (!post || !title) {
+        if (!neighbourhood || !post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -300,15 +385,15 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         // Simplified query without post_type
         const query = `
             INSERT INTO posts (
-                username, post, title, latitude, longitude, 
+                neighbourhood, username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *
         `;
         
         const values = [
-            username, post, title, latitude, longitude, 
+            neighbourhood, username, post, title, latitude, longitude, 
             image_url, user_id
         ];
 
@@ -379,11 +464,11 @@ app.post('/api/posts/:postId/downvote', authenticateJWT, async (req, res) => {
     }
 });
 
-app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) => {    
+app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
     try {
-        console.log('Free endpoint hit');
+        console.log('Deals endpoint hit');
         console.log('Headers:', req.headers);
         console.log('Body:', req.body);
         console.log('Full auth payload:', req.auth.payload);
@@ -392,6 +477,7 @@ app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) 
         const email = req.body.email;
 
         console.log('Email from form:', email);
+        console.log('Raw price value:', req.body.price); // Add price logging
 
         if (!email) {
             console.error('No email provided in request');
@@ -401,23 +487,38 @@ app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) 
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { post, title, latitude, longitude } = req.body;
+        const { neighbourhood, post, title, price, latitude, longitude } = req.body;
         
+        // Enhanced price validation
+        const numericPrice = parseFloat(price);
         const numericLatitude = parseFloat(latitude);  
         const numericLongitude = parseFloat(longitude); 
+        console.log('Parsed price:', numericPrice);
 
-        if (!post || !title) {
-            console.error('Missing required fields:', { post, title });
+        if (!neighbourhood || !post || !title) {
+            console.error('Missing required fields:', { neighbourhood, post, title });
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (!price || isNaN(numericPrice)) {
+            console.error('Invalid price value:', { price, numericPrice });
+            return res.status(400).json({ error: 'Invalid price format' });
+        }
+
+        if (numericPrice < 0 || numericPrice > 999999999.99) {
+            console.error('Price out of range:', numericPrice);
+            return res.status(400).json({ error: 'Price must be between 0 and 999,999,999.99' });
         }
 
         const image_url = req.file ? req.file.path : null;
         
         // Log the final values before database insertion
-        console.log('Inserting free with values:', {
+        console.log('Inserting deal with values:', {
+            neighbourhood,
             username,
             post,
             title,
+            price: numericPrice,
             latitude,
             longitude,
             image_url,
@@ -425,21 +526,21 @@ app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) 
         });
 
         const query = `
-            INSERT INTO free (
-                username, post, title, latitude, longitude, 
+            INSERT INTO deals (
+                neighbourhood, username, post, title, price, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
             RETURNING *
         `;
         
         const values = [
-            username, post, title, latitude, longitude, 
+            neighbourhood, username, post, title, numericPrice, latitude, longitude, 
             image_url, user_id
         ];
 
         const result = await pool.query(query, values);
-        console.log('Free inserted successfully:', result.rows[0]);
+        console.log('Deal inserted successfully:', result.rows[0]);
         
         res.json(result.rows[0]);
     } catch (err) {
@@ -467,51 +568,51 @@ app.post('/api/free', authenticateJWT, upload.single('image'), async (req, res) 
     }
 });
 
-app.post('/api/free/:freeId/upvote', authenticateJWT, async (req, res) => {
-    const { freeId } = req.params;
+app.post('/api/deals/:dealId/upvote', authenticateJWT, async (req, res) => {
+    const { dealId } = req.params;
 
     try {
         const result = await pool.query(
-            'UPDATE free SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
-            [freeId]
+            'UPDATE deals SET upvotes = upvotes + 1 WHERE id = $1 RETURNING *',
+            [dealId]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Free not found' });
+            return res.status(404).json({ error: 'Deal not found' });
         }
 
         // Clear cache after successful upvote
-        clearCacheForItem(freeId, true);
+        clearCacheForItem(dealId, true);
 
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error updating upvotes for free:', error);
+        console.error('Error updating upvotes for deal:', error);
         res.status(500).json({ error: 'Error updating upvotes' });
     }
 });
 
-app.post('/api/free/:freeId/downvote', authenticateJWT, async (req, res) => {
-    const { freeId } = req.params;
+app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
+    const { dealId } = req.params;
 
     try {
         const result = await pool.query(
-            'UPDATE free SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
-            [freeId]
+            'UPDATE deals SET downvotes = downvotes + 1 WHERE id = $1 RETURNING *',
+            [dealId]
         );
 
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Giveaway not found' });
+            return res.status(404).json({ error: 'Deal not found' });
         }
 
-        clearCacheForItem(freeId, true);
+        clearCacheForItem(dealId, true);
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error updating downvotes for free:', error);
+        console.error('Error updating downvotes for deal:', error);
         res.status(500).json({ error: 'Error updating downvotes' });
     }
 });
 
-app.post('/api/blind', authenticateJWT, upload.single('image'), async (req, res) => {    
+app.post('/api/missed-connections', authenticateJWT, upload.single('image'), async (req, res) => {    
     res.setHeader('Content-Type', 'application/json');
     
     try {
@@ -524,25 +625,25 @@ app.post('/api/blind', authenticateJWT, upload.single('image'), async (req, res)
         
         const username = await ensureUserAccount(user_id, email);
         
-        const { post, title, latitude, longitude } = req.body;
+        const { neighbourhood, post, title, latitude, longitude } = req.body;
         
-        if (!post || !title) {
+        if (!neighbourhood || !post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
         const image_url = req.file ? req.file.path : null;
         
         const query = `
-            INSERT INTO blind (
-                username, post, title, latitude, longitude, 
+            INSERT INTO missed_connections (
+                neighbourhood, username, post, title, latitude, longitude, 
                 image_url, user_id
             ) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
             RETURNING *
         `;
         
         const values = [
-            username, post, title, 
+            neighbourhood, username, post, title, 
             latitude ? parseFloat(latitude) : null, 
             longitude ? parseFloat(longitude) : null,
             image_url, user_id
@@ -551,8 +652,8 @@ app.post('/api/blind', authenticateJWT, upload.single('image'), async (req, res)
         const result = await pool.query(query, values);
         res.json(result.rows[0]);
     } catch (error) {
-        console.error('Error creating blind:', error);
-        res.status(500).json({ error: 'Failed to create blind' });
+        console.error('Error creating missed connection:', error);
+        res.status(500).json({ error: 'Failed to create missed connection' });
     }
 });
 
@@ -831,7 +932,7 @@ app.get('/api/posts', async (req, res) => {
     }
 });
 
-app.get('/api/free', async (req, res) => {
+app.get('/api/deals', async (req, res) => {
     try {
         const { lat, lng, radius } = req.query;
         
@@ -863,7 +964,7 @@ app.get('/api/free', async (req, res) => {
                     sin(radians(latitude))
                 )
             ) AS distance
-            FROM free
+            FROM deals
             WHERE (
                 6371 * acos(
                     cos(radians($1)) * 
@@ -879,15 +980,15 @@ app.get('/api/free', async (req, res) => {
         const values = [parseFloat(lat), parseFloat(lng), radiusInKm];
         const result = await pool.query(query, values);
 
-        const formattedFree = result.rows.map(free => ({
-            ...free,
-            created_at: new Date(free.created_at).toISOString()
+        const formattedDeals = result.rows.map(deal => ({
+            ...deal,
+            created_at: new Date(deal.created_at).toISOString()
         }));
         
-        res.json(formattedFree);
+        res.json(formattedDeals);
     } catch (error) {
-        console.error('Error fetching free:', error);
-        res.status(500).json({ error: 'Error fetching free', details: error.message });
+        console.error('Error fetching deals:', error);
+        res.status(500).json({ error: 'Error fetching deals', details: error.message });
     }
 });
 
@@ -965,28 +1066,6 @@ app.post('/api/conversations/:conversationId/mark-read', authenticateJWT, async 
     }
 });
 
-app.post('/api/log-search', async (req, res) => {
-    const { query } = req.body;
-    // If you want to log the user, use Auth0 (optional)
-    let user_id = null;
-    try {
-        if (req.auth && req.auth.payload && req.auth.payload.sub) {
-            user_id = req.auth.payload.sub;
-        }
-    } catch (e) {}
-    if (!query) return res.status(400).json({ error: 'Missing query' });
-    try {
-        await pool.query(
-            'INSERT INTO search_logs (query, user_id) VALUES ($1, $2)',
-            [query, user_id]
-        );
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Error logging search:', err);
-        res.status(500).json({ error: 'Failed to log search' });
-    }
-});
-
 app.get('/api/conversations/:conversationId/messages', authenticateJWT, async (req, res) => {
     try {
         const { conversationId } = req.params;
@@ -1048,7 +1127,7 @@ app.get('/api/search', async (req, res) => {
             return res.status(400).json({ error: 'Search term is required' });
         }
 
-        // Search in both posts and free tables
+        // Search in both posts and deals tables
         const postsQuery = `
             SELECT 
                 p.*,
@@ -1061,13 +1140,13 @@ app.get('/api/search', async (req, res) => {
                  LOWER(p.post) LIKE LOWER($1))
         `;
 
-        const freeQuery = `
+        const dealsQuery = `
             SELECT 
                 d.*,
-                'free' as item_type,
-                true as isFree,
+                'deal' as item_type,
+                true as isDeal,
                 a.username
-            FROM free d
+            FROM deals d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE 
                 (LOWER(d.title) LIKE LOWER($1) OR 
@@ -1076,13 +1155,13 @@ app.get('/api/search', async (req, res) => {
 
         const searchPattern = `%${searchTerm}%`;
         
-        const [postsResult, freeResult] = await Promise.all([
+        const [postsResult, dealsResult] = await Promise.all([
             pool.query(postsQuery, [searchPattern]),
-            pool.query(freeQuery, [searchPattern])
+            pool.query(dealsQuery, [searchPattern])
         ]);
 
         // Combine and sort results by date
-        const allResults = [...postsResult.rows, ...freeResult.rows]
+        const allResults = [...postsResult.rows, ...dealsResult.rows]
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(allResults);
@@ -1106,8 +1185,7 @@ app.get('/api/combined-feed', async (req, res) => {
             SELECT 
                 p.*, 
                 a.username,
-                false as "isFree",
-                false as "isBlind",
+                false as "isDeal",
                 'post' as "type"
             FROM posts p
             LEFT JOIN accounts a ON p.user_id = a.auth0_id
@@ -1124,20 +1202,18 @@ app.get('/api/combined-feed', async (req, res) => {
         const postsResult = await pool.query(postsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
         const formattedPosts = postsResult.rows.map(post => ({
             ...post,
-            isFree: false,
-            isBlind: false,
+            isDeal: false,
             created_at: new Date(post.created_at).toISOString()
         }));
 
-        // Fetch free
-        const freeQuery = `
+        // Fetch deals
+        const dealsQuery = `
             SELECT 
                 d.*, 
                 a.username,
-                true as "isFree",
-                false as "isBlind",
-                'free' as "type"
-            FROM free d
+                true as "isDeal",
+                'deal' as "type"
+            FROM deals d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE (
                 6371 * acos(
@@ -1149,23 +1225,21 @@ app.get('/api/combined-feed', async (req, res) => {
                 )
             ) <= $3
         `;
-        const freeResult = await pool.query(freeQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedFree = freeResult.rows.map(free => ({
-            ...free,
-            isFree: true,
-            isBlind: false,
-            created_at: new Date(free.created_at).toISOString()
+        const dealsResult = await pool.query(dealsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedDeals = dealsResult.rows.map(deal => ({
+            ...deal,
+            isDeal: true,
+            created_at: new Date(deal.created_at).toISOString()
         }));
 
-        // Fetch blind
-        const blindQuery = `
+        // Fetch missed connections
+        const missedQuery = `
             SELECT 
                 m.*, 
                 a.username,
-                false as "isFree",
-                true as "isBlind",
-                'blind' as "type"
-            FROM blind m
+                false as "isDeal",
+                'missed' as "type"
+            FROM missed_connections m
             LEFT JOIN accounts a ON m.user_id = a.auth0_id
             WHERE (
                 6371 * acos(
@@ -1177,93 +1251,23 @@ app.get('/api/combined-feed', async (req, res) => {
                 )
             ) <= $3
         `;
-        const blindResult = await pool.query(blindQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedBlind = blindResult.rows.map(blind => ({
-            ...blind,
-            isFree: false,
-            isBlind: true,
-            created_at: new Date(blind.created_at).toISOString()
+        const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedMissed = missedResult.rows.map(missed => ({
+            ...missed,
+            isDeal: false,
+            isMissedConnection: true,
+            created_at: new Date(missed.created_at).toISOString()
         }));
 
         // Combine and sort by recency
-        let allContent = [...formattedPosts, ...formattedFree, ...formattedBlind].sort((a, b) => 
+        const allContent = [...formattedPosts, ...formattedDeals, ...formattedMissed].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
-
-        // Extra secure step: remove username from blind posts in the API response
-        allContent = allContent.map(post => ({
-            ...post,
-            username: post.isBlind ? null : post.username
-        }));
 
         res.json(allContent);
     } catch (error) {
         console.error('Error in /api/combined-feed:', error);
         res.status(500).json({ error: 'Server Error', details: error.message });
-    }
-});
-
-app.get('/api/map-posts', async (req, res) => {
-    try {
-        const { bounds } = req.query;  // Will contain map viewport bounds
-        const mapBounds = JSON.parse(bounds);
-        
-        const query = `
-            SELECT 
-                p.id,
-                p.title,
-                p.post,
-                p.image_url,
-                p.latitude,
-                p.longitude,
-                p.upvotes,
-                'post' as type,
-                p.created_at
-            FROM posts p
-            WHERE latitude BETWEEN $1 AND $2
-            AND longitude BETWEEN $3 AND $4
-            UNION ALL
-            SELECT 
-                d.id,
-                d.title,
-                d.post,
-                d.image_url,
-                d.latitude,
-                d.longitude,
-                d.upvotes,
-                'free' as type,
-                d.created_at
-            FROM free d
-            WHERE latitude BETWEEN $1 AND $2
-            AND longitude BETWEEN $3 AND $4
-            UNION ALL
-            SELECT 
-                m.id,
-                m.title,
-                m.post,
-                m.image_url,
-                m.latitude,
-                m.longitude,
-                m.upvotes,
-                'blind' as type,
-                m.created_at
-            FROM blind m
-            WHERE latitude BETWEEN $1 AND $2
-            AND longitude BETWEEN $3 AND $4
-            ORDER BY upvotes DESC, created_at DESC
-            LIMIT 50`;  // Limit to prevent overloading
-
-        const result = await pool.query(query, [
-            mapBounds.south,
-            mapBounds.north,
-            mapBounds.west,
-            mapBounds.east
-        ]);
-
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error fetching map posts:', error);
-        res.status(500).json({ error: 'Failed to fetch map posts' });
     }
 });
 

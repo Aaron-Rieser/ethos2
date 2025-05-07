@@ -269,6 +269,115 @@
         #searchBox.active {
             display: flex !important; /* Show as flex when active */
         }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #3388ff; /* Light blue */
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            z-index: 1000;
+            height: 60px; /* Fixed height */
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            opacity: 1;
+            visibility: visible;
+            padding: 0; /* Remove any padding */
+        }
+
+        .bottom-nav .nav-btn {
+            flex: 1 1 0;
+            background: none;
+            border: none;
+            color: #fff;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            text-align: center;
+            padding: 0; /* Remove any padding */
+            margin: 0;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 2px solid #fff;
+            height: 100%; /* Ensure full height */
+        }
+
+        .bottom-nav .nav-btn:last-child {
+            border-right: none;
+        }
+
+        #searchDrawer {
+            position: fixed;
+            bottom: 60px; /* Height of the bottom nav */
+            left: 0;
+            width: 100%;
+            height: 60vh;
+            background: white;
+            z-index: 999;
+            display: none;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        #searchDrawer.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(0);
+        }
+
+        #searchDrawer input[type="text"] {
+            width: 80%;
+            max-width: 500px;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* New container for buttons */
+        #searchDrawer .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        #searchDrawer button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        #searchButtonDrawer {
+            background-color: #3388ff;
+            color: white;
+        }
+
+        #closeSearchDrawer {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        /* Adjust overlay to cover the entire area */
+        #searchDrawer::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -796,18 +905,58 @@
 
     <!-- Turf.js for spatial analysis -->
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-    <div class="bottom-nav">
-        <a href="index.html">Home</a>
-        <a href="create.html">Create new post</a>
-        <div class="search-container">
-            <button id="searchToggle" class="search-toggle">Search Posts</button>
-            <div id="searchBox">
-                <input type="text" id="searchInput" placeholder="Enter search terms...">
-                <button id="searchButton">Search</button>
-                <button id="clearSearchButton" style="margin-left:10px;">Clear</button>
-            </div>
+    <div id="searchDrawer">
+        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
+        <div class="button-container">
+            <button id="searchButtonDrawer">Search</button>
+            <button id="closeSearchDrawer">Close</button>
         </div>
     </div>
+    
+    <div class="bottom-nav">
+        <a href="index.html" class="nav-btn">Home</a>
+        <a href="create.html" class="nav-btn">New post</a>
+        <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bottom search drawer logic
+        const searchFooterBtn = document.getElementById('searchFooterBtn');
+        const searchDrawer = document.getElementById('searchDrawer');
+        const closeSearchDrawer = document.getElementById('closeSearchDrawer');
+        const searchInputDrawer = document.getElementById('searchInputDrawer');
+        const searchButtonDrawer = document.getElementById('searchButtonDrawer');
+    
+        if (searchFooterBtn && searchDrawer) {
+            searchFooterBtn.addEventListener('click', function() {
+                searchDrawer.classList.add('active');
+                searchInputDrawer.focus();
+            });
+        }
+        if (closeSearchDrawer && searchDrawer) {
+            closeSearchDrawer.addEventListener('click', function() {
+                searchDrawer.classList.remove('active');
+            });
+        }
+        if (searchButtonDrawer) {
+            searchButtonDrawer.addEventListener('click', performDrawerSearch);
+        }
+        if (searchInputDrawer) {
+            searchInputDrawer.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') performDrawerSearch();
+            });
+        }
+    
+        function performDrawerSearch() {
+            const searchTerm = searchInputDrawer.value.trim();
+            if (!searchTerm) return;
+            // Use your existing map search logic here
+            performMapSearch(searchTerm);
+            searchDrawer.classList.remove('active');
+        }
+    });
+    </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
     <script src="dropdown.js"></script>
