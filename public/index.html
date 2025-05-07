@@ -635,27 +635,6 @@
         .top-actions .search-container {
         margin-top: 0 !important; /* remove the top margin so it's aligned */
         }
-        #searchDrawer {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 60px; /* just above the sticky nav */
-        background: #fff;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
-        padding: 16px 12px 12px 12px;
-        display: none;
-        z-index: 1100;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        transition: transform 0.3s;
-        }
-        #searchDrawer.active {
-        display: block;
-        }
-        #searchDrawer input,
-        #searchDrawer button {
-        font-size: 1em;
-        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -794,7 +773,17 @@
 
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
-
+                <nav>
+                    <div class="top-actions">
+                      <div class="search-container">
+                        <button id="searchToggle" class="search-toggle">Search Posts</button>
+                        <div id="searchBox" style="display: none; margin-top: 10px;">
+                          <input type="text" id="searchInput" placeholder="Enter search terms...">
+                          <button id="searchButton">Search</button>
+                        </div>
+                      </div>
+                    </div>
+                  </nav>
 
                 <div id="loginPrompt" class="error-message" style="display: none;">
                     Please log in to create a post
@@ -1420,12 +1409,6 @@
             `;
         }
     </script>
-
-    <div id="searchDrawer">
-        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
-        <button id="searchButtonDrawer">Search</button>
-        <button id="closeSearchDrawer" style="margin-left:10px;">Close</button>
-    </div>
 
     <div class="bottom-nav">
         <a href="map.html" class="nav-btn" id="changeRangeBtn">Change range</a>
