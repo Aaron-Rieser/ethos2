@@ -635,6 +635,74 @@
         .top-actions .search-container {
         margin-top: 0 !important; /* remove the top margin so it's aligned */
         }
+        #searchDrawer {
+            position: fixed;
+            bottom: 60px; /* Height of the bottom nav */
+            left: 0;
+            width: 100%;
+            height: 60vh;
+            background: white;
+            z-index: 999;
+            display: none;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        #searchDrawer.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(0);
+        }
+
+        #searchDrawer input[type="text"] {
+            width: 80%;
+            max-width: 500px;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* New container for buttons */
+        #searchDrawer .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        #searchDrawer button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        #searchButtonDrawer {
+            background-color: #3388ff;
+            color: white;
+        }
+
+        #closeSearchDrawer {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        /* Adjust overlay to cover the entire area */
+        #searchDrawer::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -773,17 +841,6 @@
 
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
-                <nav>
-                    <div class="top-actions">
-                      <div class="search-container">
-                        <button id="searchToggle" class="search-toggle">Search Posts</button>
-                        <div id="searchBox" style="display: none; margin-top: 10px;">
-                          <input type="text" id="searchInput" placeholder="Enter search terms...">
-                          <button id="searchButton">Search</button>
-                        </div>
-                      </div>
-                    </div>
-                  </nav>
 
                 <div id="loginPrompt" class="error-message" style="display: none;">
                     Please log in to create a post
@@ -841,6 +898,7 @@
         
         // replacing with radius based loading 
         async function loadCombinedFeed(lat = null, lng = null, radius = null) {
+            console.log('loadCombinedFeed called with:', { lat, lng, radius }); // Add this line
             try {
                 let latitude, longitude, selectedRadius;
 
@@ -913,10 +971,171 @@
                 postsContainer.innerHTML = '<div class="error-message">Error loading posts. Please try again later.</div>';
             }
         }
+        async function performDrawerSearch() {
+            const searchTerm = document.getElementById('searchInputDrawer').value.trim();
+            if (!searchTerm) return;
 
+            try {
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = '<div class="loading">Searching...</div>';
+
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) throw new Error('Search failed');
+
+                const results = await response.json();
+                
+                postsContainer.innerHTML = '';
+                if (results.length === 0) {
+                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
+                } else {
+                    results.forEach(item => {
+                        const postElement = createPostElement(item);
+                        postsContainer.appendChild(postElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
+            }
+        }
         // Call loadCombinedFeed when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCombinedFeed();
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize Auth0 first
+                await initializeAuth0();
+
+                // 1. Set up bottom nav
+                const bottomNav = document.querySelector('.bottom-nav');
+                if (bottomNav) {
+                    bottomNav.style.opacity = '1';
+                    bottomNav.style.visibility = 'visible';
+                }
+
+                // 2. Set up search drawer
+                const searchFooterBtn = document.getElementById('searchFooterBtn');
+                const searchDrawer = document.getElementById('searchDrawer');
+                const closeSearchDrawer = document.getElementById('closeSearchDrawer');
+                const searchInputDrawer = document.getElementById('searchInputDrawer');
+                const searchButtonDrawer = document.getElementById('searchButtonDrawer');
+
+                if (searchFooterBtn && searchDrawer) {
+                    searchFooterBtn.addEventListener('click', function() {
+                        searchDrawer.classList.add('active');
+                        searchInputDrawer.focus();
+                    });
+                }
+                if (closeSearchDrawer && searchDrawer) {
+                    closeSearchDrawer.addEventListener('click', function() {
+                        searchDrawer.classList.remove('active');
+                    });
+                }
+                if (searchButtonDrawer) {
+                    searchButtonDrawer.addEventListener('click', performDrawerSearch);
+                }
+                if (searchInputDrawer) {
+                    searchInputDrawer.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') performDrawerSearch();
+                    });
+                }
+
+                // 3. Set up create post link handlers (using querySelectorAll as in original)
+                document.querySelectorAll('.create-post-link').forEach(link => {
+                    link.addEventListener('click', async (e) => {
+                        if (!await auth0Client.isAuthenticated()) {
+                            e.preventDefault();
+                            const loginPrompt = document.getElementById('loginPrompt');
+                            if (loginPrompt) {
+                                loginPrompt.style.display = 'block';
+                                setTimeout(() => {
+                                    loginPrompt.style.display = 'none';
+                                }, 3000);
+                            }
+                        }
+                    });
+                });
+
+                // 4. Set up search toggle
+                const searchToggle = document.getElementById('searchToggle');
+                const searchBox = document.getElementById('searchBox');
+                const searchInput = document.getElementById('searchInput');
+                const searchButton = document.getElementById('searchButton');
+
+                if (searchToggle && searchBox) {
+                    searchToggle.addEventListener('click', () => {
+                        searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
+                    });
+                }
+
+                if (searchButton) {
+                    searchButton.addEventListener('click', performSearch);
+                }
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            performSearch();
+                        }
+                    });
+                }
+
+                // 5. Load posts (original functionality)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('lat') && urlParams.has('lng')) {
+                    const lat = urlParams.get('lat');
+                    const lng = urlParams.get('lng');
+                    const radius = urlParams.get('radius') || '2';
+                    await loadCombinedFeed(lat, lng, radius);
+                } else {
+                    if ("geolocation" in navigator) {
+                        navigator.geolocation.getCurrentPosition(async function(position) {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const storedRadius = localStorage.getItem('selectedRadius') || 2;
+                            
+                            // Store the location
+                            localStorage.setItem('selectedLat', lat);
+                            localStorage.setItem('selectedLng', lng);
+                            
+                            // Load the feed with the detected location
+                            await loadCombinedFeed(lat, lng, storedRadius);
+                        }, function(error) {
+                            console.error('Geolocation error:', error);
+                            handleGeolocationError(error);
+                        });
+                    } else {
+                        console.error('Geolocation not available');
+                        showLocationPrompt();
+                    }
+                }
+
+                // 6. Setup bottom nav scroll behavior (from original)
+                const topNav = document.querySelector('nav');
+                if (topNav && bottomNav) {
+                    let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+
+                    // Initially hide bottom nav
+                    bottomNav.style.opacity = '0';
+                    bottomNav.style.visibility = 'hidden';
+
+                    // Handle scroll events
+                    window.addEventListener('scroll', function() {
+                        if (window.scrollY > topNavBottom) {
+                            bottomNav.style.opacity = '1';
+                            bottomNav.style.visibility = 'visible';
+                        } else {
+                            bottomNav.style.opacity = '0';
+                            bottomNav.style.visibility = 'hidden';
+                        }
+                    });
+
+                    // Recalculate on window resize
+                    window.addEventListener('resize', function() {
+                        topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+                    });
+                }
+
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+            }
         });
         // Create post element function, updated jan 29 for free
         function createPostElement(item) {
@@ -1278,92 +1497,7 @@
             
             return feedDiv;
         }
-        // Load posts when page loads
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-            // Initialize Auth0 first
-            await initializeAuth0();
-
-            // First check if we have URL parameters (coming from map)
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('lat') && urlParams.has('lng')) {
-                // Use the coordinates from URL without prompting
-                const lat = urlParams.get('lat');
-                const lng = urlParams.get('lng');
-                const radius = urlParams.get('radius') || '2';
-                
-                // Load feed with these parameters
-                await loadCombinedFeed(lat, lng, radius);
-            } else {
-                // No URL parameters, try to get user's location automatically
-                if ("geolocation" in navigator) {
-                    navigator.geolocation.getCurrentPosition(async function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        const storedRadius = localStorage.getItem('selectedRadius') || 2;
-                        
-                        // Store the location
-                        localStorage.setItem('selectedLat', lat);
-                        localStorage.setItem('selectedLng', lng);
-                        
-                        // Load the feed with the detected location
-                        await loadCombinedFeed(lat, lng, storedRadius);
-                    }, function(error) {
-                        console.error('Geolocation error:', error);
-                        handleGeolocationError(error);
-                    });
-                } else {
-                    console.error('Geolocation not available');
-                    showLocationPrompt();
-                }
-            }
-                
-                // Setup create post link handlers
-                document.querySelectorAll('.create-post-link').forEach(link => {
-                    link.addEventListener('click', async (e) => {
-                        if (!await auth0Client.isAuthenticated()) {
-                            e.preventDefault();
-                            const loginPrompt = document.getElementById('loginPrompt');
-                            if (loginPrompt) {
-                                loginPrompt.style.display = 'block';
-                                setTimeout(() => {
-                                    loginPrompt.style.display = 'none';
-                                }, 3000);
-                            }
-                        }
-                    });
-                });
-                
-                // Setup bottom nav scroll behavior
-                const topNav = document.querySelector('nav');
-                const bottomNav = document.querySelector('.bottom-nav');
-                if (topNav && bottomNav) {
-                    let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-
-                    // Initially hide bottom nav
-                    bottomNav.style.opacity = '0';
-                    bottomNav.style.visibility = 'hidden';
-
-                    // Handle scroll events
-                    window.addEventListener('scroll', function() {
-                        if (window.scrollY > topNavBottom) {
-                            bottomNav.style.opacity = '1';
-                            bottomNav.style.visibility = 'visible';
-                        } else {
-                            bottomNav.style.opacity = '0';
-                            bottomNav.style.visibility = 'hidden';
-                        }
-                    });
-
-                    // Recalculate on window resize
-                    window.addEventListener('resize', function() {
-                        topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-                    });
-                }
-            } catch (error) {
-                console.error('Error in DOMContentLoaded:', error);
-            }
-        });
+        
         function handleGeolocationError(error) {
             let message = 'Unable to detect your location. ';
             switch(error.code) {
@@ -1410,6 +1544,14 @@
         }
     </script>
 
+    <div id="searchDrawer">
+        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
+        <div class="button-container">
+            <button id="searchButtonDrawer">Search</button>
+            <button id="closeSearchDrawer">Close</button>
+        </div>
+    </div>
+
     <div class="bottom-nav">
         <a href="map.html" class="nav-btn" id="changeRangeBtn">Change range</a>
         <a href="/create.html" class="nav-btn" id="createPostLink">New post</a>
@@ -1420,71 +1562,6 @@
     </div>
     
     <script>
-
-        document.addEventListener('DOMContentLoaded', function() {
-        // Sticky footer show/hide logic
-        const topNav = document.querySelector('nav');
-        const bottomNav = document.querySelector('.bottom-nav');
-        if (topNav && bottomNav) {
-            let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-            bottomNav.style.opacity = '0';
-            bottomNav.style.visibility = 'hidden';
-            window.addEventListener('scroll', function() {
-            if (window.scrollY > topNavBottom) {
-                bottomNav.style.opacity = '1';
-                bottomNav.style.visibility = 'visible';
-            } else {
-                bottomNav.style.opacity = '0';
-                bottomNav.style.visibility = 'hidden';
-            }
-            });
-            window.addEventListener('resize', function() {
-            topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-            });
-        }
-
-        // Footer search button logic
-        const searchFooterBtn = document.getElementById('searchFooterBtn');
-        const searchToggle = document.getElementById('searchToggle');
-        if (searchFooterBtn && searchToggle) {
-            searchFooterBtn.addEventListener('click', function() {
-            searchToggle.click();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-        }
-        });
-       document.addEventListener('DOMContentLoaded', function() {
-            const createPostLink = document.querySelector('.create-post-link');
-            if (createPostLink) {  // Add this check
-                createPostLink.addEventListener('click', async (e) => {
-                    if (!await auth0Client.isAuthenticated()) {
-                        e.preventDefault();
-                        document.getElementById('loginPrompt').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('loginPrompt').style.display = 'none';
-                        }, 3000);
-                    }
-                });
-            }
-        });
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchToggle = document.getElementById('searchToggle');
-            const searchBox = document.getElementById('searchBox');
-            const searchInput = document.getElementById('searchInput');
-            const searchButton = document.getElementById('searchButton');
-
-            searchToggle.addEventListener('click', () => {
-                searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
-            });
-
-            searchButton.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-        });
-
         async function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.trim();
             if (!searchTerm) return;
