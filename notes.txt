@@ -2,15 +2,15 @@ MVP___
 
 CHECK PRD 
 
+Create new env: export all db schemes from either pg or vscode. Then build it in pg. then re-connect env
+Map logic - work on dividing screen by pixels and showing most popular in each section
 Likes don't show on Blinds 
 Choose to have a post on map or not 
-Blinds post as anon
 DM feature for Blinds with reveal button 
 - Including separate table for those maybe 
 The way posts show up on the map is not right / Humber example - spacing wrong, too likes focussed?
 View post from the map
 1 account = 1 like 
-Cursor extra files delete 
 New nav 
 Easier nav to the fun map at the start 
 Text on map styling, Search on Map in bottom nav

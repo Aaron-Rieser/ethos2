@@ -50,32 +50,60 @@
             margin-left: 10px;
         }
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: white;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #3388ff; /* Light blue */
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        z-index: 1000;
+        height: 60px;
+        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        .bottom-nav a {
-            color: #3388ff;
-            text-decoration: none;
-            font-weight: bold;
-            margin: 0 15px;  /* Adds space between multiple links */
+        .bottom-nav .nav-btn {
+        flex: 1 1 0;
+        background: none;
+        border: none;
+        color: #fff;
+        font-family: 'Sixtyfour', system-ui, sans-serif;
+        font-size: 1em;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-right: 2px solid #fff;
+        transition: background 0.2s;
         }
 
-        .bottom-nav a:hover {
-            text-decoration: underline;
+        .bottom-nav .nav-btn:last-child {
+        border-right: none;
+        }
+
+        .bottom-nav .nav-btn:hover,
+        .bottom-nav .nav-btn:focus {
+        background: rgba(255,255,255,0.12);
+        outline: none;
+        }
+
+        @media (max-width: 768px) {
+        .bottom-nav {
+            height: 50px;
+        }
+        .bottom-nav .nav-btn {
+            font-size: 0.95em;
+        }
         }
 
         /* Adjust main content to not get hidden behind the nav */
@@ -596,6 +624,17 @@
         .blind .post-content {
             background-color: #fff0f5;
         }
+        .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px; /* space between the two */
+        justify-content: center; /* center horizontally */
+        margin-bottom: 20px;
+        }
+
+        .top-actions .search-container {
+        margin-top: 0 !important; /* remove the top margin so it's aligned */
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -735,15 +774,17 @@
         <div style="display: flex; justify-content: center; min-height: 100vh;">
             <div style="text-align: center;">
                 <nav>
-                    <a href="/create.html" id="createPostLink">Create New Post</a>     
-                    <div class="search-container" style="margin-top: 15px;">
+                    <div class="top-actions">
+                      <a href="/create.html" id="createPostLink">Create New Post</a>
+                      <div class="search-container">
                         <button id="searchToggle" class="search-toggle">Search Posts</button>
                         <div id="searchBox" style="display: none; margin-top: 10px;">
-                            <input type="text" id="searchInput" placeholder="Enter search terms...">
-                            <button id="searchButton">Search</button>
+                          <input type="text" id="searchInput" placeholder="Enter search terms...">
+                          <button id="searchButton">Search</button>
                         </div>
-                    </div>                          
-                </nav>
+                      </div>
+                    </div>
+                  </nav>
 
                 <div id="loginPrompt" class="error-message" style="display: none;">
                     Please log in to create a post
@@ -1371,14 +1412,48 @@
     </script>
 
     <div class="bottom-nav">
-        <a href="map.html">Change feed</a>
-        <a href="/create.html" id="createPostLink">Create New Post</a>        
+        <a href="map.html" class="nav-btn" id="changeRangeBtn">Change range</a>
+        <a href="/create.html" class="nav-btn" id="createPostLink">New post</a>
+        <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
     </div>
     <div id="loginPrompt" class="error-message" style="display: none;">
         Please log in to create a post
     </div>
     
     <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+        // Sticky footer show/hide logic
+        const topNav = document.querySelector('nav');
+        const bottomNav = document.querySelector('.bottom-nav');
+        if (topNav && bottomNav) {
+            let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+            bottomNav.style.opacity = '0';
+            bottomNav.style.visibility = 'hidden';
+            window.addEventListener('scroll', function() {
+            if (window.scrollY > topNavBottom) {
+                bottomNav.style.opacity = '1';
+                bottomNav.style.visibility = 'visible';
+            } else {
+                bottomNav.style.opacity = '0';
+                bottomNav.style.visibility = 'hidden';
+            }
+            });
+            window.addEventListener('resize', function() {
+            topNavBottom = topNav.offsetTop + topNav.offsetHeight;
+            });
+        }
+
+        // Footer search button logic
+        const searchFooterBtn = document.getElementById('searchFooterBtn');
+        const searchToggle = document.getElementById('searchToggle');
+        if (searchFooterBtn && searchToggle) {
+            searchFooterBtn.addEventListener('click', function() {
+            searchToggle.click();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+        });
        document.addEventListener('DOMContentLoaded', function() {
             const createPostLink = document.querySelector('.create-post-link');
             if (createPostLink) {  // Add this check
