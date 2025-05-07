@@ -898,6 +898,7 @@
         
         // replacing with radius based loading 
         async function loadCombinedFeed(lat = null, lng = null, radius = null) {
+            console.log('loadCombinedFeed called with:', { lat, lng, radius }); // Add this line
             try {
                 let latitude, longitude, selectedRadius;
 
@@ -936,8 +937,11 @@
                     headers.Authorization = `Bearer ${token}`;
                 }
 
-                // Fetch combined feed from the new endpoint
-                const response = await fetch(`/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { headers });
+                const baseUrl = window.location.origin; // Add this line
+                const response = await fetch(`${baseUrl}/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, { 
+                    headers,
+                    credentials: 'include' // Add this line
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch content');
                 }
