@@ -1175,99 +1175,164 @@ app.get('/api/search', async (req, res) => {
 app.get('/api/combined-feed', async (req, res) => {
     try {
         const { lat, lng, radius = 2 } = req.query;
+        
+        // Input validation
         if (!lat || !lng) {
-            return res.status(400).json({ error: 'Missing location parameters' });
+            console.error('Missing location parameters:', { lat, lng });
+            return res.status(400).json({ 
+                error: 'Missing location parameters',
+                details: { lat: !!lat, lng: !!lng }
+            });
         }
+
+        // Parse and validate numeric values
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
         const radiusInKm = parseFloat(radius);
 
-        // Fetch posts
-        const postsQuery = `
-            SELECT 
-                p.*, 
-                a.username,
-                false as "isDeal",
-                'post' as "type"
-            FROM posts p
-            LEFT JOIN accounts a ON p.user_id = a.auth0_id
-            WHERE (
-                6371 * acos(
-                    cos(radians($1)) * 
-                    cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
-                    sin(radians($1)) * 
-                    sin(radians(latitude))
-                )
-            ) <= $3
-        `;
-        const postsResult = await pool.query(postsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedPosts = postsResult.rows.map(post => ({
-            ...post,
-            isDeal: false,
-            created_at: new Date(post.created_at).toISOString()
-        }));
+        if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusInKm)) {
+            console.error('Invalid numeric parameters:', { lat, lng, radius });
+            return res.status(400).json({ 
+                error: 'Invalid numeric parameters',
+                details: { 
+                    latitude: isNaN(latitude),
+                    longitude: isNaN(longitude),
+                    radius: isNaN(radiusInKm)
+                }
+            });
+        }
 
-        // Fetch deals
-        const dealsQuery = `
-            SELECT 
-                d.*, 
-                a.username,
-                true as "isDeal",
-                'deal' as "type"
-            FROM deals d
-            LEFT JOIN accounts a ON d.user_id = a.auth0_id
-            WHERE (
-                6371 * acos(
-                    cos(radians($1)) * 
-                    cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
-                    sin(radians($1)) * 
-                    sin(radians(latitude))
-                )
-            ) <= $3
-        `;
-        const dealsResult = await pool.query(dealsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedDeals = dealsResult.rows.map(deal => ({
-            ...deal,
-            isDeal: true,
-            created_at: new Date(deal.created_at).toISOString()
-        }));
+        // Validate coordinate ranges
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            console.error('Coordinates out of range:', { latitude, longitude });
+            return res.status(400).json({ 
+                error: 'Coordinates out of range',
+                details: { latitude, longitude }
+            });
+        }
 
-        // Fetch missed connections
-        const missedQuery = `
-            SELECT 
-                m.*, 
-                a.username,
-                false as "isDeal",
-                'missed' as "type"
-            FROM missed_connections m
-            LEFT JOIN accounts a ON m.user_id = a.auth0_id
-            WHERE (
-                6371 * acos(
-                    cos(radians($1)) * 
-                    cos(radians(latitude)) * 
-                    cos(radians(longitude) - radians($2)) + 
-                    sin(radians($1)) * 
-                    sin(radians(latitude))
-                )
-            ) <= $3
-        `;
-        const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
-        const formattedMissed = missedResult.rows.map(missed => ({
-            ...missed,
-            isDeal: false,
-            isMissedConnection: true,
-            created_at: new Date(missed.created_at).toISOString()
-        }));
+        console.log('Fetching combined feed with params:', { latitude, longitude, radiusInKm });
+
+        // Fetch posts with error handling
+        let formattedPosts = [];
+        try {
+            const postsQuery = `
+                SELECT 
+                    p.*, 
+                    a.username,
+                    false as "isDeal",
+                    'post' as "type"
+                FROM posts p
+                LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                WHERE (
+                    6371 * acos(
+                        cos(radians($1)) * 
+                        cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * 
+                        sin(radians(latitude))
+                    )
+                ) <= $3
+            `;
+            const postsResult = await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
+            formattedPosts = postsResult.rows.map(post => ({
+                ...post,
+                isDeal: false,
+                created_at: new Date(post.created_at).toISOString()
+            }));
+            console.log(`Found ${formattedPosts.length} posts`);
+        } catch (postsError) {
+            console.error('Error fetching posts:', postsError);
+            // Continue with other content types even if posts fail
+        }
+
+        // Fetch deals with error handling
+        let formattedDeals = [];
+        try {
+            const dealsQuery = `
+                SELECT 
+                    d.*, 
+                    a.username,
+                    true as "isDeal",
+                    'deal' as "type"
+                FROM deals d
+                LEFT JOIN accounts a ON d.user_id = a.auth0_id
+                WHERE (
+                    6371 * acos(
+                        cos(radians($1)) * 
+                        cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * 
+                        sin(radians(latitude))
+                    )
+                ) <= $3
+            `;
+            const dealsResult = await pool.query(dealsQuery, [latitude, longitude, radiusInKm]);
+            formattedDeals = dealsResult.rows.map(deal => ({
+                ...deal,
+                isDeal: true,
+                created_at: new Date(deal.created_at).toISOString()
+            }));
+            console.log(`Found ${formattedDeals.length} deals`);
+        } catch (dealsError) {
+            console.error('Error fetching deals:', dealsError);
+            // Continue with other content types even if deals fail
+        }
+
+        // Fetch missed connections with error handling
+        let formattedMissed = [];
+        try {
+            const missedQuery = `
+                SELECT 
+                    m.*, 
+                    a.username,
+                    false as "isDeal",
+                    'missed' as "type"
+                FROM missed_connections m
+                LEFT JOIN accounts a ON m.user_id = a.auth0_id
+                WHERE (
+                    6371 * acos(
+                        cos(radians($1)) * 
+                        cos(radians(latitude)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * 
+                        sin(radians(latitude))
+                    )
+                ) <= $3
+            `;
+            const missedResult = await pool.query(missedQuery, [latitude, longitude, radiusInKm]);
+            formattedMissed = missedResult.rows.map(missed => ({
+                ...missed,
+                isDeal: false,
+                isMissedConnection: true,
+                created_at: new Date(missed.created_at).toISOString()
+            }));
+            console.log(`Found ${formattedMissed.length} missed connections`);
+        } catch (missedError) {
+            console.error('Error fetching missed connections:', missedError);
+            // Continue with other content types even if missed connections fail
+        }
 
         // Combine and sort by recency
         const allContent = [...formattedPosts, ...formattedDeals, ...formattedMissed].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
 
+        console.log(`Returning ${allContent.length} total items`);
         res.json(allContent);
+
     } catch (error) {
         console.error('Error in /api/combined-feed:', error);
-        res.status(500).json({ error: 'Server Error', details: error.message });
+        // Send a more detailed error response
+        res.status(500).json({ 
+            error: 'Server Error',
+            message: error.message,
+            details: process.env.NODE_ENV === 'development' ? {
+                stack: error.stack,
+                code: error.code,
+                detail: error.detail
+            } : undefined
+        });
     }
 });
 
