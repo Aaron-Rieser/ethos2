@@ -677,7 +677,7 @@
 
                 fetch(`/api/map-posts?bounds=${JSON.stringify(boundsObj)}`, {
                     signal: currentFetchController.signal
-                })
+                })  // Add this closing parenthesis
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);

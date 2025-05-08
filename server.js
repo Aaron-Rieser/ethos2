@@ -1338,7 +1338,18 @@ app.get('/api/combined-feed', async (req, res) => {
 
 app.get('/api/map-posts', async (req, res) => {
     try {
+        console.log('Received map-posts request with query:', req.query);
+        
+        if (!req.query.bounds) {
+            console.error('No bounds parameter provided');
+            return res.status(400).json({ 
+                error: 'Missing bounds parameter',
+                details: req.query
+            });
+        }
+
         const bounds = JSON.parse(req.query.bounds);
+        console.log('Parsed bounds:', bounds);
         
         // Input validation
         if (!bounds || !bounds.north || !bounds.south || !bounds.east || !bounds.west) {
@@ -1365,12 +1376,14 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
+        console.log('Executing posts query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
         const postsResult = await pool.query(postsQuery, [
             bounds.south,
             bounds.north,
             bounds.west,
             bounds.east
         ]);
+        console.log(`Found ${postsResult.rows.length} posts`);
 
         // Fetch deals within bounds
         const dealsQuery = `
@@ -1386,12 +1399,14 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
+        console.log('Executing deals query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
         const dealsResult = await pool.query(dealsQuery, [
             bounds.south,
             bounds.north,
             bounds.west,
             bounds.east
         ]);
+        console.log(`Found ${dealsResult.rows.length} deals`);
 
         // Fetch missed connections within bounds
         const missedQuery = `
@@ -1407,12 +1422,14 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
+        console.log('Executing missed connections query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
         const missedResult = await pool.query(missedQuery, [
             bounds.south,
             bounds.north,
             bounds.west,
             bounds.east
         ]);
+        console.log(`Found ${missedResult.rows.length} missed connections`);
 
         // Combine and format results
         const allContent = [
@@ -1435,6 +1452,7 @@ app.get('/api/map-posts', async (req, res) => {
 
     } catch (error) {
         console.error('Error in /api/map-posts:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ 
             error: 'Server Error',
             message: error.message,
