@@ -1338,7 +1338,9 @@ app.get('/api/combined-feed', async (req, res) => {
 
 app.get('/api/map-posts', async (req, res) => {
     try {
+        // Enhanced request logging
         console.log('Received map-posts request with query:', req.query);
+        console.log('Request headers:', req.headers);
         
         if (!req.query.bounds) {
             console.error('No bounds parameter provided');
@@ -1376,14 +1378,22 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
-        console.log('Executing posts query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-        const postsResult = await pool.query(postsQuery, [
-            bounds.south,
-            bounds.north,
-            bounds.west,
-            bounds.east
-        ]);
-        console.log(`Found ${postsResult.rows.length} posts`);
+        let postsResult, dealsResult, missedResult;
+        
+        try {
+            console.log('Executing posts query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
+            postsResult = await pool.query(postsQuery, [
+                bounds.south,
+                bounds.north,
+                bounds.west,
+                bounds.east
+            ]);
+            console.log(`Found ${postsResult.rows.length} posts`);
+        } catch (postsError) {
+            console.error('Error fetching posts:', postsError);
+            console.error('Posts error stack:', postsError.stack);
+            throw postsError;
+        }
 
         // Fetch deals within bounds
         const dealsQuery = `
@@ -1399,14 +1409,20 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
-        console.log('Executing deals query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-        const dealsResult = await pool.query(dealsQuery, [
-            bounds.south,
-            bounds.north,
-            bounds.west,
-            bounds.east
-        ]);
-        console.log(`Found ${dealsResult.rows.length} deals`);
+        try {
+            console.log('Executing deals query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
+            dealsResult = await pool.query(dealsQuery, [
+                bounds.south,
+                bounds.north,
+                bounds.west,
+                bounds.east
+            ]);
+            console.log(`Found ${dealsResult.rows.length} deals`);
+        } catch (dealsError) {
+            console.error('Error fetching deals:', dealsError);
+            console.error('Deals error stack:', dealsError.stack);
+            throw dealsError;
+        }
 
         // Fetch missed connections within bounds
         const missedQuery = `
@@ -1422,14 +1438,20 @@ app.get('/api/map-posts', async (req, res) => {
                 AND longitude BETWEEN $3 AND $4
         `;
         
-        console.log('Executing missed connections query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-        const missedResult = await pool.query(missedQuery, [
-            bounds.south,
-            bounds.north,
-            bounds.west,
-            bounds.east
-        ]);
-        console.log(`Found ${missedResult.rows.length} missed connections`);
+        try {
+            console.log('Executing missed connections query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
+            missedResult = await pool.query(missedQuery, [
+                bounds.south,
+                bounds.north,
+                bounds.west,
+                bounds.east
+            ]);
+            console.log(`Found ${missedResult.rows.length} missed connections`);
+        } catch (missedError) {
+            console.error('Error fetching missed connections:', missedError);
+            console.error('Missed connections error stack:', missedError.stack);
+            throw missedError;
+        }
 
         // Combine and format results
         const allContent = [
@@ -1451,15 +1473,26 @@ app.get('/api/map-posts', async (req, res) => {
         res.json(allContent);
 
     } catch (error) {
+        // Enhanced error logging
         console.error('Error in /api/map-posts:', error);
         console.error('Error stack:', error.stack);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            constraint: error.constraint,
+            where: error.where
+        });
+        
         res.status(500).json({ 
             error: 'Server Error',
             message: error.message,
             details: process.env.NODE_ENV === 'development' ? {
                 stack: error.stack,
                 code: error.code,
-                detail: error.detail
+                detail: error.detail,
+                constraint: error.constraint,
+                where: error.where
             } : undefined
         });
     }
