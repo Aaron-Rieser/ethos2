@@ -1336,6 +1336,117 @@ app.get('/api/combined-feed', async (req, res) => {
     }
 });
 
+app.get('/api/map-posts', async (req, res) => {
+    try {
+        const bounds = JSON.parse(req.query.bounds);
+        
+        // Input validation
+        if (!bounds || !bounds.north || !bounds.south || !bounds.east || !bounds.west) {
+            console.error('Invalid bounds:', bounds);
+            return res.status(400).json({ 
+                error: 'Invalid bounds parameter',
+                details: bounds
+            });
+        }
+
+        console.log('Fetching map posts with bounds:', bounds);
+
+        // Fetch posts within bounds
+        const postsQuery = `
+            SELECT 
+                p.*, 
+                a.username,
+                false as "isDeal",
+                'post' as "type"
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE 
+                latitude BETWEEN $1 AND $2
+                AND longitude BETWEEN $3 AND $4
+        `;
+        
+        const postsResult = await pool.query(postsQuery, [
+            bounds.south,
+            bounds.north,
+            bounds.west,
+            bounds.east
+        ]);
+
+        // Fetch deals within bounds
+        const dealsQuery = `
+            SELECT 
+                d.*, 
+                a.username,
+                true as "isDeal",
+                'deal' as "type"
+            FROM deals d
+            LEFT JOIN accounts a ON d.user_id = a.auth0_id
+            WHERE 
+                latitude BETWEEN $1 AND $2
+                AND longitude BETWEEN $3 AND $4
+        `;
+        
+        const dealsResult = await pool.query(dealsQuery, [
+            bounds.south,
+            bounds.north,
+            bounds.west,
+            bounds.east
+        ]);
+
+        // Fetch missed connections within bounds
+        const missedQuery = `
+            SELECT 
+                m.*, 
+                a.username,
+                false as "isDeal",
+                'missed' as "type"
+            FROM missed_connections m
+            LEFT JOIN accounts a ON m.user_id = a.auth0_id
+            WHERE 
+                latitude BETWEEN $1 AND $2
+                AND longitude BETWEEN $3 AND $4
+        `;
+        
+        const missedResult = await pool.query(missedQuery, [
+            bounds.south,
+            bounds.north,
+            bounds.west,
+            bounds.east
+        ]);
+
+        // Combine and format results
+        const allContent = [
+            ...postsResult.rows.map(post => ({
+                ...post,
+                created_at: new Date(post.created_at).toISOString()
+            })),
+            ...dealsResult.rows.map(deal => ({
+                ...deal,
+                created_at: new Date(deal.created_at).toISOString()
+            })),
+            ...missedResult.rows.map(missed => ({
+                ...missed,
+                created_at: new Date(missed.created_at).toISOString()
+            }))
+        ];
+
+        console.log(`Returning ${allContent.length} total items for map view`);
+        res.json(allContent);
+
+    } catch (error) {
+        console.error('Error in /api/map-posts:', error);
+        res.status(500).json({ 
+            error: 'Server Error',
+            message: error.message,
+            details: process.env.NODE_ENV === 'development' ? {
+                stack: error.stack,
+                code: error.code,
+                detail: error.detail
+            } : undefined
+        });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

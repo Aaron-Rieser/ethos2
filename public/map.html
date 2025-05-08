@@ -678,97 +678,97 @@
                 fetch(`/api/map-posts?bounds=${JSON.stringify(boundsObj)}`, {
                     signal: currentFetchController.signal
                 })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(posts => {
-                        if (!Array.isArray(posts)) {
-                            console.warn('Received non-array posts data:', posts);
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(posts => {
+                    if (!Array.isArray(posts)) {
+                        console.warn('Received non-array posts data:', posts);
+                        return;
+                    }
+
+                    // Calculate how many posts to show based on screen size
+                    const width = window.innerWidth;
+                    const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
+
+                    // Sort posts by upvotes before slicing
+                    const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+
+                    sortedPosts.slice(0, maxPosts).forEach((post, index) => {
+                        if (!post.latitude || !post.longitude) {
+                            console.warn('Post missing coordinates:', post);
                             return;
                         }
 
-                        // Calculate how many posts to show based on screen size
-                        const width = window.innerWidth;
-                        const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
-
-                        // Sort posts by upvotes before slicing
-                        const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-
-                        sortedPosts.slice(0, maxPosts).forEach((post, index) => {
-                            if (!post.latitude || !post.longitude) {
-                                console.warn('Post missing coordinates:', post);
-                                return;
-                            }
-
-                            // Add a 250m radius circle
-                            const circle = L.circle([post.latitude, post.longitude], {
-                                radius: 250,
-                                color: getPostTypeColor(post.type),
-                                fillColor: getPostTypeColor(post.type),
-                                fillOpacity: 0.1,
-                                weight: 1,
-                                zIndex: 1000 + index // Higher index posts appear above others
-                            });
-
-                            // Add the marker
-                            const marker = L.marker([post.latitude, post.longitude], {
-                                icon: L.divIcon({
-                                    className: `post-marker ${post.type}-marker`,
-                                    html: getMarkerContent(post),
-                                    iconSize: [40, 40]
-                                }),
-                                zIndexOffset: 2000 + index // Ensure markers are above circles
-                            });
-
-                            // Bind popup with preview content
-                            const popup = L.popup({
-                                maxWidth: 250,
-                                className: 'post-popup'
-                            }).setContent(createPreviewContent(post));
-
-                            marker.bindPopup(popup);
-
-                            // Add touch event handling
-                            marker.on('touchend', function(e) {
-                                L.DomEvent.preventDefault(e);
-                                marker.openPopup();
-                            });
-
-                            // Add click event handling
-                            marker.on('click', function(e) {
-                                L.DomEvent.preventDefault(e);
-                                if (currentInfoWindow) {
-                                    currentInfoWindow.close();
-                                }
-                                currentInfoWindow = popup;
-                            });
-
-                            // Store references for cleanup
-                            circle.markerId = post.id;
-                            marker.markerId = post.id;
-
-                            postCircles.addLayer(circle);
-                            postMarkers.addLayer(marker);
+                        // Add a 250m radius circle
+                        const circle = L.circle([post.latitude, post.longitude], {
+                            radius: 250,
+                            color: getPostTypeColor(post.type),
+                            fillColor: getPostTypeColor(post.type),
+                            fillOpacity: 0.1,
+                            weight: 1,
+                            zIndex: 1000 + index // Higher index posts appear above others
                         });
-                    })
-                    .catch(error => {
-                        if (error.name === 'AbortError') {
-                            console.log('Fetch aborted');
-                        } else {
-                            console.error('Error fetching map posts:', error);
-                            showLocationError('Failed to load posts. Please try again.');
-                        }
-                    })
-                    .finally(() => {
-                        // Remove loading indicator
-                        if (loadingDiv && loadingDiv.parentNode) {
-                            loadingDiv.parentNode.removeChild(loadingDiv);
-                        }
-                        currentFetchController = null;
+
+                        // Add the marker
+                        const marker = L.marker([post.latitude, post.longitude], {
+                            icon: L.divIcon({
+                                className: `post-marker ${post.type}-marker`,
+                                html: getMarkerContent(post),
+                                iconSize: [40, 40]
+                            }),
+                            zIndexOffset: 2000 + index // Ensure markers are above circles
+                        });
+
+                        // Bind popup with preview content
+                        const popup = L.popup({
+                            maxWidth: 250,
+                            className: 'post-popup'
+                        }).setContent(createPreviewContent(post));
+
+                        marker.bindPopup(popup);
+
+                        // Add touch event handling
+                        marker.on('touchend', function(e) {
+                            L.DomEvent.preventDefault(e);
+                            marker.openPopup();
+                        });
+
+                        // Add click event handling
+                        marker.on('click', function(e) {
+                            L.DomEvent.preventDefault(e);
+                            if (currentInfoWindow) {
+                                currentInfoWindow.close();
+                            }
+                            currentInfoWindow = popup;
+                        });
+
+                        // Store references for cleanup
+                        circle.markerId = post.id;
+                        marker.markerId = post.id;
+
+                        postCircles.addLayer(circle);
+                        postMarkers.addLayer(marker);
                     });
+                })
+                .catch(error => {
+                    if (error.name === 'AbortError') {
+                        console.log('Fetch aborted');
+                    } else {
+                        console.error('Error fetching map posts:', error);
+                        showLocationError('Failed to load posts. Please try again.');
+                    }
+                })
+                .finally(() => {
+                    // Remove loading indicator
+                    if (loadingDiv && loadingDiv.parentNode) {
+                        loadingDiv.parentNode.removeChild(loadingDiv);
+                    }
+                    currentFetchController = null;
+                });
             }, 300); // 300ms debounce
         }
 
