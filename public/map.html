@@ -988,39 +988,251 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const searchToggle = document.getElementById('searchToggle');
-            const searchBox = document.getElementById('searchBox');
-            const searchInput = document.getElementById('searchInput');
-            const searchButton = document.getElementById('searchButton');
-            const clearSearchButton = document.getElementById('clearSearchButton');
-        
+            // Bottom search drawer logic
+            const searchFooterBtn = document.getElementById('searchFooterBtn');
+            const searchDrawer = document.getElementById('searchDrawer');
+            const closeSearchDrawer = document.getElementById('closeSearchDrawer');
+            const searchInputDrawer = document.getElementById('searchInputDrawer');
+            const searchButtonDrawer = document.getElementById('searchButtonDrawer');
+
             let searchResults = null; // Will hold filtered posts
-        
-            searchToggle.addEventListener('click', () => {
-                searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
+
+            // Initialize map markers
+            let postMarkers = L.layerGroup().addTo(map);
+            let postCircles = L.layerGroup().addTo(map);
+            let currentInfoWindow = null;
+
+            // Function to update map markers
+            function updateMapMarkers() {
+                // Clear any pending update
+                if (updateTimeout) clearTimeout(updateTimeout);
+                
+                // Cancel any in-flight fetch
+                if (currentFetchController) {
+                    currentFetchController.abort();
+                }
+
+                // Add bounds validation
+                const bounds = map.getBounds();
+                if (!bounds || !bounds.isValid()) {
+                    console.log('Map bounds not yet valid, skipping update');
+                    return;
+                }
+
+                const boundsObj = {
+                    north: bounds.getNorth(),
+                    south: bounds.getSouth(),
+                    east: bounds.getEast(),
+                    west: bounds.getWest()
+                };
+
+                // Validate bounds values
+                if (isNaN(boundsObj.north) || isNaN(boundsObj.south) || 
+                    isNaN(boundsObj.east) || isNaN(boundsObj.west)) {
+                    console.error('Invalid bounds values:', boundsObj);
+                    return;
+                }
+
+                updateTimeout = setTimeout(() => {
+                    // Show loading indicator
+                    let loadingDiv = document.getElementById('map-loading');
+                    if (!loadingDiv) {
+                        loadingDiv = document.createElement('div');
+                        loadingDiv.id = 'map-loading';
+                        loadingDiv.innerHTML = 'Loading posts...';
+                        loadingDiv.style.cssText = `
+                            position: fixed;
+                            top: 70px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            z-index: 1001;
+                            background-color: white;
+                            padding: 10px 20px;
+                            border-radius: 4px;
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        `;
+                        document.body.appendChild(loadingDiv);
+                    }
+
+                    // Clear existing markers
+                    clearMarkers();
+
+                    // Setup new fetch controller
+                    currentFetchController = new AbortController();
+
+                    console.log('Fetching map posts with bounds:', boundsObj);
+
+                    fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
+                        signal: currentFetchController.signal
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error('Map posts response not OK:', {
+                                status: response.status,
+                                statusText: response.statusText,
+                                bounds: boundsObj
+                            });
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(posts => {
+                        if (!Array.isArray(posts)) {
+                            console.error('Received invalid posts data:', posts);
+                            throw new Error('Invalid response format');
+                        }
+
+                        console.log(`Received ${posts.length} posts`);
+
+                        // Calculate how many posts to show based on screen size
+                        const width = window.innerWidth;
+                        const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
+
+                        // Sort posts by upvotes before slicing
+                        const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+
+                        sortedPosts.slice(0, maxPosts).forEach((post, index) => {
+                            if (!post.latitude || !post.longitude) {
+                                console.warn('Post missing coordinates:', post);
+                                return;
+                            }
+
+                            // Add a 250m radius circle
+                            const circle = L.circle([post.latitude, post.longitude], {
+                                radius: 250,
+                                color: getPostTypeColor(post.type),
+                                fillColor: getPostTypeColor(post.type),
+                                fillOpacity: 0.1,
+                                weight: 1,
+                                zIndex: 1000 + index
+                            });
+
+                            // Add the marker
+                            const marker = L.marker([post.latitude, post.longitude], {
+                                icon: L.divIcon({
+                                    className: `post-marker ${post.type}-marker`,
+                                    html: getMarkerContent(post),
+                                    iconSize: [40, 40]
+                                }),
+                                zIndexOffset: 2000 + index
+                            });
+
+                            // Bind popup with preview content
+                            const popup = L.popup({
+                                maxWidth: 250,
+                                className: 'post-popup'
+                            }).setContent(createPreviewContent(post));
+
+                            marker.bindPopup(popup);
+
+                            // Add touch event handling
+                            marker.on('touchend', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                marker.openPopup();
+                            });
+
+                            // Add click event handling
+                            marker.on('click', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                }
+                                currentInfoWindow = popup;
+                            });
+
+                            // Store references for cleanup
+                            circle.markerId = post.id;
+                            marker.markerId = post.id;
+
+                            postCircles.addLayer(circle);
+                            postMarkers.addLayer(marker);
+                        });
+                    })
+                    .catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log('Fetch aborted');
+                        } else {
+                            console.error('Error fetching map posts:', {
+                                error: error.message,
+                                bounds: boundsObj,
+                                stack: error.stack
+                            });
+                            showLocationError('Failed to load posts. Please try again.');
+                        }
+                    })
+                    .finally(() => {
+                        // Remove loading indicator
+                        if (loadingDiv && loadingDiv.parentNode) {
+                            loadingDiv.parentNode.removeChild(loadingDiv);
+                        }
+                        currentFetchController = null;
+                    });
+                }, 500); // Increased debounce to 500ms
+            }
+
+            // Helper function to clear markers
+            function clearMarkers() {
+                postMarkers.eachLayer((layer) => {
+                    if (layer.off) layer.off();
+                    if (layer.remove) layer.remove();
+                });
+                postCircles.eachLayer((layer) => {
+                    if (layer.off) layer.off();
+                    if (layer.remove) layer.remove();
+                });
+                postMarkers.clearLayers();
+                postCircles.clearLayers();
+            }
+
+            // Add cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (currentFetchController) {
+                    currentFetchController.abort();
+                }
+                clearMarkers();
             });
-        
-            searchButton.addEventListener('click', performMapSearch);
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') performMapSearch();
-            });
-            clearSearchButton.addEventListener('click', () => {
-                searchInput.value = '';
-                searchResults = null;
-                updateMapMarkers(); // Show all again
-            });
-        
-            async function performMapSearch() {
-                const searchTerm = searchInput.value.trim();
+
+            // Search drawer event listeners
+            if (searchFooterBtn && searchDrawer) {
+                searchFooterBtn.addEventListener('click', function() {
+                    searchDrawer.classList.add('active');
+                    searchInputDrawer.focus();
+                });
+            }
+
+            if (closeSearchDrawer && searchDrawer) {
+                closeSearchDrawer.addEventListener('click', function() {
+                    searchDrawer.classList.remove('active');
+                });
+            }
+
+            if (searchButtonDrawer) {
+                searchButtonDrawer.addEventListener('click', performDrawerSearch);
+            }
+
+            if (searchInputDrawer) {
+                searchInputDrawer.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') performDrawerSearch();
+                });
+            }
+
+            function performDrawerSearch() {
+                const searchTerm = searchInputDrawer.value.trim();
                 if (!searchTerm) return;
-        
+                performMapSearch(searchTerm);
+                searchDrawer.classList.remove('active');
+            }
+
+            async function performMapSearch(searchTerm) {
+                if (!searchTerm) return;
+
                 // Log the search to the backend
                 fetch('/api/log-search', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query: searchTerm })
                 });
-        
+
                 // Fetch search results from the backend
                 const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
                 if (!response.ok) {
@@ -1030,74 +1242,13 @@
                 searchResults = await response.json();
                 updateMapMarkers();
             }
-        
-            // Patch updateMapMarkers to use searchResults if present
-            const originalUpdateMapMarkers = updateMapMarkers;
-            updateMapMarkers = function() {
-                if (searchResults) {
-                    renderMarkers(searchResults);
-                } else {
-                    originalUpdateMapMarkers();
-                }
-            };
-        
-            // Helper to render markers from a given array
-            function renderMarkers(posts) {
-                clearMarkers();
-                posts.forEach((post, index) => {
-                    if (!post.latitude || !post.longitude) return;
-        
-                    // Add a 250m radius circle
-                    const circle = L.circle([post.latitude, post.longitude], {
-                        radius: 250,
-                        color: getPostTypeColor(post.type),
-                        fillColor: getPostTypeColor(post.type),
-                        fillOpacity: 0.1,
-                        weight: 1,
-                        zIndex: 1000 + index
-                    });
-        
-                    // Add the marker
-                    const marker = L.marker([post.latitude, post.longitude], {
-                        icon: L.divIcon({
-                            className: `post-marker ${post.type}-marker`,
-                            html: getMarkerContent(post),
-                            iconSize: [40, 40]
-                        }),
-                        zIndexOffset: 2000 + index
-                    });
-        
-                    // Bind popup with preview content
-                    const popup = L.popup({
-                        maxWidth: 250,
-                        className: 'post-popup'
-                    }).setContent(createPreviewContent(post));
-        
-                    marker.bindPopup(popup);
-        
-                    // Add touch event handling
-                    marker.on('touchend', function(e) {
-                        L.DomEvent.preventDefault(e);
-                        marker.openPopup();
-                    });
-        
-                    // Add click event handling
-                    marker.on('click', function(e) {
-                        L.DomEvent.preventDefault(e);
-                        if (currentInfoWindow) {
-                            currentInfoWindow.close();
-                        }
-                        currentInfoWindow = popup;
-                    });
-        
-                    // Store references for cleanup
-                    circle.markerId = post.id;
-                    marker.markerId = post.id;
-        
-                    postCircles.addLayer(circle);
-                    postMarkers.addLayer(marker);
-                });
-            }
+
+            // Update markers when map moves
+            map.on('moveend', updateMapMarkers);
+            map.on('zoomend', updateMapMarkers);
+
+            // Initial load
+            updateMapMarkers();
         });
         </script>
 </body>
