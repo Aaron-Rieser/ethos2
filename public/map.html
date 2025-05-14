@@ -269,115 +269,6 @@
         #searchBox.active {
             display: flex !important; /* Show as flex when active */
         }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #3388ff; /* Light blue */
-            display: flex;
-            justify-content: space-between;
-            align-items: stretch;
-            z-index: 1000;
-            height: 60px; /* Fixed height */
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            opacity: 1;
-            visibility: visible;
-            padding: 0; /* Remove any padding */
-        }
-
-        .bottom-nav .nav-btn {
-            flex: 1 1 0;
-            background: none;
-            border: none;
-            color: #fff;
-            font-family: 'Sixtyfour', system-ui, sans-serif;
-            font-size: 1em;
-            font-weight: 600;
-            text-align: center;
-            padding: 0; /* Remove any padding */
-            margin: 0;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-right: 2px solid #fff;
-            height: 100%; /* Ensure full height */
-        }
-
-        .bottom-nav .nav-btn:last-child {
-            border-right: none;
-        }
-
-        #searchDrawer {
-            position: fixed;
-            bottom: 60px; /* Height of the bottom nav */
-            left: 0;
-            width: 100%;
-            height: 60vh;
-            background: white;
-            z-index: 999;
-            display: none;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        }
-
-        #searchDrawer.active {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transform: translateY(0);
-        }
-
-        #searchDrawer input[type="text"] {
-            width: 80%;
-            max-width: 500px;
-            padding: 15px;
-            font-size: 1.2em;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        /* New container for buttons */
-        #searchDrawer .button-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        #searchDrawer button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1em;
-        }
-
-        #searchButtonDrawer {
-            background-color: #3388ff;
-            color: white;
-        }
-
-        #closeSearchDrawer {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        /* Adjust overlay to cover the entire area */
-        #searchDrawer::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 60px;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: -1;
-        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -639,27 +530,6 @@
                 currentFetchController.abort();
             }
 
-            // Add bounds validation
-            const bounds = map.getBounds();
-            if (!bounds || !bounds.isValid()) {
-                console.log('Map bounds not yet valid, skipping update');
-                return;
-            }
-
-            const boundsObj = {
-                north: bounds.getNorth(),
-                south: bounds.getSouth(),
-                east: bounds.getEast(),
-                west: bounds.getWest()
-            };
-
-            // Validate bounds values
-            if (isNaN(boundsObj.north) || isNaN(boundsObj.south) || 
-                isNaN(boundsObj.east) || isNaN(boundsObj.west)) {
-                console.error('Invalid bounds values:', boundsObj);
-                return;
-            }
-
             updateTimeout = setTimeout(() => {
                 // Show loading indicator
                 let loadingDiv = document.getElementById('map-loading');
@@ -684,117 +554,113 @@
                 // Clear existing markers
                 clearMarkers();
 
+                // Get map bounds
+                const bounds = map.getBounds();
+                const boundsObj = {
+                    north: bounds.getNorth(),
+                    south: bounds.getSouth(),
+                    east: bounds.getEast(),
+                    west: bounds.getWest()
+                };
+
                 // Setup new fetch controller
                 currentFetchController = new AbortController();
 
-                console.log('Fetching map posts with bounds:', boundsObj);
-
-                fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
+                fetch(`/api/map-posts?bounds=${JSON.stringify(boundsObj)}`, {
                     signal: currentFetchController.signal
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Map posts response not OK:', {
-                            status: response.status,
-                            statusText: response.statusText,
-                            bounds: boundsObj
-                        });
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(posts => {
-                    if (!Array.isArray(posts)) {
-                        console.error('Received invalid posts data:', posts);
-                        throw new Error('Invalid response format');
-                    }
-
-                    console.log(`Received ${posts.length} posts`);
-
-                    // Calculate how many posts to show based on screen size
-                    const width = window.innerWidth;
-                    const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
-
-                    // Sort posts by upvotes before slicing
-                    const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-
-                    sortedPosts.slice(0, maxPosts).forEach((post, index) => {
-                        if (!post.latitude || !post.longitude) {
-                            console.warn('Post missing coordinates:', post);
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(posts => {
+                        if (!Array.isArray(posts)) {
+                            console.warn('Received non-array posts data:', posts);
                             return;
                         }
 
-                        // Add a 250m radius circle
-                        const circle = L.circle([post.latitude, post.longitude], {
-                            radius: 250,
-                            color: getPostTypeColor(post.type),
-                            fillColor: getPostTypeColor(post.type),
-                            fillOpacity: 0.1,
-                            weight: 1,
-                            zIndex: 1000 + index // Higher index posts appear above others
-                        });
+                        // Calculate how many posts to show based on screen size
+                        const width = window.innerWidth;
+                        const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
 
-                        // Add the marker
-                        const marker = L.marker([post.latitude, post.longitude], {
-                            icon: L.divIcon({
-                                className: `post-marker ${post.type}-marker`,
-                                html: getMarkerContent(post),
-                                iconSize: [40, 40]
-                            }),
-                            zIndexOffset: 2000 + index // Ensure markers are above circles
-                        });
+                        // Sort posts by upvotes before slicing
+                        const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
 
-                        // Bind popup with preview content
-                        const popup = L.popup({
-                            maxWidth: 250,
-                            className: 'post-popup'
-                        }).setContent(createPreviewContent(post));
-
-                        marker.bindPopup(popup);
-
-                        // Add touch event handling
-                        marker.on('touchend', function(e) {
-                            L.DomEvent.preventDefault(e);
-                            marker.openPopup();
-                        });
-
-                        // Add click event handling
-                        marker.on('click', function(e) {
-                            L.DomEvent.preventDefault(e);
-                            if (currentInfoWindow) {
-                                currentInfoWindow.close();
+                        sortedPosts.slice(0, maxPosts).forEach((post, index) => {
+                            if (!post.latitude || !post.longitude) {
+                                console.warn('Post missing coordinates:', post);
+                                return;
                             }
-                            currentInfoWindow = popup;
+
+                            // Add a 250m radius circle
+                            const circle = L.circle([post.latitude, post.longitude], {
+                                radius: 250,
+                                color: getPostTypeColor(post.type),
+                                fillColor: getPostTypeColor(post.type),
+                                fillOpacity: 0.1,
+                                weight: 1,
+                                zIndex: 1000 + index // Higher index posts appear above others
+                            });
+
+                            // Add the marker
+                            const marker = L.marker([post.latitude, post.longitude], {
+                                icon: L.divIcon({
+                                    className: `post-marker ${post.type}-marker`,
+                                    html: getMarkerContent(post),
+                                    iconSize: [40, 40]
+                                }),
+                                zIndexOffset: 2000 + index // Ensure markers are above circles
+                            });
+
+                            // Bind popup with preview content
+                            const popup = L.popup({
+                                maxWidth: 250,
+                                className: 'post-popup'
+                            }).setContent(createPreviewContent(post));
+
+                            marker.bindPopup(popup);
+
+                            // Add touch event handling
+                            marker.on('touchend', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                marker.openPopup();
+                            });
+
+                            // Add click event handling
+                            marker.on('click', function(e) {
+                                L.DomEvent.preventDefault(e);
+                                if (currentInfoWindow) {
+                                    currentInfoWindow.close();
+                                }
+                                currentInfoWindow = popup;
+                            });
+
+                            // Store references for cleanup
+                            circle.markerId = post.id;
+                            marker.markerId = post.id;
+
+                            postCircles.addLayer(circle);
+                            postMarkers.addLayer(marker);
                         });
-
-                        // Store references for cleanup
-                        circle.markerId = post.id;
-                        marker.markerId = post.id;
-
-                        postCircles.addLayer(circle);
-                        postMarkers.addLayer(marker);
+                    })
+                    .catch(error => {
+                        if (error.name === 'AbortError') {
+                            console.log('Fetch aborted');
+                        } else {
+                            console.error('Error fetching map posts:', error);
+                            showLocationError('Failed to load posts. Please try again.');
+                        }
+                    })
+                    .finally(() => {
+                        // Remove loading indicator
+                        if (loadingDiv && loadingDiv.parentNode) {
+                            loadingDiv.parentNode.removeChild(loadingDiv);
+                        }
+                        currentFetchController = null;
                     });
-                })
-                .catch(error => {
-                    if (error.name === 'AbortError') {
-                        console.log('Fetch aborted');
-                    } else {
-                        console.error('Error fetching map posts:', {
-                            error: error.message,
-                            bounds: boundsObj,
-                            stack: error.stack
-                        });
-                        showLocationError('Failed to load posts. Please try again.');
-                    }
-                })
-                .finally(() => {
-                    // Remove loading indicator
-                    if (loadingDiv && loadingDiv.parentNode) {
-                        loadingDiv.parentNode.removeChild(loadingDiv);
-                    }
-                    currentFetchController = null;
-                });
-            }, 500); // Increased debounce to 500ms
+            }, 300); // 300ms debounce
         }
 
         // Helper function to clear markers
@@ -930,286 +796,134 @@
 
     <!-- Turf.js for spatial analysis -->
     <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
-    <div id="searchDrawer">
-        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
-        <div class="button-container">
-            <button id="searchButtonDrawer">Search</button>
-            <button id="closeSearchDrawer">Close</button>
+    <div class="bottom-nav">
+        <a href="index.html">Home</a>
+        <a href="create.html">Create new post</a>
+        <div class="search-container">
+            <button id="searchToggle" class="search-toggle">Search Posts</button>
+            <div id="searchBox">
+                <input type="text" id="searchInput" placeholder="Enter search terms...">
+                <button id="searchButton">Search</button>
+                <button id="clearSearchButton" style="margin-left:10px;">Clear</button>
+            </div>
         </div>
     </div>
-    
-    <div class="bottom-nav">
-        <a href="index.html" class="nav-btn">Home</a>
-        <a href="create.html" class="nav-btn">New post</a>
-        <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
-    </div>
-    
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
     <script src="dropdown.js"></script>
 
     <script>
-       document.addEventListener('DOMContentLoaded', function() {
-            // Initialize map markers
-            let postMarkers = L.layerGroup().addTo(map);
-            let postCircles = L.layerGroup().addTo(map);
-            let currentInfoWindow = null;
-            let updateTimeout;
-            let currentFetchController;
-            let searchResults = null;
-
-            // Bottom search drawer logic
-            const searchFooterBtn = document.getElementById('searchFooterBtn');
-            const searchDrawer = document.getElementById('searchDrawer');
-            const closeSearchDrawer = document.getElementById('closeSearchDrawer');
-            const searchInputDrawer = document.getElementById('searchInputDrawer');
-            const searchButtonDrawer = document.getElementById('searchButtonDrawer');
-
-            // Search drawer event listeners
-            if (searchFooterBtn && searchDrawer) {
-                searchFooterBtn.addEventListener('click', function() {
-                    searchDrawer.classList.add('active');
-                    searchInputDrawer.focus();
-                });
-            }
-
-            if (closeSearchDrawer && searchDrawer) {
-                closeSearchDrawer.addEventListener('click', function() {
-                    searchDrawer.classList.remove('active');
-                });
-            }
-
-            if (searchButtonDrawer) {
-                searchButtonDrawer.addEventListener('click', performDrawerSearch);
-            }
-
-            if (searchInputDrawer) {
-                searchInputDrawer.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') performDrawerSearch();
-                });
-            }
-
-            function performDrawerSearch() {
-                const searchTerm = searchInputDrawer.value.trim();
-                if (!searchTerm) return;
-                performMapSearch(searchTerm);
-                searchDrawer.classList.remove('active');
-            }
-
-            async function performMapSearch(searchTerm) {
-                if (!searchTerm) return;
-
-                try {
-                    // Log the search to the backend
-                    await fetch('/api/log-search', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ query: searchTerm })
-                    });
-
-                    // Fetch search results from the backend
-                    const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-                    if (!response.ok) {
-                        throw new Error('Search failed');
-                    }
-                    searchResults = await response.json();
-                    updateMapMarkers();
-                } catch (error) {
-                    console.error('Search error:', error);
-                    showLocationError('Search failed. Please try again.');
-                }
-            }
-
-            // Function to update map markers
-            function updateMapMarkers() {
-                // Clear any pending update
-                if (updateTimeout) clearTimeout(updateTimeout);
-                
-                // Cancel any in-flight fetch
-                if (currentFetchController) {
-                    currentFetchController.abort();
-                }
-
-                // Add bounds validation
-                const bounds = map.getBounds();
-                if (!bounds || !bounds.isValid()) {
-                    console.log('Map bounds not yet valid, skipping update');
-                    return;
-                }
-
-                const boundsObj = {
-                    north: bounds.getNorth(),
-                    south: bounds.getSouth(),
-                    east: bounds.getEast(),
-                    west: bounds.getWest()
-                };
-
-                // Validate bounds values
-                if (isNaN(boundsObj.north) || isNaN(boundsObj.south) || 
-                    isNaN(boundsObj.east) || isNaN(boundsObj.west)) {
-                    console.error('Invalid bounds values:', boundsObj);
-                    return;
-                }
-
-                updateTimeout = setTimeout(() => {
-                    // Show loading indicator
-                    let loadingDiv = document.getElementById('map-loading');
-                    if (!loadingDiv) {
-                        loadingDiv = document.createElement('div');
-                        loadingDiv.id = 'map-loading';
-                        loadingDiv.innerHTML = 'Loading posts...';
-                        loadingDiv.style.cssText = `
-                            position: fixed;
-                            top: 70px;
-                            left: 50%;
-                            transform: translateX(-50%);
-                            z-index: 1001;
-                            background-color: white;
-                            padding: 10px 20px;
-                            border-radius: 4px;
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        `;
-                        document.body.appendChild(loadingDiv);
-                    }
-
-                    // Clear existing markers
-                    clearMarkers();
-
-                    // Setup new fetch controller
-                    currentFetchController = new AbortController();
-
-                    console.log('Fetching map posts with bounds:', boundsObj);
-
-                    fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
-                        signal: currentFetchController.signal
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(posts => {
-                        if (!Array.isArray(posts)) {
-                            throw new Error('Invalid response format');
-                        }
-
-                        console.log(`Received ${posts.length} posts`);
-
-                        // Calculate how many posts to show based on screen size
-                        const width = window.innerWidth;
-                        const maxPosts = width < 768 ? 3 : Math.floor(width / 200);
-
-                        // Sort posts by upvotes before slicing
-                        const sortedPosts = posts.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-
-                        sortedPosts.slice(0, maxPosts).forEach((post, index) => {
-                            if (!post.latitude || !post.longitude) {
-                                console.warn('Post missing coordinates:', post);
-                                return;
-                            }
-
-                            // Add a 250m radius circle
-                            const circle = L.circle([post.latitude, post.longitude], {
-                                radius: 250,
-                                color: getPostTypeColor(post.type),
-                                fillColor: getPostTypeColor(post.type),
-                                fillOpacity: 0.1,
-                                weight: 1,
-                                zIndex: 1000 + index
-                            });
-
-                            // Add the marker
-                            const marker = L.marker([post.latitude, post.longitude], {
-                                icon: L.divIcon({
-                                    className: `post-marker ${post.type}-marker`,
-                                    html: getMarkerContent(post),
-                                    iconSize: [40, 40]
-                                }),
-                                zIndexOffset: 2000 + index
-                            });
-
-                            // Bind popup with preview content
-                            const popup = L.popup({
-                                maxWidth: 250,
-                                className: 'post-popup'
-                            }).setContent(createPreviewContent(post));
-
-                            marker.bindPopup(popup);
-
-                            // Add touch event handling
-                            marker.on('touchend', function(e) {
-                                L.DomEvent.preventDefault(e);
-                                marker.openPopup();
-                            });
-
-                            // Add click event handling
-                            marker.on('click', function(e) {
-                                L.DomEvent.preventDefault(e);
-                                if (currentInfoWindow) {
-                                    currentInfoWindow.close();
-                                }
-                                currentInfoWindow = popup;
-                            });
-
-                            // Store references for cleanup
-                            circle.markerId = post.id;
-                            marker.markerId = post.id;
-
-                            postCircles.addLayer(circle);
-                            postMarkers.addLayer(marker);
-                        });
-                    })
-                    .catch(error => {
-                        if (error.name === 'AbortError') {
-                            console.log('Fetch aborted');
-                        } else {
-                            console.error('Error fetching map posts:', {
-                                error: error.message,
-                                bounds: boundsObj,
-                                stack: error.stack
-                            });
-                            showLocationError('Failed to load posts. Please try again.');
-                        }
-                    })
-                    .finally(() => {
-                        // Remove loading indicator
-                        if (loadingDiv && loadingDiv.parentNode) {
-                            loadingDiv.parentNode.removeChild(loadingDiv);
-                        }
-                        currentFetchController = null;
-                    });
-                }, 500); // Increased debounce to 500ms
-            }
-
-            // Helper function to clear markers
-            function clearMarkers() {
-                postMarkers.eachLayer((layer) => {
-                    if (layer.off) layer.off();
-                    if (layer.remove) layer.remove();
-                });
-                postCircles.eachLayer((layer) => {
-                    if (layer.off) layer.off();
-                    if (layer.remove) layer.remove();
-                });
-                postMarkers.clearLayers();
-                postCircles.clearLayers();
-            }
-
-            // Add cleanup on page unload
-            window.addEventListener('beforeunload', () => {
-                if (currentFetchController) {
-                    currentFetchController.abort();
-                }
-                clearMarkers();
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchToggle = document.getElementById('searchToggle');
+            const searchBox = document.getElementById('searchBox');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const clearSearchButton = document.getElementById('clearSearchButton');
+        
+            let searchResults = null; // Will hold filtered posts
+        
+            searchToggle.addEventListener('click', () => {
+                searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
             });
-
-            // Update markers when map moves
-            map.on('moveend', updateMapMarkers);
-            map.on('zoomend', updateMapMarkers);
-
-            // Initial load
-            updateMapMarkers();
+        
+            searchButton.addEventListener('click', performMapSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performMapSearch();
+            });
+            clearSearchButton.addEventListener('click', () => {
+                searchInput.value = '';
+                searchResults = null;
+                updateMapMarkers(); // Show all again
+            });
+        
+            async function performMapSearch() {
+                const searchTerm = searchInput.value.trim();
+                if (!searchTerm) return;
+        
+                // Log the search to the backend
+                fetch('/api/log-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: searchTerm })
+                });
+        
+                // Fetch search results from the backend
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) {
+                    alert('Search failed');
+                    return;
+                }
+                searchResults = await response.json();
+                updateMapMarkers();
+            }
+        
+            // Patch updateMapMarkers to use searchResults if present
+            const originalUpdateMapMarkers = updateMapMarkers;
+            updateMapMarkers = function() {
+                if (searchResults) {
+                    renderMarkers(searchResults);
+                } else {
+                    originalUpdateMapMarkers();
+                }
+            };
+        
+            // Helper to render markers from a given array
+            function renderMarkers(posts) {
+                clearMarkers();
+                posts.forEach((post, index) => {
+                    if (!post.latitude || !post.longitude) return;
+        
+                    // Add a 250m radius circle
+                    const circle = L.circle([post.latitude, post.longitude], {
+                        radius: 250,
+                        color: getPostTypeColor(post.type),
+                        fillColor: getPostTypeColor(post.type),
+                        fillOpacity: 0.1,
+                        weight: 1,
+                        zIndex: 1000 + index
+                    });
+        
+                    // Add the marker
+                    const marker = L.marker([post.latitude, post.longitude], {
+                        icon: L.divIcon({
+                            className: `post-marker ${post.type}-marker`,
+                            html: getMarkerContent(post),
+                            iconSize: [40, 40]
+                        }),
+                        zIndexOffset: 2000 + index
+                    });
+        
+                    // Bind popup with preview content
+                    const popup = L.popup({
+                        maxWidth: 250,
+                        className: 'post-popup'
+                    }).setContent(createPreviewContent(post));
+        
+                    marker.bindPopup(popup);
+        
+                    // Add touch event handling
+                    marker.on('touchend', function(e) {
+                        L.DomEvent.preventDefault(e);
+                        marker.openPopup();
+                    });
+        
+                    // Add click event handling
+                    marker.on('click', function(e) {
+                        L.DomEvent.preventDefault(e);
+                        if (currentInfoWindow) {
+                            currentInfoWindow.close();
+                        }
+                        currentInfoWindow = popup;
+                    });
+        
+                    // Store references for cleanup
+                    circle.markerId = post.id;
+                    marker.markerId = post.id;
+        
+                    postCircles.addLayer(circle);
+                    postMarkers.addLayer(marker);
+                });
+            }
         });
         </script>
 </body>
