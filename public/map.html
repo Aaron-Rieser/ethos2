@@ -944,50 +944,20 @@
         <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
     </div>
     
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Bottom search drawer logic
-        const searchFooterBtn = document.getElementById('searchFooterBtn');
-        const searchDrawer = document.getElementById('searchDrawer');
-        const closeSearchDrawer = document.getElementById('closeSearchDrawer');
-        const searchInputDrawer = document.getElementById('searchInputDrawer');
-        const searchButtonDrawer = document.getElementById('searchButtonDrawer');
-    
-        if (searchFooterBtn && searchDrawer) {
-            searchFooterBtn.addEventListener('click', function() {
-                searchDrawer.classList.add('active');
-                searchInputDrawer.focus();
-            });
-        }
-        if (closeSearchDrawer && searchDrawer) {
-            closeSearchDrawer.addEventListener('click', function() {
-                searchDrawer.classList.remove('active');
-            });
-        }
-        if (searchButtonDrawer) {
-            searchButtonDrawer.addEventListener('click', performDrawerSearch);
-        }
-        if (searchInputDrawer) {
-            searchInputDrawer.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') performDrawerSearch();
-            });
-        }
-    
-        function performDrawerSearch() {
-            const searchTerm = searchInputDrawer.value.trim();
-            if (!searchTerm) return;
-            // Use your existing map search logic here
-            performMapSearch(searchTerm);
-            searchDrawer.classList.remove('active');
-        }
-    });
-    </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
     <script src="dropdown.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+       document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map markers
+            let postMarkers = L.layerGroup().addTo(map);
+            let postCircles = L.layerGroup().addTo(map);
+            let currentInfoWindow = null;
+            let updateTimeout;
+            let currentFetchController;
+            let searchResults = null;
+
             // Bottom search drawer logic
             const searchFooterBtn = document.getElementById('searchFooterBtn');
             const searchDrawer = document.getElementById('searchDrawer');
@@ -995,12 +965,60 @@
             const searchInputDrawer = document.getElementById('searchInputDrawer');
             const searchButtonDrawer = document.getElementById('searchButtonDrawer');
 
-            let searchResults = null; // Will hold filtered posts
+            // Search drawer event listeners
+            if (searchFooterBtn && searchDrawer) {
+                searchFooterBtn.addEventListener('click', function() {
+                    searchDrawer.classList.add('active');
+                    searchInputDrawer.focus();
+                });
+            }
 
-            // Initialize map markers
-            let postMarkers = L.layerGroup().addTo(map);
-            let postCircles = L.layerGroup().addTo(map);
-            let currentInfoWindow = null;
+            if (closeSearchDrawer && searchDrawer) {
+                closeSearchDrawer.addEventListener('click', function() {
+                    searchDrawer.classList.remove('active');
+                });
+            }
+
+            if (searchButtonDrawer) {
+                searchButtonDrawer.addEventListener('click', performDrawerSearch);
+            }
+
+            if (searchInputDrawer) {
+                searchInputDrawer.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') performDrawerSearch();
+                });
+            }
+
+            function performDrawerSearch() {
+                const searchTerm = searchInputDrawer.value.trim();
+                if (!searchTerm) return;
+                performMapSearch(searchTerm);
+                searchDrawer.classList.remove('active');
+            }
+
+            async function performMapSearch(searchTerm) {
+                if (!searchTerm) return;
+
+                try {
+                    // Log the search to the backend
+                    await fetch('/api/log-search', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: searchTerm })
+                    });
+
+                    // Fetch search results from the backend
+                    const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                    if (!response.ok) {
+                        throw new Error('Search failed');
+                    }
+                    searchResults = await response.json();
+                    updateMapMarkers();
+                } catch (error) {
+                    console.error('Search error:', error);
+                    showLocationError('Search failed. Please try again.');
+                }
+            }
 
             // Function to update map markers
             function updateMapMarkers() {
@@ -1067,18 +1085,12 @@
                     })
                     .then(response => {
                         if (!response.ok) {
-                            console.error('Map posts response not OK:', {
-                                status: response.status,
-                                statusText: response.statusText,
-                                bounds: boundsObj
-                            });
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         return response.json();
                     })
                     .then(posts => {
                         if (!Array.isArray(posts)) {
-                            console.error('Received invalid posts data:', posts);
                             throw new Error('Invalid response format');
                         }
 
@@ -1191,57 +1203,6 @@
                 }
                 clearMarkers();
             });
-
-            // Search drawer event listeners
-            if (searchFooterBtn && searchDrawer) {
-                searchFooterBtn.addEventListener('click', function() {
-                    searchDrawer.classList.add('active');
-                    searchInputDrawer.focus();
-                });
-            }
-
-            if (closeSearchDrawer && searchDrawer) {
-                closeSearchDrawer.addEventListener('click', function() {
-                    searchDrawer.classList.remove('active');
-                });
-            }
-
-            if (searchButtonDrawer) {
-                searchButtonDrawer.addEventListener('click', performDrawerSearch);
-            }
-
-            if (searchInputDrawer) {
-                searchInputDrawer.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') performDrawerSearch();
-                });
-            }
-
-            function performDrawerSearch() {
-                const searchTerm = searchInputDrawer.value.trim();
-                if (!searchTerm) return;
-                performMapSearch(searchTerm);
-                searchDrawer.classList.remove('active');
-            }
-
-            async function performMapSearch(searchTerm) {
-                if (!searchTerm) return;
-
-                // Log the search to the backend
-                fetch('/api/log-search', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query: searchTerm })
-                });
-
-                // Fetch search results from the backend
-                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-                if (!response.ok) {
-                    alert('Search failed');
-                    return;
-                }
-                searchResults = await response.json();
-                updateMapMarkers();
-            }
 
             // Update markers when map moves
             map.on('moveend', updateMapMarkers);
