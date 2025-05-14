@@ -52,7 +52,7 @@ document.getElementById('freeForm').addEventListener('submit', async function(e)
         loadingIndicator.style.display = 'block';
         errorMessage.style.display = 'none';
         
-        const response = await fetch('/api/free', {
+        const response = await fetch('/api/posts', {  // Changed from '/api/free'
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

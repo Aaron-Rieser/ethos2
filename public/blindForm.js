@@ -32,7 +32,7 @@ document.getElementById('blindForm').addEventListener('submit', async function(e
         loadingIndicator.style.display = 'block';
         errorMessage.style.display = 'none';
         
-        const response = await fetch('/api/blind', {
+        const response = await fetch('/api/posts', {  // Changed from '/api/blind'
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
