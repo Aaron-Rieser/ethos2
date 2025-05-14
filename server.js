@@ -1335,14 +1335,9 @@ app.get('/api/combined-feed', async (req, res) => {
 
 app.get('/api/map-posts', async (req, res) => {
     try {
-        const { bounds } = req.query;
-        if (!bounds) {
-            return res.status(400).json({ error: 'Missing bounds parameter' });
-        }
-
+        const { bounds } = req.query;  // Will contain map viewport bounds
         const mapBounds = JSON.parse(bounds);
         
-        // Single query using UNION ALL (like the working version)
         const query = `
             SELECT 
                 p.id,
@@ -1353,11 +1348,8 @@ app.get('/api/map-posts', async (req, res) => {
                 p.longitude,
                 p.upvotes,
                 'post' as type,
-                p.created_at,
-                a.username,
-                false as "isDeal"
+                p.created_at
             FROM posts p
-            LEFT JOIN accounts a ON p.user_id = a.auth0_id
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
             UNION ALL
@@ -1370,11 +1362,8 @@ app.get('/api/map-posts', async (req, res) => {
                 d.longitude,
                 d.upvotes,
                 'deal' as type,
-                d.created_at,
-                a.username,
-                true as "isDeal"
+                d.created_at
             FROM deals d
-            LEFT JOIN accounts a ON d.user_id = a.auth0_id
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
             UNION ALL
@@ -1387,15 +1376,12 @@ app.get('/api/map-posts', async (req, res) => {
                 m.longitude,
                 m.upvotes,
                 'missed' as type,
-                m.created_at,
-                a.username,
-                false as "isDeal"
+                m.created_at
             FROM missed_connections m
-            LEFT JOIN accounts a ON m.user_id = a.auth0_id
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
-            ORDER BY created_at DESC
-            LIMIT 50`;
+            ORDER BY upvotes DESC, created_at DESC
+            LIMIT 50`;  // Limit to prevent overloading
 
         const result = await pool.query(query, [
             mapBounds.south,
@@ -1404,19 +1390,10 @@ app.get('/api/map-posts', async (req, res) => {
             mapBounds.east
         ]);
 
-        // Format dates in the response
-        const formattedResults = result.rows.map(item => ({
-            ...item,
-            created_at: new Date(item.created_at).toISOString()
-        }));
-
-        res.json(formattedResults);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching map posts:', error);
-        res.status(500).json({ 
-            error: 'Failed to fetch map posts',
-            details: error.message
-        });
+        res.status(500).json({ error: 'Failed to fetch map posts' });
     }
 });
 
