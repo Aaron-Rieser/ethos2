@@ -1337,13 +1337,18 @@ app.get('/api/combined-feed', async (req, res) => {
 });
 
 app.get('/api/map-posts', async (req, res) => {
+    console.log('=== MAP POSTS REQUEST START ===');
+    console.log('Request received at:', new Date().toISOString());
+    console.log('Raw query:', req.query);
+    console.log('Request headers:', req.headers);
+    
     try {
-        // Enhanced request logging
-        console.log('Received map-posts request with query:', req.query);
-        console.log('Request headers:', req.headers);
+        // Test database connection
+        const testQuery = await pool.query('SELECT NOW()');
+        console.log('Database connection test:', testQuery.rows[0]);
         
         if (!req.query.bounds) {
-            console.error('No bounds parameter provided');
+            console.log('No bounds parameter provided');
             return res.status(400).json({ 
                 error: 'Missing bounds parameter',
                 details: req.query
@@ -1473,8 +1478,9 @@ app.get('/api/map-posts', async (req, res) => {
         res.json(allContent);
 
     } catch (error) {
-        // Enhanced error logging
-        console.error('Error in /api/map-posts:', error);
+        console.error('=== MAP POSTS ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         console.error('Error details:', {
             message: error.message,
@@ -1495,6 +1501,8 @@ app.get('/api/map-posts', async (req, res) => {
                 where: error.where
             } : undefined
         });
+    } finally {
+        console.log('=== MAP POSTS REQUEST END ===');
     }
 });
 
