@@ -1,5 +1,6 @@
 MVP___ 
 
+
 CHECK PRD 
 
 Create new env: export all db schemes from either pg or vscode. Then build it in pg. then re-connect env
