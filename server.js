@@ -1334,172 +1334,89 @@ app.get('/api/combined-feed', async (req, res) => {
 });
 
 app.get('/api/map-posts', async (req, res) => {
-    console.log('=== MAP POSTS REQUEST START ===');
-    console.log('Request received at:', new Date().toISOString());
-    console.log('Raw query:', req.query);
-    console.log('Request headers:', req.headers);
-    
     try {
-        // Test database connection
-        const testQuery = await pool.query('SELECT NOW()');
-        console.log('Database connection test:', testQuery.rows[0]);
-        
-        if (!req.query.bounds) {
-            console.log('No bounds parameter provided');
-            return res.status(400).json({ 
-                error: 'Missing bounds parameter',
-                details: req.query
-            });
+        const { bounds } = req.query;
+        if (!bounds) {
+            return res.status(400).json({ error: 'Missing bounds parameter' });
         }
 
-        const bounds = JSON.parse(req.query.bounds);
-        console.log('Parsed bounds:', bounds);
+        const mapBounds = JSON.parse(bounds);
         
-        // Input validation
-        if (!bounds || !bounds.north || !bounds.south || !bounds.east || !bounds.west) {
-            console.error('Invalid bounds:', bounds);
-            return res.status(400).json({ 
-                error: 'Invalid bounds parameter',
-                details: bounds
-            });
-        }
-
-        console.log('Fetching map posts with bounds:', bounds);
-
-        // Fetch posts within bounds
-        const postsQuery = `
+        // Single query using UNION ALL (like the working version)
+        const query = `
             SELECT 
-                p.*, 
+                p.id,
+                p.title,
+                p.post,
+                p.image_url,
+                p.latitude,
+                p.longitude,
+                p.upvotes,
+                'post' as type,
+                p.created_at,
                 a.username,
-                false as "isDeal",
-                'post' as "type"
+                false as "isDeal"
             FROM posts p
             LEFT JOIN accounts a ON p.user_id = a.auth0_id
-            WHERE 
-                latitude BETWEEN $1 AND $2
-                AND longitude BETWEEN $3 AND $4
-        `;
-        
-        let postsResult, dealsResult, missedResult;
-        
-        try {
-            console.log('Executing posts query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-            postsResult = await pool.query(postsQuery, [
-                bounds.south,
-                bounds.north,
-                bounds.west,
-                bounds.east
-            ]);
-            console.log(`Found ${postsResult.rows.length} posts`);
-        } catch (postsError) {
-            console.error('Error fetching posts:', postsError);
-            console.error('Posts error stack:', postsError.stack);
-            throw postsError;
-        }
-
-        // Fetch deals within bounds
-        const dealsQuery = `
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            UNION ALL
             SELECT 
-                d.*, 
+                d.id,
+                d.title,
+                d.post,
+                d.image_url,
+                d.latitude,
+                d.longitude,
+                d.upvotes,
+                'deal' as type,
+                d.created_at,
                 a.username,
-                true as "isDeal",
-                'deal' as "type"
+                true as "isDeal"
             FROM deals d
             LEFT JOIN accounts a ON d.user_id = a.auth0_id
-            WHERE 
-                latitude BETWEEN $1 AND $2
-                AND longitude BETWEEN $3 AND $4
-        `;
-        
-        try {
-            console.log('Executing deals query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-            dealsResult = await pool.query(dealsQuery, [
-                bounds.south,
-                bounds.north,
-                bounds.west,
-                bounds.east
-            ]);
-            console.log(`Found ${dealsResult.rows.length} deals`);
-        } catch (dealsError) {
-            console.error('Error fetching deals:', dealsError);
-            console.error('Deals error stack:', dealsError.stack);
-            throw dealsError;
-        }
-
-        // Fetch missed connections within bounds
-        const missedQuery = `
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            UNION ALL
             SELECT 
-                m.*, 
+                m.id,
+                m.title,
+                m.post,
+                m.image_url,
+                m.latitude,
+                m.longitude,
+                m.upvotes,
+                'missed' as type,
+                m.created_at,
                 a.username,
-                false as "isDeal",
-                'missed' as "type"
+                false as "isDeal"
             FROM missed_connections m
             LEFT JOIN accounts a ON m.user_id = a.auth0_id
-            WHERE 
-                latitude BETWEEN $1 AND $2
-                AND longitude BETWEEN $3 AND $4
-        `;
-        
-        try {
-            console.log('Executing missed connections query with params:', [bounds.south, bounds.north, bounds.west, bounds.east]);
-            missedResult = await pool.query(missedQuery, [
-                bounds.south,
-                bounds.north,
-                bounds.west,
-                bounds.east
-            ]);
-            console.log(`Found ${missedResult.rows.length} missed connections`);
-        } catch (missedError) {
-            console.error('Error fetching missed connections:', missedError);
-            console.error('Missed connections error stack:', missedError.stack);
-            throw missedError;
-        }
+            WHERE latitude BETWEEN $1 AND $2
+            AND longitude BETWEEN $3 AND $4
+            ORDER BY created_at DESC
+            LIMIT 50`;
 
-        // Combine and format results
-        const allContent = [
-            ...postsResult.rows.map(post => ({
-                ...post,
-                created_at: new Date(post.created_at).toISOString()
-            })),
-            ...dealsResult.rows.map(deal => ({
-                ...deal,
-                created_at: new Date(deal.created_at).toISOString()
-            })),
-            ...missedResult.rows.map(missed => ({
-                ...missed,
-                created_at: new Date(missed.created_at).toISOString()
-            }))
-        ];
+        const result = await pool.query(query, [
+            mapBounds.south,
+            mapBounds.north,
+            mapBounds.west,
+            mapBounds.east
+        ]);
 
-        console.log(`Returning ${allContent.length} total items for map view`);
-        res.json(allContent);
+        // Format dates in the response
+        const formattedResults = result.rows.map(item => ({
+            ...item,
+            created_at: new Date(item.created_at).toISOString()
+        }));
 
+        res.json(formattedResults);
     } catch (error) {
-        console.error('=== MAP POSTS ERROR ===');
-        console.error('Error type:', error.constructor.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            constraint: error.constraint,
-            where: error.where
-        });
-        
+        console.error('Error fetching map posts:', error);
         res.status(500).json({ 
-            error: 'Server Error',
-            message: error.message,
-            details: process.env.NODE_ENV === 'development' ? {
-                stack: error.stack,
-                code: error.code,
-                detail: error.detail,
-                constraint: error.constraint,
-                where: error.where
-            } : undefined
+            error: 'Failed to fetch map posts',
+            details: error.message
         });
-    } finally {
-        console.log('=== MAP POSTS REQUEST END ===');
     }
 });
 
