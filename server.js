@@ -1,89 +1,4 @@
-function createPostElement(item) {
-    const postDiv = document.createElement('div');
-    postDiv.className = `post post-card${item.isDeal ? ' deal' : ''}`;
-    
-    // Format the date
-    const date = new Date(item.created_at);
-    const formattedTime = date.toLocaleString('en-US', {
-        month: 'short', // "Jan"
-        day: 'numeric', // "1"
-        hour: 'numeric', // "12"
-        minute: '2-digit', // "00"
-        hour12: true // Use AM/PM
-    });
-    
-    let imageHtml = item.image_url 
-        ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
-        : '';
-    
-    let dealHtml = '';
-    if (item.isDeal && item.price) {
-        const price = parseFloat(item.price);
-        if (!isNaN(price)) {
-            dealHtml = `
-                <div class="deal-header">
-                    <div class="deal-tag">Deal</div>
-                    <div class="deal-price">$${price.toFixed(2)}</div>
-                </div>
-            `;
-        }
-    }
-
-    postDiv.innerHTML = `
-        <div class="post-content">
-            ${dealHtml}
-            <div class="post-title">${item.title || 'Title'}</div>
-            <div class="post-text">${item.post || 'No content available'}</div>  
-            ${imageHtml}
-            <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
-            <div class="feed-footer">
-                <button class="upvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬆️</button>
-                <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
-                <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
-                <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
-                <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
-            </div>
-            <div class="comments-section">
-                <div class="comments-container" id="comments-${item.id}"></div>
-                <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${item.isDeal ? 'deal' : 'post'}')">
-                    <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
-                    <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
-                    <button type="submit">Comment</button>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    const messageButton = postDiv.querySelector('.message-button');
-    messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, item.isDeal ? 'deal' : 'post'));
-
-    // Add event listener for upvote button
-    const upvoteButton = postDiv.querySelector('.upvote-button');
-    upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isDeal));
-    upvoteButton.addEventListener('touchend', (e) => {
-        e.preventDefault(); // Prevent any default touch behavior
-        handleUpvote(item.id, item.isDeal);
-    });
-
-    const downvoteButton = postDiv.querySelector('.downvote-button');
-    downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isDeal));
-    downvoteButton.addEventListener('touchend', (e) => {
-        e.preventDefault(); // Prevent any default touch behavior
-        handleDownvote(item.id, item.isDeal);
-    });
-
-    const commentButton = postDiv.querySelector('.comment-button');
-    const commentForm = postDiv.querySelector('.comment-form');
-    commentButton.addEventListener('click', () => {
-        commentForm.style.display = commentForm.style.display === 'none' || commentForm.style.display === '' 
-            ? 'flex' 
-            : 'none';
-    });
-
-    loadComments(item.id, item.isDeal ? 'deal' : 'post');
-
-    return postDiv;
-}require('dotenv').config();
+require('dotenv').config();
 
 const express = require('express');
 const pool = require('./db');
@@ -374,15 +289,15 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { post, title, latitude, longitude } = req.body;  // Removed neighbourhood
+        const { post, title, latitude, longitude } = req.body;
         
-        if (!post || !title) {  // Removed neighbourhood check
+        if (!post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
         const image_url = req.file ? req.file.path : null;
         
-        // Simplified query without neighbourhood
+        // Simplified query without post_type
         const query = `
             INSERT INTO posts (
                 username, post, title, latitude, longitude, 
@@ -487,7 +402,7 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const username = await ensureUserAccount(user_id, email);
         
         console.log('Received file:', req.file);
-        const { post, title, price, latitude, longitude } = req.body;  // Removed neighbourhood
+        const { post, title, price, latitude, longitude } = req.body;
         
         // Enhanced price validation
         const numericPrice = parseFloat(price);
@@ -495,7 +410,7 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const numericLongitude = parseFloat(longitude); 
         console.log('Parsed price:', numericPrice);
 
-        if (!post || !title) {  // Removed neighbourhood check
+        if (!post || !title) {
             console.error('Missing required fields:', { post, title });
             return res.status(400).json({ error: 'Missing required fields' });
         }
@@ -612,6 +527,8 @@ app.post('/api/deals/:dealId/downvote', authenticateJWT, async (req, res) => {
 });
 
 app.post('/api/missed-connections', authenticateJWT, upload.single('image'), async (req, res) => {    
+    res.setHeader('Content-Type', 'application/json');
+    
     try {
         const user_id = req.auth.payload.sub;
         const email = req.body.email;
@@ -622,9 +539,9 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         
         const username = await ensureUserAccount(user_id, email);
         
-        const { post, title, latitude, longitude } = req.body;  // Removed neighbourhood
+        const { post, title, latitude, longitude } = req.body;
         
-        if (!post || !title) {  // Removed neighbourhood check
+        if (!post || !title) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -1063,6 +980,28 @@ app.post('/api/conversations/:conversationId/mark-read', authenticateJWT, async 
     }
 });
 
+app.post('/api/log-search', async (req, res) => {
+    const { query } = req.body;
+    // If you want to log the user, use Auth0 (optional)
+    let user_id = null;
+    try {
+        if (req.auth && req.auth.payload && req.auth.payload.sub) {
+            user_id = req.auth.payload.sub;
+        }
+    } catch (e) {}
+    if (!query) return res.status(400).json({ error: 'Missing query' });
+    try {
+        await pool.query(
+            'INSERT INTO search_logs (query, user_id) VALUES ($1, $2)',
+            [query, user_id]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error logging search:', err);
+        res.status(500).json({ error: 'Failed to log search' });
+    }
+});
+
 app.get('/api/conversations/:conversationId/messages', authenticateJWT, async (req, res) => {
     try {
         const { conversationId } = req.params;
@@ -1172,224 +1111,107 @@ app.get('/api/search', async (req, res) => {
 app.get('/api/combined-feed', async (req, res) => {
     try {
         const { lat, lng, radius = 2 } = req.query;
-        
-        // Input validation
         if (!lat || !lng) {
-            console.error('Missing location parameters:', { lat, lng });
-            return res.status(400).json({ 
-                error: 'Missing location parameters',
-                details: { lat: !!lat, lng: !!lng }
-            });
+            return res.status(400).json({ error: 'Missing location parameters' });
         }
-
-        // Parse and validate numeric values
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
         const radiusInKm = parseFloat(radius);
 
-        if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusInKm)) {
-            console.error('Invalid numeric parameters:', { lat, lng, radius });
-            return res.status(400).json({ 
-                error: 'Invalid numeric parameters',
-                details: { 
-                    latitude: isNaN(latitude),
-                    longitude: isNaN(longitude),
-                    radius: isNaN(radiusInKm)
-                }
-            });
-        }
+        // Fetch posts
+        const postsQuery = `
+            SELECT 
+                p.*, 
+                a.username,
+                false as "isDeal",
+                'post' as "type"
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const postsResult = await pool.query(postsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedPosts = postsResult.rows.map(post => ({
+            ...post,
+            isDeal: false,
+            created_at: new Date(post.created_at).toISOString()
+        }));
 
-        // Validate coordinate ranges
-        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-            console.error('Coordinates out of range:', { latitude, longitude });
-            return res.status(400).json({ 
-                error: 'Coordinates out of range',
-                details: { latitude, longitude }
-            });
-        }
+        // Fetch deals
+        const dealsQuery = `
+            SELECT 
+                d.*, 
+                a.username,
+                true as "isDeal",
+                'deal' as "type"
+            FROM deals d
+            LEFT JOIN accounts a ON d.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const dealsResult = await pool.query(dealsQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedDeals = dealsResult.rows.map(deal => ({
+            ...deal,
+            isDeal: true,
+            created_at: new Date(deal.created_at).toISOString()
+        }));
 
-        console.log('Fetching combined feed with params:', { latitude, longitude, radiusInKm });
-
-        // Fetch posts with error handling
-        let formattedPosts = [];
-        try {
-            const postsQuery = `
-                SELECT 
-                    p.*, 
-                    a.username,
-                    false as "isDeal",
-                    'post' as "type"
-                FROM posts p
-                LEFT JOIN accounts a ON p.user_id = a.auth0_id
-                WHERE (
-                    6371 * acos(
-                        cos(radians($1)) * 
-                        cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
-                        sin(radians($1)) * 
-                        sin(radians(latitude))
-                    )
-                ) <= $3
-            `;
-            const postsResult = await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
-            formattedPosts = postsResult.rows.map(post => ({
-                ...post,
-                isDeal: false,
-                created_at: new Date(post.created_at).toISOString()
-            }));
-            console.log(`Found ${formattedPosts.length} posts`);
-        } catch (postsError) {
-            console.error('Error fetching posts:', postsError);
-            // Continue with other content types even if posts fail
-        }
-
-        // Fetch deals with error handling
-        let formattedDeals = [];
-        try {
-            const dealsQuery = `
-                SELECT 
-                    d.*, 
-                    a.username,
-                    true as "isDeal",
-                    'deal' as "type"
-                FROM deals d
-                LEFT JOIN accounts a ON d.user_id = a.auth0_id
-                WHERE (
-                    6371 * acos(
-                        cos(radians($1)) * 
-                        cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
-                        sin(radians($1)) * 
-                        sin(radians(latitude))
-                    )
-                ) <= $3
-            `;
-            const dealsResult = await pool.query(dealsQuery, [latitude, longitude, radiusInKm]);
-            formattedDeals = dealsResult.rows.map(deal => ({
-                ...deal,
-                isDeal: true,
-                created_at: new Date(deal.created_at).toISOString()
-            }));
-            console.log(`Found ${formattedDeals.length} deals`);
-        } catch (dealsError) {
-            console.error('Error fetching deals:', dealsError);
-            // Continue with other content types even if deals fail
-        }
-
-        // Fetch missed connections with error handling
-        let formattedMissed = [];
-        try {
-            const missedQuery = `
-                SELECT 
-                    m.*, 
-                    a.username,
-                    false as "isDeal",
-                    'missed' as "type"
-                FROM missed_connections m
-                LEFT JOIN accounts a ON m.user_id = a.auth0_id
-                WHERE (
-                    6371 * acos(
-                        cos(radians($1)) * 
-                        cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
-                        sin(radians($1)) * 
-                        sin(radians(latitude))
-                    )
-                ) <= $3
-            `;
-            const missedResult = await pool.query(missedQuery, [latitude, longitude, radiusInKm]);
-            formattedMissed = missedResult.rows.map(missed => ({
-                ...missed,
-                isDeal: false,
-                isMissedConnection: true,
-                created_at: new Date(missed.created_at).toISOString()
-            }));
-            console.log(`Found ${formattedMissed.length} missed connections`);
-        } catch (missedError) {
-            console.error('Error fetching missed connections:', missedError);
-            // Continue with other content types even if missed connections fail
-        }
+        // Fetch missed connections
+        const missedQuery = `
+            SELECT 
+                m.*, 
+                a.username,
+                false as "isDeal",
+                'missed' as "type"
+            FROM missed_connections m
+            LEFT JOIN accounts a ON m.user_id = a.auth0_id
+            WHERE (
+                6371 * acos(
+                    cos(radians($1)) * 
+                    cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians($2)) + 
+                    sin(radians($1)) * 
+                    sin(radians(latitude))
+                )
+            ) <= $3
+        `;
+        const missedResult = await pool.query(missedQuery, [parseFloat(lat), parseFloat(lng), radiusInKm]);
+        const formattedMissed = missedResult.rows.map(missed => ({
+            ...missed,
+            isDeal: false,
+            isMissedConnection: true,
+            created_at: new Date(missed.created_at).toISOString()
+        }));
 
         // Combine and sort by recency
         const allContent = [...formattedPosts, ...formattedDeals, ...formattedMissed].sort((a, b) => 
             new Date(b.created_at) - new Date(a.created_at)
         );
 
-        console.log(`Returning ${allContent.length} total items`);
         res.json(allContent);
-
     } catch (error) {
         console.error('Error in /api/combined-feed:', error);
-        // Send a more detailed error response
-        res.status(500).json({ 
-            error: 'Server Error',
-            message: error.message,
-            details: process.env.NODE_ENV === 'development' ? {
-                stack: error.stack,
-                code: error.code,
-                detail: error.detail
-            } : undefined
-        });
+        res.status(500).json({ error: 'Server Error', details: error.message });
     }
 });
 
 app.get('/api/map-posts', async (req, res) => {
-    console.log('=== MAP POSTS REQUEST START ===');
-    console.log('Request received at:', new Date().toISOString());
-    console.log('Raw query:', req.query);
-    
     try {
-        // Test database connection first
-        console.log('Testing database connection...');
-        const testQuery = await pool.query('SELECT NOW()');
-        console.log('Database connection test successful:', testQuery.rows[0]);
-
-        if (!req.query.bounds) {
-            console.log('No bounds parameter provided');
-            return res.status(400).json({ 
-                error: 'Missing bounds parameter',
-                details: req.query
-            });
-        }
-
-        let mapBounds;
-        try {
-            mapBounds = JSON.parse(req.query.bounds);
-            console.log('Parsed bounds:', mapBounds);
-        } catch (parseError) {
-            console.error('Error parsing bounds:', parseError);
-            return res.status(400).json({ 
-                error: 'Invalid bounds format',
-                details: req.query.bounds
-            });
-        }
-
-        // Validate bounds values
-        if (!mapBounds || 
-            typeof mapBounds.north !== 'number' || 
-            typeof mapBounds.south !== 'number' || 
-            typeof mapBounds.east !== 'number' || 
-            typeof mapBounds.west !== 'number') {
-            console.error('Invalid bounds structure:', mapBounds);
-            return res.status(400).json({ 
-                error: 'Invalid bounds structure',
-                details: mapBounds
-            });
-        }
-
-        // Validate coordinate ranges
-        if (mapBounds.north < -90 || mapBounds.north > 90 ||
-            mapBounds.south < -90 || mapBounds.south > 90 ||
-            mapBounds.east < -180 || mapBounds.east > 180 ||
-            mapBounds.west < -180 || mapBounds.west > 180) {
-            console.error('Bounds out of valid range:', mapBounds);
-            return res.status(400).json({ 
-                error: 'Bounds out of valid range',
-                details: mapBounds
-            });
-        }
-
-        console.log('Executing main query...');
+        const { bounds } = req.query;  // Will contain map viewport bounds
+        const mapBounds = JSON.parse(bounds);
+        
         const query = `
             SELECT 
                 p.id,
@@ -1433,54 +1255,19 @@ app.get('/api/map-posts', async (req, res) => {
             WHERE latitude BETWEEN $1 AND $2
             AND longitude BETWEEN $3 AND $4
             ORDER BY upvotes DESC, created_at DESC
-            LIMIT 50`;
+            LIMIT 50`;  // Limit to prevent overloading
 
-        const queryParams = [
+        const result = await pool.query(query, [
             mapBounds.south,
             mapBounds.north,
             mapBounds.west,
             mapBounds.east
-        ];
-        console.log('Query parameters:', queryParams);
+        ]);
 
-        const result = await pool.query(query, queryParams);
-        console.log(`Query successful. Found ${result.rows.length} results`);
-
-        // Format dates in the response
-        const formattedResults = result.rows.map(item => ({
-            ...item,
-            created_at: new Date(item.created_at).toISOString()
-        }));
-
-        console.log('Sending response...');
-        res.json(formattedResults);
-        console.log('=== MAP POSTS REQUEST END ===');
-
+        res.json(result.rows);
     } catch (error) {
-        console.error('=== MAP POSTS ERROR ===');
-        console.error('Error type:', error.constructor.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('Error details:', {
-            message: error.message,
-            code: error.code,
-            detail: error.detail,
-            constraint: error.constraint,
-            where: error.where
-        });
-        
-        // Send a more detailed error response
-        res.status(500).json({ 
-            error: 'Server Error',
-            message: error.message,
-            details: process.env.NODE_ENV === 'development' ? {
-                stack: error.stack,
-                code: error.code,
-                detail: error.detail,
-                constraint: error.constraint,
-                where: error.where
-            } : undefined
-        });
+        console.error('Error fetching map posts:', error);
+        res.status(500).json({ error: 'Failed to fetch map posts' });
     }
 });
 
