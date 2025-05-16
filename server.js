@@ -1333,6 +1333,84 @@ app.get('/api/combined-feed', async (req, res) => {
     }
 });
 
+app.get('/api/map-posts', async (req, res) => {
+    console.log('=== MAP POSTS REQUEST RECEIVED ===');
+    console.log('Request query:', req.query);
+    
+    try {
+        // Test database connection first
+        try {
+            console.log('Testing database connection...');
+            await pool.query('SELECT 1');
+            console.log('Database connection test successful');
+        } catch (dbError) {
+            console.error('Database connection test failed:', dbError);
+            return res.status(500).json({ 
+                error: 'Database connection error',
+                details: process.env.NODE_ENV === 'development' ? dbError.message : undefined
+            });
+        }
+
+        // Check bounds parameter
+        if (!req.query.bounds) {
+            console.log('Missing bounds parameter');
+            return res.status(400).json({ error: 'Missing bounds parameter' });
+        }
+
+        // Parse bounds parameter
+        let bounds;
+        try {
+            bounds = JSON.parse(req.query.bounds);
+            console.log('Parsed bounds:', bounds);
+        } catch (parseError) {
+            console.error('Error parsing bounds:', parseError);
+            return res.status(400).json({ 
+                error: 'Invalid bounds format',
+                details: 'Bounds must be valid JSON' 
+            });
+        }
+
+        // Validate bounds keys
+        if (!bounds || 
+            typeof bounds.north !== 'number' || 
+            typeof bounds.south !== 'number' || 
+            typeof bounds.east !== 'number' || 
+            typeof bounds.west !== 'number') {
+            console.error('Invalid bounds structure:', bounds);
+            return res.status(400).json({ 
+                error: 'Invalid bounds structure',
+                details: 'Bounds must include north, south, east, and west as numbers'
+            });
+        }
+
+        // Instead of a complex query, start with a very simple one
+        const query = `
+            SELECT id, title, post, latitude, longitude, 'post' as type
+            FROM posts 
+            LIMIT 10`;
+
+        console.log('Executing simple query to test database access');
+        const result = await pool.query(query);
+        console.log(`Query successful, returned ${result.rows.length} rows`);
+        
+        // If this works, we can try the actual bounds query
+        res.json(result.rows);
+        
+    } catch (error) {
+        console.error('=== MAP POSTS ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        res.status(500).json({ 
+            error: 'Server error',
+            message: error.message,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+    console.log('=== MAP POSTS REQUEST COMPLETE ===');
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

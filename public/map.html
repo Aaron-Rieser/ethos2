@@ -378,6 +378,49 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
+
+        .custom-popup .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 0;
+        }
+
+        .map-popup {
+            padding: 10px;
+        }
+
+        .map-popup h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .map-popup p {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .popup-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .popup-footer button {
+            background-color: #3388ff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .popup-footer button:hover {
+            background-color: #2b6cd4;
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -441,6 +484,122 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+
+        let postsLayer = L.layerGroup().addTo(map);
+        let abortController = null;
+
+        const markerColors = {
+            post: '#3388ff',    // Blue for regular posts
+            deal: '#ff4444',    // Red for deals
+            missed: '#44ff44'   // Green for missed connections
+        };
+
+        function createMarkerIcon(type) {
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${markerColors[type] || '#3388ff'};
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    box-shadow: 0 0 4px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+        }
+
+        function createPopupContent(post) {
+            const date = new Date(post.created_at).toLocaleString();
+            return `
+                <div class="map-popup">
+                    <h3>${post.title || 'Untitled'}</h3>
+                    <p>${post.post || ''}</p>
+                    ${post.image_url ? `<img src="${post.image_url}" style="max-width: 200px; margin: 10px 0;">` : ''}
+                    <div class="popup-footer">
+                        <small>Posted: ${date}</small>
+                        <button onclick="viewFullPost('${post.id}', '${post.type}')">View Full Post</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadMapPosts() {
+            const bounds = map.getBounds();
+            if (!bounds || !bounds.isValid()) {
+                console.log('Map bounds not valid yet');
+                return;
+            }
+            
+            const boundsObj = {
+                north: bounds.getNorth(),
+                south: bounds.getSouth(),
+                east: bounds.getEast(),
+                west: bounds.getWest()
+            };
+            
+            if (abortController) {
+                abortController.abort();
+            }
+            
+            showLoadingIndicator('Loading posts...');
+            abortController = new AbortController();
+            console.log('Fetching posts for bounds:', boundsObj);
+            
+            fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
+                signal: abortController.signal
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(posts => {
+                postsLayer.clearLayers();
+                console.log(`Received ${posts.length} posts`);
+                
+                posts.forEach(post => {
+                    if (!post.latitude || !post.longitude) return;
+                    
+                    const marker = L.marker([post.latitude, post.longitude], {
+                        icon: createMarkerIcon(post.type)
+                    });
+                    
+                    marker.bindPopup(createPopupContent(post), {
+                        maxWidth: 300,
+                        className: 'custom-popup'
+                    });
+                    
+                    marker.on('click', () => {
+                        console.log('Marker clicked:', post);
+                    });
+                    
+                    postsLayer.addLayer(marker);
+                });
+            })
+            .catch(error => {
+                if (error.name === 'AbortError') {
+                    console.log('Fetch request aborted');
+                } else {
+                    console.error('Error loading posts:', error);
+                    showLocationError('Error loading posts: ' + error.message);
+                }
+            })
+            .finally(() => {
+                hideLoadingIndicator();
+                abortController = null;
+            });
+        }
+
+        // Add event listener for map movements
+        map.on('moveend', () => {
+            setTimeout(loadMapPosts, 300);
+        });
+
+        // Initial load
+        setTimeout(loadMapPosts, 1000);  
 
         function showLocationError(message) {
             const errorElement = document.getElementById('location-error');
@@ -560,26 +719,6 @@
                     maximumAge: 0
                 }
             );
-        }
-
-        // Function to handle showing feed
-        function showFeed() {
-            if (!userLocation) {
-                alert('Please wait for your location to be determined');
-                return;
-            }
-
-            const radius = document.querySelector('.range-slider').value;
-            
-            // Add precision to coordinates
-            const params = new URLSearchParams({
-                lat: userLocation[0].toFixed(8),
-                lng: userLocation[1].toFixed(8),
-                radius: radius
-            });
-
-            console.log('Redirecting with parameters:', params.toString());
-            window.location.href = `index.html?${params.toString()}`;
         }
 
         // Add range slider event listener
