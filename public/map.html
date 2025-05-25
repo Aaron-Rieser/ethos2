@@ -546,20 +546,19 @@
         };
 
         function createMarkerIcon(post) {
-            console.log('Creating marker for post:', {
-                id: post.id,
-                hasImage: !!post.image_url,
-                imageUrl: post.image_url,
-                type: post.type
-            });
+            console.log('Full post object:', post); // Log the entire post object
+            
+            // Check for different possible image property names
+            const imageUrl = post.image_url || post.imageUrl || post.image || post.img_url;
+            console.log('Image URL found:', imageUrl);
             
             let previewHtml;
             
-            if (post.image_url) {
-                console.log('Post has image, creating image preview');
+            if (imageUrl) {
+                console.log('Post has image, creating image preview with URL:', imageUrl);
                 previewHtml = `
                     <div class="marker-preview image-preview" 
-                        style="background-image: url('${post.image_url}')"
+                        style="background-image: url('${imageUrl}')"
                         onerror="this.style.backgroundImage='none'; this.classList.remove('image-preview'); this.classList.add('text-preview'); this.textContent='Image not available';">
                     </div>`;
             } else {
