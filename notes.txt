@@ -2,9 +2,12 @@ MVP___
 
 CHECK PRD 
 
-BACK TO ADDING POSTS 
-- You can see they're registered in LOGS but not in map
-- show on map now
+POSTS ARE BACK 
+
+- Search is broken 
+- Icons need improvement 
+- Map sorting logic needs improvement 
+
 THEN FOLLOW PHIONE LIST 
 
 Create new env: export all db schemes from either pg or vscode. Then build it in pg. then re-connect env
