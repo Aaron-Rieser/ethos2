@@ -1383,17 +1383,32 @@ app.get('/api/map-posts', async (req, res) => {
             });
         }
 
-        // Instead of a complex query, start with a very simple one
+        // Query with bounds filtering and all necessary fields
         const query = `
-            SELECT id, title, post, latitude, longitude, 'post' as type
+            SELECT 
+                id, 
+                title, 
+                post, 
+                latitude, 
+                longitude, 
+                image_url,
+                created_at,
+                'post' as type
             FROM posts 
-            LIMIT 10`;
+            WHERE 
+                latitude BETWEEN $1 AND $2 
+                AND longitude BETWEEN $3 AND $4
+            LIMIT 50`;
 
-        console.log('Executing simple query to test database access');
-        const result = await pool.query(query);
-        console.log(`Query successful, returned ${result.rows.length} rows`);
+        console.log('Executing query with bounds:', bounds);
+        const result = await pool.query(query, [
+            bounds.south,
+            bounds.north,
+            bounds.west,
+            bounds.east
+        ]);
         
-        // If this works, we can try the actual bounds query
+        console.log(`Query successful, returned ${result.rows.length} rows`);
         res.json(result.rows);
         
     } catch (error) {
