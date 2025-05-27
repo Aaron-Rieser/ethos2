@@ -1393,12 +1393,15 @@ app.get('/api/map-posts', async (req, res) => {
                 longitude, 
                 image_url,
                 created_at,
+                upvotes,
                 'post' as type
             FROM posts 
             WHERE 
                 latitude BETWEEN $1 AND $2 
                 AND longitude BETWEEN $3 AND $4
-            LIMIT 50`;
+            ORDER BY 
+                (upvotes * 0.5 + EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400 * 0.5) DESC
+            LIMIT 200`;  // Increased limit to allow for filtering
 
         console.log('Executing query with bounds:', bounds);
         const result = await pool.query(query, [

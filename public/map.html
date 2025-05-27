@@ -569,6 +569,90 @@
             missed: '#44ff44'   // Green for missed connections
         };
 
+        function createDensityGrid(bounds, zoomLevel) {
+            // Determine if we're on mobile
+            const isMobile = window.innerWidth <= 768; // Standard mobile breakpoint
+            const iconSize = isMobile ? 64 : 96; // pixels
+            
+            // Calculate cell size based on zoom level and device
+            // We want cells to be roughly 1.5x the icon size to allow for some overlap
+            // but prevent complete stacking
+            const baseCellSize = isMobile ? 0.015 : 0.01; // Slightly larger cells on mobile
+            const cellSize = baseCellSize * Math.pow(2, 12 - zoomLevel);
+            
+            // Adjust cell size based on zoom level to maintain visual density
+            const zoomAdjustment = Math.pow(1.5, Math.max(0, 12 - zoomLevel));
+            const adjustedCellSize = cellSize * zoomAdjustment;
+            
+            const grid = new Map(); // key: "lat_lng", value: {posts: [], score: 0}
+            
+            return {
+                addPost: (post) => {
+                    const cellLat = Math.floor(post.latitude / adjustedCellSize) * adjustedCellSize;
+                    const cellLng = Math.floor(post.longitude / adjustedCellSize) * adjustedCellSize;
+                    const cellKey = `${cellLat}_${cellLng}`;
+                    
+                    if (!grid.has(cellKey)) {
+                        grid.set(cellKey, { 
+                            posts: [], 
+                            score: 0,
+                            // Store device-specific info for debugging
+                            deviceInfo: {
+                                isMobile,
+                                iconSize,
+                                cellSize: adjustedCellSize
+                            }
+                        });
+                    }
+                    
+                    const cell = grid.get(cellKey);
+                    cell.posts.push(post);
+                    
+                    // Calculate score using upvotes and recency
+                    const hoursOld = (new Date() - new Date(post.created_at)) / (1000 * 60 * 60);
+                    const recencyScore = Math.exp(-hoursOld / 24); // 24-hour half-life
+                    cell.score = (post.upvotes * 0.5) + (recencyScore * 0.5);
+                },
+                
+                getBestPosts: (maxPosts = 50) => {
+                    // Sort cells by their best post's score
+                    const allCells = Array.from(grid.values());
+                    allCells.sort((a, b) => b.score - a.score);
+                    
+                    // Take the best post from each cell until we reach maxPosts
+                    const selectedPosts = [];
+                    for (const cell of allCells) {
+                        if (selectedPosts.length >= maxPosts) break;
+                        
+                        // Sort posts within cell by score
+                        cell.posts.sort((a, b) => {
+                            const hoursOldA = (new Date() - new Date(a.created_at)) / (1000 * 60 * 60);
+                            const hoursOldB = (new Date() - new Date(b.created_at)) / (1000 * 60 * 60);
+                            const recencyScoreA = Math.exp(-hoursOldA / 24);
+                            const recencyScoreB = Math.exp(-hoursOldB / 24);
+                            const scoreA = (a.upvotes * 0.5) + (recencyScoreA * 0.5);
+                            const scoreB = (b.upvotes * 0.5) + (recencyScoreB * 0.5);
+                            return scoreB - scoreA;
+                        });
+                        selectedPosts.push(cell.posts[0]);
+                    }
+                    
+                    return selectedPosts;
+                },
+                
+                // Add debug method to help visualize the grid
+                debug: () => {
+                    console.log('Grid Debug Info:', {
+                        isMobile,
+                        iconSize,
+                        baseCellSize,
+                        adjustedCellSize,
+                        zoomLevel,
+                        totalCells: grid.size
+                    });
+                }
+            };
+        }
         function createMarkerIcon(post) {
             console.log('Creating marker for post:', {
                 id: post.id,
@@ -621,8 +705,10 @@
             `;
         }
 
-        function loadMapPosts() {
+        async function loadMapPosts() {
             const bounds = map.getBounds();
+            const zoomLevel = map.getZoom();
+            
             if (!bounds || !bounds.isValid()) {
                 console.log('Map bounds not valid yet');
                 return;
@@ -641,22 +727,31 @@
             
             showLoadingIndicator('Loading posts...');
             abortController = new AbortController();
-            console.log('Fetching posts for bounds:', boundsObj);
             
-            fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
-                signal: abortController.signal
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(posts => {
-                postsLayer.clearLayers();
-                console.log(`Received ${posts.length} posts`);
+            try {
+                const response = await fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`, {
+                    signal: abortController.signal
+                });
                 
-                posts.forEach(post => {
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                
+                const posts = await response.json();
+                
+                // Create density grid
+                const grid = createDensityGrid(boundsObj, zoomLevel);
+                
+                // Add all posts to the grid
+                posts.forEach(post => grid.addPost(post));
+                
+                // Get the best posts based on our criteria
+                const isMobile = window.innerWidth <= 768;
+                const maxPosts = isMobile ? 30 : 50;
+                const selectedPosts = grid.getBestPosts(maxPosts);
+                
+                // Clear existing markers and add new ones
+                postsLayer.clearLayers();
+                
+                selectedPosts.forEach(post => {
                     if (!post.latitude || !post.longitude) return;
                     
                     const marker = L.marker([post.latitude, post.longitude], {
@@ -664,31 +759,25 @@
                     });
                     
                     marker.bindPopup(createPopupContent(post), {
-                        maxWidth: 300,
+                        maxWidth: isMobile ? 250 : 300,
                         className: 'custom-popup'
-                    });
-                    
-                    marker.on('click', () => {
-                        console.log('Marker clicked:', post);
                     });
                     
                     postsLayer.addLayer(marker);
                 });
-            })
-            .catch(error => {
+                
+            } catch (error) {
                 if (error.name === 'AbortError') {
                     console.log('Fetch request aborted');
                 } else {
                     console.error('Error loading posts:', error);
                     showLocationError('Error loading posts: ' + error.message);
                 }
-            })
-            .finally(() => {
+            } finally {
                 hideLoadingIndicator();
                 abortController = null;
-            });
+            }
         }
-
         // Add event listener for map movements
         map.on('moveend', () => {
             setTimeout(loadMapPosts, 300);
