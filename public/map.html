@@ -450,19 +450,37 @@
         }
 
         .text-preview {
-            padding: 4px 8px; /* Increased padding for larger size */
-            font-size: 14px; /* Increased font size for better readability */
+            background-color: #000;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 14px;
             line-height: 1.2;
             text-align: left;
-            color: #333;
             word-wrap: break-word;
             overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
+            display: flex;
+            flex-direction: column;
             position: relative;
             top: 0;
             left: 0;
+            height: 100%;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            margin-bottom: 2px;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-text {
+            font-size: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         @media screen and (max-width: 768px) {
             #map {
@@ -474,8 +492,13 @@
                 height: 64px !important;
             }
             .text-preview {
-                font-size: 12px; /* Slightly larger font for mobile */
-                padding: 2px 4px; /* Adjusted padding for mobile */
+                padding: 2px 4px;
+            }
+            .preview-title {
+                font-size: 12px;
+            }
+            .preview-text {
+                font-size: 10px;
             }
         }
         }
@@ -568,15 +591,19 @@
                 const textPreview = post.post 
                     ? post.post.split(' ').slice(0, 7).join(' ') + '...'
                     : 'No content';
-                previewHtml = `<div class="marker-preview text-preview">${textPreview}</div>`;
+                previewHtml = `
+                    <div class="marker-preview text-preview">
+                        ${post.title ? `<div class="preview-title">${post.title}</div>` : ''}
+                        <div class="preview-text">${textPreview}</div>
+                    </div>`;
             }
 
             return L.divIcon({
                 className: 'custom-marker',
                 html: previewHtml,
-                iconSize: [96, 96],  // Doubled from 48 to 96
-                iconAnchor: [48, 48], // Half of iconSize (96/2)
-                popupAnchor: [0, -48] // Adjusted for new size
+                iconSize: [96, 96],
+                iconAnchor: [48, 48],
+                popupAnchor: [0, -48]
             });
         }
         function createPopupContent(post) {

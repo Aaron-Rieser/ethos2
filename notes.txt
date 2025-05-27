@@ -2,16 +2,17 @@ MVP___
 
 CHECK PRD 
 
-POSTS ARE BACK 
+IMAGES AND POSTS ARE BACK 
 
-- Search is broken 
-- Icons need improvement 
-- Map sorting logic needs improvement 
+Map sorting logic needs improvement: how many show, by what ranking, etc.
+- Map logic - work on dividing screen by pixels and showing most popular in each section
+New format, recommendations, questions (and posts? Gripes? History?)
+Search is broken 
+Homepage should be the map
+Text icons on map need improvement 
 
 THEN FOLLOW PHIONE LIST 
 
-Create new env: export all db schemes from either pg or vscode. Then build it in pg. then re-connect env
-Map logic - work on dividing screen by pixels and showing most popular in each section
 Likes don't show on Blinds 
 Choose to have a post on map or not 
 DM feature for Blinds with reveal button 
