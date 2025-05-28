@@ -542,7 +542,7 @@
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
-                margin-top: 50px; /* Add this to push content below header */
+                margin-top: 50px;
             }
             .custom-marker {
                 width: 64px !important; /* Doubled from 32 to 64 */
@@ -571,6 +571,20 @@
             
             .stat-item {
                 gap: 2px;
+            }
+            .range-control {
+                position: fixed;
+                top: 50px; /* Closer to nav on mobile only */
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 10px;
             }
         }
         }
@@ -807,9 +821,12 @@
             return content;
         }
 
+        let currentOpenPopup = null; // Add this at the top with other global variables
+
         async function loadMapPosts() {
             const bounds = map.getBounds();
             const zoomLevel = map.getZoom();
+            const isMobile = window.innerWidth <= 768;
             
             if (!bounds || !bounds.isValid()) {
                 console.log('Map bounds not valid yet');
@@ -845,10 +862,12 @@
                 // Add all posts to the grid
                 posts.forEach(post => grid.addPost(post));
                 
-                // Get the best posts based on our criteria
-                const isMobile = window.innerWidth <= 768;
                 const maxPosts = isMobile ? 30 : 50;
                 const selectedPosts = grid.getBestPosts(maxPosts);
+                
+                // Store the currently open popup's post ID if on mobile
+                const openPopupPostId = isMobile && currentOpenPopup ? 
+                    currentOpenPopup.getLatLng().toString() : null;
                 
                 // Clear existing markers and add new ones
                 postsLayer.clearLayers();
@@ -860,10 +879,18 @@
                         icon: createMarkerIcon(post)
                     });
                     
-                    marker.bindPopup(createPopupContent(post), {
+                    const popup = L.popup({
                         maxWidth: isMobile ? 250 : 300,
                         className: 'custom-popup'
-                    });
+                    }).setContent(createPopupContent(post));
+                    
+                    marker.bindPopup(popup);
+                    
+                    // Only preserve popup on mobile
+                    if (isMobile && openPopupPostId === [post.latitude, post.longitude].toString()) {
+                        marker.openPopup();
+                        currentOpenPopup = marker;
+                    }
                     
                     postsLayer.addLayer(marker);
                 });
@@ -880,6 +907,32 @@
                 abortController = null;
             }
         }
+
+        // Add these event listeners to track popup state on mobile only
+        map.on('popupopen', function(e) {
+            if (window.innerWidth <= 768) {
+                currentOpenPopup = e.popup;
+            }
+        });
+
+        map.on('popupclose', function(e) {
+            if (window.innerWidth <= 768 && currentOpenPopup === e.popup) {
+                currentOpenPopup = null;
+            }
+        });
+
+        // Modify the moveend event listener to be less aggressive on mobile
+        map.on('moveend', () => {
+            if (window.innerWidth <= 768) {
+                // Only reload if no popup is open on mobile
+                if (!currentOpenPopup) {
+                    setTimeout(loadMapPosts, 300);
+                }
+            } else {
+                // Desktop behavior remains unchanged
+                setTimeout(loadMapPosts, 300);
+            }
+        });
         // Add event listener for map movements
         map.on('moveend', () => {
             setTimeout(loadMapPosts, 300);

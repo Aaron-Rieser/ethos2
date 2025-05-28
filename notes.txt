@@ -2,10 +2,8 @@ MVP___
 
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
-Add local db back in
-Full post - show likes, comments, truncated date 
-- image bigger in this view
-- no show full post, maybe just show more
+Display and interact with likes and comments 
+On mobile, popups go down quickly because of location readjust 
 Text icons upper left 
 Like UI - better
 Adjust change distance from IN feed
