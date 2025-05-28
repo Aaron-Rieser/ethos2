@@ -3,7 +3,7 @@ MVP___
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
 Display and interact with likes and comments 
-On mobile, popups go down quickly because of location readjust 
+On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
 Text icons upper left 
 Like UI - better
 Adjust change distance from IN feed
