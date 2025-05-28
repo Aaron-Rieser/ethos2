@@ -385,37 +385,94 @@
         }
 
         .map-popup {
-            padding: 10px;
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .map-popup h3 {
-            margin: 0 0 10px 0;
+            margin: 0;
+            padding: 12px 12px 8px 12px;
             font-size: 16px;
             color: #333;
+            border-bottom: 1px solid #eee;
         }
 
-        .map-popup p {
-            margin: 0 0 10px 0;
+        .popup-image-container {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .popup-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
+            padding: 0;
+        }
+
+        .popup-text {
+            padding: 12px;
             font-size: 14px;
             color: #666;
+            line-height: 1.4;
         }
 
         .popup-footer {
+            padding: 8px 12px;
+            border-top: 1px solid #eee;
+            background: #f9f9f9;
+            position: sticky;
+            bottom: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
         }
 
-        .popup-footer button {
-            background-color: #3388ff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+        .popup-stats {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stat-icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+        }
+
+        .stat-count {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .post-date {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .popup-footer small {
+            color: #888;
+            font-size: 12px;
+        }
+
+        /* Customize the Leaflet popup */
+        .custom-popup .leaflet-popup-content-wrapper {
+            padding: 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0;
+            width: 300px !important;
         }
 
         .popup-footer button:hover {
@@ -499,6 +556,21 @@
             }
             .preview-text {
                 font-size: 10px;
+            }
+            .custom-popup .leaflet-popup-content {
+                width: 250px !important;
+            }
+            
+            .map-popup {
+                max-height: 300px;
+            }
+            
+            .popup-stats {
+                gap: 8px;
+            }
+            
+            .stat-item {
+                gap: 2px;
             }
         }
         }
@@ -691,18 +763,48 @@
             });
         }
         function createPopupContent(post) {
-            const date = new Date(post.created_at).toLocaleString();
-            return `
+            // Format the date to be more readable
+            const date = new Date(post.created_at);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            // Create the popup content with different layouts for image vs text-only posts
+            let content = `
                 <div class="map-popup">
-                    <h3>${post.title || 'Untitled'}</h3>
-                    <p>${post.post || ''}</p>
-                    ${post.image_url ? `<img src="${post.image_url}" style="max-width: 200px; margin: 10px 0;">` : ''}
-                    <div class="popup-footer">
-                        <small>Posted: ${date}</small>
-                        <button onclick="viewFullPost('${post.id}', '${post.type}')">View Full Post</button>
+                    <h3>${post.title || 'Untitled'}</h3>`;
+
+            // If there's an image, show it first
+            if (post.image_url) {
+                content += `
+                    <div class="popup-image-container">
+                        <img src="${post.image_url}" class="popup-image" alt="Post image">
+                    </div>`;
+            }
+
+            // Add the post text
+            content += `
+                    <div class="popup-text">
+                        <p>${post.post || ''}</p>
                     </div>
-                </div>
-            `;
+                    <div class="popup-footer">
+                        <div class="popup-stats">
+                            <span class="stat-item">
+                                <span class="stat-icon">⬆️</span>
+                                <span class="stat-count">${post.upvotes || 0}</span>
+                            </span>
+                            <span class="stat-item">
+                                <span class="stat-icon">💬</span>
+                                <span class="stat-count">${post.comments || 0}</span>
+                            </span>
+                        </div>
+                        <small class="post-date">Posted: ${formattedDate}</small>
+                    </div>
+                </div>`;
+
+            return content;
         }
 
         async function loadMapPosts() {

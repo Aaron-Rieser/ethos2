@@ -1,80 +1,62 @@
 MVP___ 
 
-CHECK PRD 
+CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
-IMAGES AND POSTS ARE BACK 
-
-Map sorting logic needs improvement: how many show, by what ranking, etc.
-- Map logic - work on dividing screen by pixels and showing most popular in each section
+Add local db back in
+Full post - show likes, comments, truncated date 
+- image bigger in this view
+- no show full post, maybe just show more
+Text icons upper left 
+Like UI - better
+Adjust change distance from IN feed
 New format, recommendations, questions (and posts? Gripes? History?)
+- ensure likes work and they show on map
 Search is broken 
+- Fix Search UI
 Homepage should be the map
-Text icons on map need improvement 
+- Nav to map present easier
+Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
+Persistent location issues on chrome/ etc. debug all location
+Manual select location on map
+- Treat page with NO location allowed? Default to manual
+Feed on black, or incorporate more gumshoe text?
+Route to real site 
+Multiple comment design a bit smoother
+- Comment ranking logic 
+Add back action noises - like post message etc.
+- downvote notification and algo consideration (but not displayed)
+Email or text notifications 
+FUN launch feature: Rando meet? Local biz offer? Parties? Points for best of the week?
+Message notification design 
+Weather/traffic feeds bring back
+Add profile picture quality 
+Ensure consistent UX / Nav between all pages 
+- Corporate logo
+- Contact and help page 
+Content moderation tools and notification - ban lists 
+Widen posts for desktop, better look at them?
+1 account = 1 like
+Splash page intro, with note on Map usage
+MEET Wilbur, J.Borg, D.McIntyre
+Wipe all content 
+GTM plan
 
-THEN FOLLOW PHIONE LIST 
+----- ALL ELSE ------- 
 
-Likes don't show on Blinds 
-Choose to have a post on map or not 
-DM feature for Blinds with reveal button 
-- Including separate table for those maybe 
-The way posts show up on the map is not right / Humber example - spacing wrong, too likes focussed?
-View post from the map
-1 account = 1 like 
-New nav 
-Easier nav to the fun map at the start 
-Text on map styling, Search on Map in bottom nav
-Cluster on map too much 
-Deals not showing up on map
-Square on map for privacy 
-Missing refresh token for posts without re-login (fix RE login )
-Like, time and proximity based algorithm 
+CONSIDER Add city boundaries w/ geojson
+
+ALT Parse float to server query for long/lat
+ALT DM feature for Blinds with reveal button 
+ALT change profile name feature 
+ALT multi image posts
+
+NOTES
+
 Location issues: before a hard logon - account is identified but posts/deals = missing refresh token. Hard login works though (out and in) ALSO error loading posts. Same as a successful  "choose location" but flashes then shows deals.. connected?
 - need a better default experience (Lindy way, point below?) 
 - Reference Instacart location checking
-- Persistent refresh?
-Profile picture and profile styling
-- Change profile name feature
-Rando' meet feature 
-Events cluster, friend call out cluster.. now or in p1? Something to pay for..? (Stripe) p1 though
-- Party is one thing we could use...
-Search UI 
-Search Design 
-Add multiple photos to a post
-Lindy way, choose on map as a fallback, add this. 
-- How to treat feeds with no location even allowed 
+
 First time viewing; Error loading messages. Please try again later. (Msg or posts) - but when we nav back after another page it works
-Styling on create page 
-Fix change distance so it can be adjusted right in feed 
-UX design between all pages, check 
-Splash page 
-Parse float to server query for long/lat
-Add some UI action noises back 
-Points for posting a deal
-CONSIDER Add city boundaries w/ geojson
-Message notification design 
-Like UI design when you complete the action 
-Fix weather/traffic information - bring back in feed
-.error-message duplicate in map.html
-Better send msg design on home
-Add other cities to the geojson
-Chat + reply widget (it's resizing when you try and type) and overall function and design etc. 
-Widen post column for desktop 
-Design for multiple comments, 
-Sort comments by a new ranking? Likes or chronological?
-Logo 
-Home / Corporate page 
-Email notifications for user actions (maybe send grid free tier)
-Downvote notification ... but not shown, incorporated to Algo though 
-Page and comments and likes all jittering around 
-Delay on new posts persistent? DO posts still go to the bottom? Double check
-Content moderation tools 
-Ban list 
-Traffic tagging 
-Route real URL
-Pinned items based on popularity
-Auth page design
-Shared CSS file for all design items
-All debugging, device, browser testing
 
 
 FUTURE SCOPE 
