@@ -421,14 +421,26 @@
         }
 
         .popup-footer {
-            padding: 8px 12px;
-            border-top: 1px solid #eee;
-            background: #f9f9f9;
-            position: sticky;
-            bottom: 0;
             display: flex;
-            justify-content: space-between;
+            gap: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        .popup-footer button {
+            display: flex;
             align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+        .popup-footer button:hover {
+            color: #000;
         }
 
         .popup-stats .stat-item {
@@ -450,10 +462,6 @@
         .popup-stats .stat-item:active {
             transform: scale(0.95);
         }
-        .stat-icon {
-            font-size: 14px;
-            line-height: 1;
-        }
 
         .stat-item {
             display: flex;
@@ -463,8 +471,12 @@
         }
 
         .stat-count {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
+        }
+
+        .stat-icon {
+            font-size: 16px;
         }
 
         .post-date {
@@ -487,10 +499,6 @@
         .custom-popup .leaflet-popup-content {
             margin: 0;
             width: 300px !important;
-        }
-
-        .popup-footer button:hover {
-            background-color: #2b6cd4;
         }
 
         .custom-marker {
@@ -905,26 +913,29 @@
             });
         }
         function createPopupContent(post) {
-            // Format the date
-            const formattedDate = new Date(post.created_at).toLocaleDateString();
-            
-            // Create the popup content with different layouts for image vs text-only posts
-            let content = `
+            // Format the date with more detail
+            const date = new Date(post.created_at);
+            const formattedTime = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            return `
                 <div class="map-popup" data-post-id="${post.id}">
-                    <h3>${post.title || 'Untitled'}</h3>`;
-
-            // If there's an image, show it first
-            if (post.image_url) {
-                content += `
-                    <div class="popup-image-container">
-                        <img src="${post.image_url}" class="popup-image" alt="Post image">
-                    </div>`;
-            }
-
-            // Add the post text
-            content += `
+                    <div class="popup-header">
+                        <h3>${post.title || 'Untitled'}</h3>
+                        <small>${formattedTime}</small>
+                    </div>
+                    ${post.image_url ? `
+                        <div class="popup-image-container">
+                            <img src="${post.image_url}" class="popup-image" alt="Post image">
+                        </div>
+                    ` : ''}
                     <div class="popup-text">
-                        <p>${post.post || ''}</p>
+                        <p>${post.post || 'No content available'}</p>
                     </div>
                     <div class="popup-footer">
                         <div class="popup-stats">
@@ -934,26 +945,20 @@
                             </button>
                             <button class="stat-item comment-btn" onclick="toggleComments('${post.id}')">
                                 <span class="stat-icon">💬</span>
-                                <span class="stat-count">${post.comments || 0}</span>
+                                <span class="stat-count">${post.comment_count || 0}</span>
                             </button>
                         </div>
-                        <small class="post-date">Posted: ${formattedDate}</small>
                     </div>
-                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                    <div id="comments-${post.id}" class="comments-section" style="display: none;">
                         <div class="comments-list"></div>
-                        <div class="add-comment">
-                            <textarea placeholder="Add a comment..."></textarea>
-                            <button onclick="addComment('${post.id}', this.previousElementSibling.value)">
-                                Post
-                            </button>
+                        <div class="comment-form">
+                            <textarea placeholder="Add a comment..." rows="2"></textarea>
+                            <button onclick="addComment('${post.id}', this.previousElementSibling.value)">Post</button>
                         </div>
-                        <button class="load-more-comments" style="display: none;">
-                            Load More
-                        </button>
+                        <button class="load-more-comments" style="display: none;">Load More</button>
                     </div>
-                </div>`;
-
-            return content;
+                </div>
+            `;
         }
 
         let currentOpenPopup = null; // Add this at the top with other global variables
@@ -1157,6 +1162,7 @@
             try {
                 const comments = await loadComments(postId, page);
                 const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
+                const commentBtn = document.querySelector(`[data-post-id="${postId}"] .comment-btn .stat-count`);
                 
                 if (!commentsList) {
                     console.error('Comments list element not found for post:', postId);
@@ -1179,6 +1185,11 @@
                             </div>
                         `;
                     });
+                }
+                
+                // Update the comment count in the button
+                if (commentBtn) {
+                    commentBtn.textContent = comments.length;
                 }
                 
                 const loadMoreBtn = document.querySelector(`#comments-${postId} .load-more-comments`);

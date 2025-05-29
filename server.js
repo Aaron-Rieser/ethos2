@@ -1394,7 +1394,8 @@ app.get('/api/map-posts', async (req, res) => {
                 image_url,
                 created_at,
                 upvotes,
-                'post' as type
+                'post' as type,
+                (SELECT COUNT(*) FROM comments WHERE post_id = posts.id AND post_type = 'post') as comment_count
             FROM posts 
             WHERE 
                 latitude BETWEEN $1 AND $2 
