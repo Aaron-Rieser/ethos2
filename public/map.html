@@ -431,12 +431,25 @@
             align-items: center;
         }
 
-        .popup-stats {
+        .popup-stats .stat-item {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
             display: flex;
-            gap: 12px;
             align-items: center;
+            gap: 4px;
+            color: #666;
+            font-size: 14px;
+            transition: color 0.2s ease;
+        }
+        .popup-stats .stat-item:hover {
+            color: #3388ff;
         }
 
+        .popup-stats .stat-item:active {
+            transform: scale(0.95);
+        }
         .stat-icon {
             font-size: 14px;
             line-height: 1;
@@ -545,6 +558,106 @@
             width: 100%; /* Add this to ensure full width */
             text-align: left; /* Add this to ensure left alignment */
         }
+
+        .popup-actions {
+            display: flex;
+            gap: 12px;
+            padding: 8px 12px;
+            border-top: 1px solid #eee;
+            background: #f9f9f9;
+        }
+
+        .popup-actions button {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .popup-actions button:hover {
+            color: #3388ff;
+        }
+
+        .comments-section {
+            margin-top: 12px;
+            border-top: 1px solid #eee;
+            padding-top: 12px;
+        }
+
+        .comments-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .comment {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+        }
+
+        .comment strong {
+            font-size: 12px;
+            color: #333;
+        }
+
+        .comment p {
+            margin: 4px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .comment small {
+            color: #999;
+            font-size: 11px;
+        }
+
+        .add-comment {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .add-comment textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            resize: vertical;
+        }
+
+        .add-comment button {
+            background: #3388ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-comment button:hover {
+            background: #2b6cd4;
+        }
+
+        .load-more-comments {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+        }
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -593,6 +706,13 @@
                 display: flex;
                 align-items: center;
                 gap: 10px;
+            }
+            .comments-list {
+                max-height: 150px;
+            }
+            
+            .add-comment textarea {
+                height: 50px;
             }
         }
         }
@@ -785,17 +905,12 @@
             });
         }
         function createPopupContent(post) {
-            // Format the date to be more readable
-            const date = new Date(post.created_at);
-            const formattedDate = date.toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            });
-
+            // Format the date
+            const formattedDate = new Date(post.created_at).toLocaleDateString();
+            
             // Create the popup content with different layouts for image vs text-only posts
             let content = `
-                <div class="map-popup">
+                <div class="map-popup" data-post-id="${post.id}">
                     <h3>${post.title || 'Untitled'}</h3>`;
 
             // If there's an image, show it first
@@ -813,16 +928,28 @@
                     </div>
                     <div class="popup-footer">
                         <div class="popup-stats">
-                            <span class="stat-item">
+                            <button class="stat-item upvote-btn" onclick="handleUpvote('${post.id}')">
                                 <span class="stat-icon">⬆️</span>
                                 <span class="stat-count">${post.upvotes || 0}</span>
-                            </span>
-                            <span class="stat-item">
+                            </button>
+                            <button class="stat-item comment-btn" onclick="toggleComments('${post.id}')">
                                 <span class="stat-icon">💬</span>
                                 <span class="stat-count">${post.comments || 0}</span>
-                            </span>
+                            </button>
                         </div>
                         <small class="post-date">Posted: ${formattedDate}</small>
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}" style="display: none;">
+                        <div class="comments-list"></div>
+                        <div class="add-comment">
+                            <textarea placeholder="Add a comment..."></textarea>
+                            <button onclick="addComment('${post.id}', this.previousElementSibling.value)">
+                                Post
+                            </button>
+                        </div>
+                        <button class="load-more-comments" style="display: none;">
+                            Load More
+                        </button>
                     </div>
                 </div>`;
 
@@ -913,6 +1040,172 @@
             } finally {
                 hideLoadingIndicator();
                 abortController = null;
+            }
+        }
+
+        async function handleUpvote(postId) {
+            if (!auth0Client) {
+                console.error('Auth0 client not initialized');
+                return;
+            }
+            try {
+                // Get the auth token from Auth0 client
+                const token = await auth0Client.getTokenSilently();
+                
+                const response = await fetch(`/api/posts/${postId}/upvote`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to upvote');
+                
+                const updatedPost = await response.json();
+                const upvoteBtn = document.querySelector(`[data-post-id="${postId}"] .upvote-btn .stat-count`);
+                if (upvoteBtn) {
+                    upvoteBtn.textContent = updatedPost.upvotes;
+                }
+            } catch (error) {
+                console.error('Error upvoting:', error);
+            }
+        }
+
+        async function loadComments(postId, page = 1) {
+            try {
+                const token = await auth0Client.getTokenSilently();
+                console.log('Loading comments for post:', postId, 'page:', page);
+                
+                const response = await fetch(`/api/posts/${postId}/comments?page=${page}&limit=5`, {  // Changed from /comment to /comments
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Server response:', errorData);
+                    throw new Error(`Failed to load comments: ${response.status} ${response.statusText}`);
+                }
+                
+                const comments = await response.json();
+                console.log('Comments loaded:', comments);
+                return comments;
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                return [];
+            }
+        }
+
+        async function addComment(postId, commentText) {
+            if (!commentText.trim()) return;
+            
+            try {
+                const token = await auth0Client.getTokenSilently();
+                console.log('Adding comment to post:', postId, 'with text:', commentText);
+                
+                const response = await fetch('/api/comments', {  // Changed from /api/posts/${postId}/comment to /api/comments
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        post_id: postId,
+                        comment: commentText,
+                        post_type: 'post'  // Add post_type to specify this is a post comment
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Server response:', errorData);
+                    throw new Error(`Failed to add comment: ${response.status} ${response.statusText}`);
+                }
+                
+                const updatedPost = await response.json();
+                console.log('Comment added successfully:', updatedPost);
+                
+                // Update the comment count
+                const commentBtn = document.querySelector(`[data-post-id="${postId}"] .comment-btn .stat-count`);
+                if (commentBtn) {
+                    commentBtn.textContent = updatedPost.comments || 0;
+                }
+                
+                // Clear the textarea
+                const textarea = document.querySelector(`#comments-${postId} textarea`);
+                if (textarea) textarea.value = '';
+                
+                // Reload comments
+                await loadAndDisplayComments(postId, 1);
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                // Show error to user
+                const commentsSection = document.querySelector(`#comments-${postId}`);
+                if (commentsSection) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Failed to add comment. Please try again.';
+                    commentsSection.insertBefore(errorDiv, commentsSection.firstChild);
+                    setTimeout(() => errorDiv.remove(), 3000);
+                }
+            }
+        }
+
+        async function loadAndDisplayComments(postId, page) {
+            try {
+                const comments = await loadComments(postId, page);
+                const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
+                
+                if (!commentsList) {
+                    console.error('Comments list element not found for post:', postId);
+                    return;
+                }
+                
+                if (page === 1) {
+                    commentsList.innerHTML = '';
+                }
+                
+                if (comments.length === 0 && page === 1) {
+                    commentsList.innerHTML = '<div class="no-comments">No comments yet. Be the first to comment!</div>';
+                } else {
+                    comments.forEach(comment => {
+                        commentsList.innerHTML += `
+                            <div class="comment">
+                                <strong>${comment.username || 'Anonymous'}</strong>
+                                <p>${comment.comment}</p>
+                                <small>${new Date(comment.created_at).toLocaleDateString()}</small>
+                            </div>
+                        `;
+                    });
+                }
+                
+                const loadMoreBtn = document.querySelector(`#comments-${postId} .load-more-comments`);
+                if (loadMoreBtn) {
+                    if (comments.length === 5) {
+                        loadMoreBtn.style.display = 'block';
+                        loadMoreBtn.onclick = () => loadAndDisplayComments(postId, page + 1);
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error displaying comments:', error);
+                const commentsList = document.querySelector(`#comments-${postId} .comments-list`);
+                if (commentsList) {
+                    commentsList.innerHTML = '<div class="error-message">Failed to load comments. Please try again.</div>';
+                }
+            }
+        }
+
+        function toggleComments(postId) {
+            const commentsSection = document.querySelector(`#comments-${postId}`);
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+                loadAndDisplayComments(postId, 1);
+            } else {
+                commentsSection.style.display = 'none';
             }
         }
 
