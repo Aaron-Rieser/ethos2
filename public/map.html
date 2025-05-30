@@ -814,6 +814,9 @@
         let userMarker;
         let radiusCircle;
         let userLocation;
+        let isPopupOpen = false;
+        let popupOpenTime = 0;
+        const POPUP_COOLDOWN = 5000; // 5 seconds in milliseconds
 
         // Initialize the map centered on Toronto
         map = L.map('map').setView([43.66, -79.4460], 12.5);
@@ -963,6 +966,10 @@
                 minute: '2-digit',
                 hour12: true
             });
+
+            // Set popup state when content is created
+            isPopupOpen = true;
+            popupOpenTime = Date.now();
 
             return `
                 <div class="map-popup" data-post-id="${post.id}">
@@ -1266,27 +1273,38 @@
 
         // Add these event listeners to track popup state on mobile only
         map.on('popupopen', function(e) {
-            if (window.innerWidth <= 768) {
-                currentOpenPopup = e.popup;
-            }
+            isPopupOpen = true;
+            popupOpenTime = Date.now();
         });
 
         map.on('popupclose', function(e) {
-            if (window.innerWidth <= 768 && currentOpenPopup === e.popup) {
-                currentOpenPopup = null;
-            }
+            isPopupOpen = false;
         });
 
         // Modify the moveend event listener to be less aggressive on mobile
         map.on('moveend', () => {
-            if (window.innerWidth <= 768) {
-                // Only reload if no popup is open on mobile
-                if (!currentOpenPopup) {
-                    setTimeout(loadMapPosts, 300);
+            if (isPopupOpen) {
+                // If popup is open, check if cooldown period has passed
+                const timeSincePopupOpen = Date.now() - popupOpenTime;
+                if (timeSincePopupOpen < POPUP_COOLDOWN) {
+                    return; // Skip location update if within cooldown period
                 }
-            } else {
-                // Desktop behavior remains unchanged
-                setTimeout(loadMapPosts, 300);
+            }
+            setTimeout(loadMapPosts, 300);
+        });
+        map.on('click', function(e) {
+            if (e.originalEvent.target.classList.contains('marker-preview')) {
+                return;
+            }
+            isPopupOpen = false;
+            
+            if (userMarker) {
+                userMarker.setLatLng(e.latlng);
+                userLocation = [e.latlng.lat, e.latlng.lng];
+                if (radiusCircle) {
+                    const radius = document.querySelector('.range-slider').value;
+                    updateRadius(parseInt(radius));
+                }
             }
         });
         // Add event listener for map movements
@@ -1433,22 +1451,6 @@
         window.onload = function() {
             getUserLocation();
         }
-
-        map.on('click', function(e) {
-        // Only handle clicks not on markers
-        if (e.originalEvent.target.classList.contains('marker-preview')) {
-            return;
-        }
-
-        if (userMarker) {
-            userMarker.setLatLng(e.latlng);
-            userLocation = [e.latlng.lat, e.latlng.lng];
-            if (radiusCircle) {
-                const radius = document.querySelector('.range-slider').value;
-                updateRadius(parseInt(radius));
-            }
-        }
-    });
     </script>
 
     <!-- Turf.js for spatial analysis -->
