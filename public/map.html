@@ -697,10 +697,6 @@
             }
         }
         @media screen and (max-width: 768px) {
-            #map {
-                height: calc(100vh - 50px);
-                margin-top: 50px;
-            }
             .custom-marker {
                 width: 64px !important; /* Doubled from 32 to 64 */
                 height: 64px !important;
@@ -720,35 +716,12 @@
                 width: 250px !important;
             }
             
-            .map-popup {
-                max-width: 100%;
-                max-height: 70vh;
-            }
-            
-            .popup-text {
-                font-size: 13px;
-            }
-            
             .popup-stats {
                 gap: 8px;
             }
             
             .stat-item {
                 gap: 2px;
-            }
-            .range-control {
-                position: fixed;
-                top: 50px; /* Closer to nav on mobile only */
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1000;
-                background: white;
-                padding: 8px 16px;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                display: flex;
-                align-items: center;
-                gap: 10px;
             }
             .comments-list {
                 max-height: 150px;
@@ -763,6 +736,111 @@
             
             .submit-button {
                 margin-bottom: 20px; /* Add space between button and footer */
+            }
+            .range-control {
+                position: fixed;
+                top: 60px; /* Just below the header */
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 90%; /* Make it wider on mobile */
+                max-width: 400px;
+            }
+
+            /* Create a fixed container for popups */
+            .leaflet-popup {
+                position: fixed !important;
+                top: 120px !important; /* Below range control */
+                left: 2% !important;
+                right: 2% !important;
+                bottom: 70px !important; /* Above footer */
+                margin: 0 !important;
+                width: 96% !important;
+                max-width: none !important;
+                transform: none !important;
+            }
+
+            /* Adjust popup content for the new container */
+            .leaflet-popup-content-wrapper {
+                height: 100% !important;
+                border-radius: 12px !important;
+                padding: 0 !important;
+            }
+
+            .leaflet-popup-content {
+                height: 100% !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Hide the popup tip/arrow */
+            .leaflet-popup-tip {
+                display: none !important;
+            }
+
+            /* Adjust the map popup content */
+            .map-popup {
+                height: 100%;
+                max-height: none;
+                display: flex;
+                flex-direction: column;
+                padding: 12px;
+            }
+
+            .popup-header {
+                flex-shrink: 0;
+            }
+
+            .popup-image-container {
+                flex-shrink: 0;
+                margin: 8px 0;
+            }
+
+            .popup-image {
+                width: 100%;
+                height: auto;
+                max-height: 40vh; /* Limit image height */
+                object-fit: cover;
+                border-radius: 8px;
+            }
+
+            .popup-text {
+                flex: 1;
+                overflow-y: auto;
+                margin: 8px 0;
+                padding-right: 4px;
+            }
+
+            .popup-footer {
+                flex-shrink: 0;
+                margin-top: auto;
+                padding-top: 8px;
+                border-top: 1px solid #eee;
+            }
+
+            .comments-section {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-top: 1px solid #eee;
+                padding: 12px;
+                max-height: 40vh;
+                overflow-y: auto;
+            }
+
+            /* Adjust the map container to account for the new layout */
+            #map {
+                height: calc(100vh - 60px);
+                margin-top: 60px;
             }
         }
 
@@ -957,7 +1035,6 @@
             });
         }
         function createPopupContent(post) {
-            // Format the date
             const date = new Date(post.created_at);
             const formattedTime = date.toLocaleString('en-US', {
                 month: 'short',
@@ -967,7 +1044,6 @@
                 hour12: true
             });
 
-            // Set popup state when content is created
             isPopupOpen = true;
             popupOpenTime = Date.now();
 
@@ -1003,10 +1079,6 @@
                             <textarea placeholder="Add a comment..." rows="2"></textarea>
                             <button onclick="addComment('${post.id}', this.previousElementSibling.value)">Post</button>
                         </div>
-                    </div>
-                    <div class="scroll-indicator">
-                        <span class="scroll-arrow">↓</span>
-                        <span class="scroll-text">Scroll for comments</span>
                     </div>
                 </div>
             `;
@@ -1071,8 +1143,10 @@
                     });
                     
                     const popup = L.popup({
-                        maxWidth: isMobile ? 250 : 300,
-                        className: 'custom-popup'
+                        maxWidth: isMobile ? '96%' : 300,
+                        className: 'custom-popup',
+                        closeButton: true,
+                        autoPan: false // Prevent auto-panning on mobile
                     }).setContent(createPopupContent(post));
                     
                     marker.bindPopup(popup);

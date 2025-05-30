@@ -3,6 +3,9 @@ MVP___
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
 Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
+- remove the 'scroll for' button instead add a 'click' for 
+- popup on mobile needs to be no bigger then the screen area 
+- need a differentiator between POPUP and placing LOCATION - this is missing 
 On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
 Like UI - better
 Adjust change distance from IN feed
