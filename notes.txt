@@ -2,7 +2,7 @@ MVP___
 
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
-Display and interact with likes and comments from map itself
+Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
 On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
 Like UI - better
 Adjust change distance from IN feed
