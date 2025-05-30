@@ -1271,30 +1271,42 @@
             }
         }
 
-        // Add these event listeners to track popup state on mobile only
         map.on('popupopen', function(e) {
+            console.log('Popup opened');
             isPopupOpen = true;
             popupOpenTime = Date.now();
+            currentOpenPopup = e.popup;
         });
 
         map.on('popupclose', function(e) {
+            console.log('Popup closed');
             isPopupOpen = false;
+            if (currentOpenPopup === e.popup) {
+                currentOpenPopup = null;
+            }
         });
 
-        // Modify the moveend event listener to be less aggressive on mobile
         map.on('moveend', () => {
             if (isPopupOpen) {
                 // If popup is open, check if cooldown period has passed
                 const timeSincePopupOpen = Date.now() - popupOpenTime;
                 if (timeSincePopupOpen < POPUP_COOLDOWN) {
+                    console.log('Skipping map update - popup cooldown active');
                     return; // Skip location update if within cooldown period
                 }
             }
+            console.log('Updating map posts');
             setTimeout(loadMapPosts, 300);
         });
         map.on('click', function(e) {
+            // Only handle clicks not on markers
             if (e.originalEvent.target.classList.contains('marker-preview')) {
                 return;
+            }
+
+            // Close any open popup
+            if (currentOpenPopup) {
+                currentOpenPopup.closePopup();
             }
             isPopupOpen = false;
             
@@ -1306,10 +1318,6 @@
                     updateRadius(parseInt(radius));
                 }
             }
-        });
-        // Add event listener for map movements
-        map.on('moveend', () => {
-            setTimeout(loadMapPosts, 300);
         });
 
         // Initial load
