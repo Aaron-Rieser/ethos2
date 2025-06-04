@@ -909,14 +909,39 @@
 
         // Update the filter info display
         function updateFilterDisplay() {
-            const storedRadius = localStorage.getItem('selectedRadius') || '2';
+            // First check URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            let radius;
+            
+            if (urlParams.has('radius')) {
+                // If coming from map, use URL parameter
+                radius = urlParams.get('radius');
+                // Store it in localStorage for consistency
+                localStorage.setItem('selectedRadius', radius);
+            } else {
+                // If not coming from map, use localStorage
+                radius = localStorage.getItem('selectedRadius') || '2';
+            }
+            
             const filterInfo = document.getElementById('filter-info');
             
             if (filterInfo) {
                 // Update the radius display
                 const currentRadius = document.getElementById('current-radius');
                 if (currentRadius) {
-                    currentRadius.textContent = storedRadius;
+                    currentRadius.textContent = radius;
+                }
+                
+                // Update the range slider if it exists
+                const rangeSlider = document.querySelector('.range-slider');
+                if (rangeSlider) {
+                    rangeSlider.value = radius;
+                }
+                
+                // Update the range value display if it exists
+                const rangeValue = document.querySelector('.range-value');
+                if (rangeValue) {
+                    rangeValue.textContent = `${radius} km`;
                 }
                 
                 // Show the filter info section
