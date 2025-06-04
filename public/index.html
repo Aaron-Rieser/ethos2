@@ -1147,62 +1147,60 @@
                 
                 // Toggle range control visibility
                 if (changeRangeBtn && rangeControl) {
-                    const setRangeBtn = rangeControl.querySelector('.set-range-btn');
-                    let tempRadius = storedRadius; // Store temporary radius value
+                const setRangeBtn = rangeControl.querySelector('.set-range-btn');
+                let tempRadius = storedRadius; // Store temporary radius value
 
-                    changeRangeBtn.addEventListener('click', function() {
-                        const isVisible = rangeControl.style.display === 'block';
-                        rangeControl.style.display = isVisible ? 'none' : 'block';
-                        if (postsContainer) {
-                            postsContainer.classList.toggle('slider-visible', !isVisible);
-                        }
-                        
-                        // Update button text
-                        changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
-                        
-                        // Reset slider to current radius when opening
-                        if (!isVisible) {
-                            tempRadius = currentRadius.textContent;
-                            rangeSlider.value = tempRadius;
-                            rangeValue.textContent = `${tempRadius} km`;
-                        }
+                changeRangeBtn.addEventListener('click', function() {
+                    const isVisible = rangeControl.style.display === 'block';
+                    rangeControl.style.display = isVisible ? 'none' : 'block';
+                    if (postsContainer) {
+                        postsContainer.classList.toggle('slider-visible', !isVisible);
+                    }
+                    
+                    // Update button text
+                    changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
+                    
+                    // Reset slider to current radius when opening
+                    if (!isVisible) {
+                        tempRadius = currentRadius.textContent;
+                        rangeSlider.value = tempRadius;
+                        rangeValue.textContent = `${tempRadius} km`;
+                    }
+                });
+                
+                // Handle slider input (update both displays)
+                if (rangeSlider) {
+                    rangeSlider.addEventListener('input', function(e) {
+                        const newRadius = parseInt(e.target.value);
+                        if (rangeValue) rangeValue.textContent = `${newRadius} km`;
+                        if (currentRadius) currentRadius.textContent = newRadius; // Update the filter info display
+                        tempRadius = newRadius; // Store temporary value
                     });
-                    
-                    // Handle slider input (only update display, not feed)
-                    if (rangeSlider) {
-                        rangeSlider.addEventListener('input', function(e) {
-                            const newRadius = parseInt(e.target.value);
-                            if (rangeValue) rangeValue.textContent = `${newRadius} km`;
-                            tempRadius = newRadius; // Store temporary value
-                        });
-                    }
-                    
-                    // Handle set range button click
-                    if (setRangeBtn) {
-                        setRangeBtn.addEventListener('click', function() {
-                            // Update current radius display
-                            if (currentRadius) currentRadius.textContent = tempRadius;
-                            
-                            // Get current location from localStorage
-                            const lat = localStorage.getItem('selectedLat');
-                            const lng = localStorage.getItem('selectedLng');
-                            
-                            if (lat && lng) {
-                                // Store the new radius
-                                localStorage.setItem('selectedRadius', tempRadius);
-                                // Reload feed with new radius
-                                loadCombinedFeed(lat, lng, tempRadius);
-                            }
-                            
-                            // Hide the range control
-                            rangeControl.style.display = 'none';
-                            if (postsContainer) {
-                                postsContainer.classList.remove('slider-visible');
-                            }
-                            changeRangeBtn.textContent = 'Change Range';
-                        });
-                    }
                 }
+                
+                // Handle set range button click
+                if (setRangeBtn) {
+                    setRangeBtn.addEventListener('click', function() {
+                        // Get current location from localStorage
+                        const lat = localStorage.getItem('selectedLat');
+                        const lng = localStorage.getItem('selectedLng');
+                        
+                        if (lat && lng) {
+                            // Store the new radius
+                            localStorage.setItem('selectedRadius', tempRadius);
+                            // Reload feed with new radius
+                            loadCombinedFeed(lat, lng, tempRadius);
+                        }
+                        
+                        // Hide the range control
+                        rangeControl.style.display = 'none';
+                        if (postsContainer) {
+                            postsContainer.classList.remove('slider-visible');
+                        }
+                        changeRangeBtn.textContent = 'Change Range';
+                    });
+                }
+            }
 
                 // 2. Set up search drawer
                 const searchFooterBtn = document.getElementById('searchFooterBtn');
@@ -1331,31 +1329,6 @@
             }
         });
 
-        document.querySelector('.range-slider').addEventListener('input', function(e) {
-            const newRadius = parseInt(e.target.value);
-            document.querySelector('.range-value').textContent = `${newRadius} km`;
-            
-            // Get current location from localStorage
-            const lat = localStorage.getItem('selectedLat');
-            const lng = localStorage.getItem('selectedLng');
-            
-            if (lat && lng) {
-                // Store the new radius
-                localStorage.setItem('selectedRadius', newRadius);
-                // Reload feed with new radius
-                loadCombinedFeed(lat, lng, newRadius);
-            }
-        });
-
-        // Initialize range slider with stored value
-        window.addEventListener('load', function() {
-            const storedRadius = localStorage.getItem('selectedRadius') || 1;
-            const rangeSlider = document.querySelector('.range-slider');
-            const rangeValue = document.querySelector('.range-value');
-            
-            rangeSlider.value = storedRadius;
-            rangeValue.textContent = `${storedRadius} km`;
-        });
         // Create post element function, updated jan 29 for free
         function createPostElement(item) {
             const postDiv = document.createElement('div');
