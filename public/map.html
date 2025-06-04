@@ -1459,6 +1459,18 @@
         window.onload = function() {
             getUserLocation();
         }
+        function showFeed() {
+            if (!userLocation) {
+                showLocationError('Please select a location first');
+                return;
+            }
+            
+            const radius = document.querySelector('.range-slider').value;
+            const [lat, lng] = userLocation;
+            
+            // Redirect to index.html with location parameters
+            window.location.href = `/index.html?lat=${lat}&lng=${lng}&radius=${radius}`;
+        }
     </script>
 
     <!-- Turf.js for spatial analysis -->
@@ -1472,7 +1484,7 @@
     </div>
     
     <div class="bottom-nav">
-        <a href="index.html" class="nav-btn">Home</a>
+        <a href="index.html" class="nav-btn">Feed view</a>
         <a href="create.html" class="nav-btn">New post</a>
         <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
     </div>
