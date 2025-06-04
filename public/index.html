@@ -909,15 +909,14 @@
 
         // Update the filter info display
         function updateFilterDisplay() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const radius = urlParams.get('radius') || '2';
+            const storedRadius = localStorage.getItem('selectedRadius') || '2';
             const filterInfo = document.getElementById('filter-info');
             
             if (filterInfo) {
                 // Update the radius display
                 const currentRadius = document.getElementById('current-radius');
                 if (currentRadius) {
-                    currentRadius.textContent = radius;
+                    currentRadius.textContent = storedRadius;
                 }
                 
                 // Show the filter info section
@@ -1043,15 +1042,20 @@
                     });
                 }
 
-                // Update the radius display
-                const radiusInfo = document.querySelector('.radius-info');
-                if (radiusInfo) {
-                    radiusInfo.textContent = `Showing posts within ${selectedRadius}km`;
-                    radiusInfo.style.display = 'block';
+                const currentRadius = document.getElementById('current-radius');
+                if (currentRadius) {
+                    currentRadius.textContent = selectedRadius;
                 }
 
-                // Update filter display
-                updateFilterDisplay();
+                // Also update the range slider if it exists
+                const rangeSlider = document.querySelector('.range-slider');
+                const rangeValue = document.querySelector('.range-value');
+                if (rangeSlider) {
+                    rangeSlider.value = selectedRadius;
+                    if (rangeValue) {
+                        rangeValue.textContent = `${selectedRadius} km`;
+                    }
+                }
 
             } catch (error) {
                 console.error('Error loading combined feed:', error);
