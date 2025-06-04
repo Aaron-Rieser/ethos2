@@ -703,6 +703,39 @@
             background: rgba(0, 0, 0, 0.5);
             z-index: -1;
         }
+        .filter-info {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            display: block; /* Changed from 'none' to 'block' */
+        }
+
+        .range-control {
+            transition: all 0.3s ease;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .range-slider {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        .range-value {
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Adjust posts container margin when slider is visible */
+        #posts-container {
+            margin-top: 20px;
+        }
+
+        #posts-container.slider-visible {
+            margin-top: 100px;
+        }
 
         @media screen and (max-width: 768px) {
             body {
@@ -850,7 +883,18 @@
                     <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
                         Within <span id="current-radius">2</span>km
                     </span>
-                    <a href="/map.html" class="change-range-btn" style="margin-left: 10px; color: #3388ff;">Change Range</a>
+                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer;">Change Range</button>
+                    
+                    <div class="range-control" style="display: none; margin-top: 10px;">
+                        <input type="range" 
+                               class="range-slider" 
+                               min="1" 
+                               max="10" 
+                               value="2" 
+                               step="1">
+                        <span class="range-value">2 km</span>
+                        <button class="set-range-btn" style="margin-left: 10px; padding: 5px 10px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Range</button>
+                    </div>
                 </div>
 
                 <div id="posts-container">
@@ -897,8 +941,18 @@
         }
         
         // replacing with radius based loading 
+        let isLoading = false;
+        let loadTimeout;
+
         async function loadCombinedFeed(lat = null, lng = null, radius = null) {
+            if (isLoading) {
+                console.log('Feed load already in progress, skipping');
+                return;
+            }
+
             console.log('loadCombinedFeed called with:', { lat, lng, radius });
+            isLoading = true;
+
             try {
                 let latitude, longitude, selectedRadius;
 
@@ -920,6 +974,9 @@
                     selectedRadius = radius || localStorage.getItem('selectedRadius') || 2;
                 }
 
+                // Validate and normalize radius
+                selectedRadius = Math.min(Math.max(parseInt(selectedRadius), 1), 10);
+
                 // Only show location prompt if we have no coordinates from any source
                 if (!latitude || !longitude) {
                     console.log('No location coordinates available');
@@ -936,7 +993,9 @@
                 postsContainer.innerHTML = '<div class="loading">Loading posts...</div>';
 
                 // Prepare headers
-                const headers = {};
+                const headers = {
+                    'Accept': 'application/json'
+                };
                 if (auth0Client && await auth0Client.isAuthenticated()) {
                     try {
                         const token = await auth0Client.getTokenSilently();
@@ -962,8 +1021,9 @@
                 clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to fetch content');
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    console.error('Server response error:', errorData);
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
                 }
 
                 const allContent = await response.json();
@@ -1016,7 +1076,17 @@
                             </button>
                         </div>`;
                 }
+            } finally {
+                isLoading = false;
             }
+        }
+
+        // Add debounced version for radius changes
+        function debouncedLoadFeed(lat, lng, radius) {
+            clearTimeout(loadTimeout);
+            loadTimeout = setTimeout(() => {
+                loadCombinedFeed(lat, lng, radius);
+            }, 300);
         }
 
         // Add a retry function
@@ -1059,11 +1129,79 @@
                 // Initialize Auth0 first
                 await initializeAuth0();
 
-                // 1. Set up bottom nav
-                const bottomNav = document.querySelector('.bottom-nav');
-                if (bottomNav) {
-                    bottomNav.style.opacity = '1';
-                    bottomNav.style.visibility = 'visible';
+                // Add range slider functionality
+                const changeRangeBtn = document.querySelector('.change-range-btn');
+                const rangeControl = document.querySelector('.range-control');
+                const postsContainer = document.getElementById('posts-container');
+                const currentRadius = document.getElementById('current-radius');
+                const rangeSlider = document.querySelector('.range-slider');
+                const rangeValue = document.querySelector('.range-value');
+                
+                // Initialize with stored values
+                const storedRadius = localStorage.getItem('selectedRadius') || 2;
+                if (currentRadius) currentRadius.textContent = storedRadius;
+                if (rangeSlider) {
+                    rangeSlider.value = storedRadius;
+                    if (rangeValue) rangeValue.textContent = `${storedRadius} km`;
+                }
+                
+                // Toggle range control visibility
+                if (changeRangeBtn && rangeControl) {
+                    const setRangeBtn = rangeControl.querySelector('.set-range-btn');
+                    let tempRadius = storedRadius; // Store temporary radius value
+
+                    changeRangeBtn.addEventListener('click', function() {
+                        const isVisible = rangeControl.style.display === 'block';
+                        rangeControl.style.display = isVisible ? 'none' : 'block';
+                        if (postsContainer) {
+                            postsContainer.classList.toggle('slider-visible', !isVisible);
+                        }
+                        
+                        // Update button text
+                        changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
+                        
+                        // Reset slider to current radius when opening
+                        if (!isVisible) {
+                            tempRadius = currentRadius.textContent;
+                            rangeSlider.value = tempRadius;
+                            rangeValue.textContent = `${tempRadius} km`;
+                        }
+                    });
+                    
+                    // Handle slider input (only update display, not feed)
+                    if (rangeSlider) {
+                        rangeSlider.addEventListener('input', function(e) {
+                            const newRadius = parseInt(e.target.value);
+                            if (rangeValue) rangeValue.textContent = `${newRadius} km`;
+                            tempRadius = newRadius; // Store temporary value
+                        });
+                    }
+                    
+                    // Handle set range button click
+                    if (setRangeBtn) {
+                        setRangeBtn.addEventListener('click', function() {
+                            // Update current radius display
+                            if (currentRadius) currentRadius.textContent = tempRadius;
+                            
+                            // Get current location from localStorage
+                            const lat = localStorage.getItem('selectedLat');
+                            const lng = localStorage.getItem('selectedLng');
+                            
+                            if (lat && lng) {
+                                // Store the new radius
+                                localStorage.setItem('selectedRadius', tempRadius);
+                                // Reload feed with new radius
+                                loadCombinedFeed(lat, lng, tempRadius);
+                            }
+                            
+                            // Hide the range control
+                            rangeControl.style.display = 'none';
+                            if (postsContainer) {
+                                postsContainer.classList.remove('slider-visible');
+                            }
+                            changeRangeBtn.textContent = 'Change Range';
+                        });
+                    }
                 }
 
                 // 2. Set up search drawer
@@ -1191,6 +1329,32 @@
             } catch (error) {
                 console.error('Error in DOMContentLoaded:', error);
             }
+        });
+
+        document.querySelector('.range-slider').addEventListener('input', function(e) {
+            const newRadius = parseInt(e.target.value);
+            document.querySelector('.range-value').textContent = `${newRadius} km`;
+            
+            // Get current location from localStorage
+            const lat = localStorage.getItem('selectedLat');
+            const lng = localStorage.getItem('selectedLng');
+            
+            if (lat && lng) {
+                // Store the new radius
+                localStorage.setItem('selectedRadius', newRadius);
+                // Reload feed with new radius
+                loadCombinedFeed(lat, lng, newRadius);
+            }
+        });
+
+        // Initialize range slider with stored value
+        window.addEventListener('load', function() {
+            const storedRadius = localStorage.getItem('selectedRadius') || 1;
+            const rangeSlider = document.querySelector('.range-slider');
+            const rangeValue = document.querySelector('.range-value');
+            
+            rangeSlider.value = storedRadius;
+            rangeValue.textContent = `${storedRadius} km`;
         });
         // Create post element function, updated jan 29 for free
         function createPostElement(item) {
