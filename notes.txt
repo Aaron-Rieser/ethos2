@@ -2,8 +2,9 @@ MVP___
 
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
-Adjust change distance from IN feed
--- FINAL -- change range at bottom - title MAP, button on map FIX 
+Homepage should be the map
+- Nav to map present easier
+When you come from Map, can't change range 
 Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
 - remove the 'scroll for' button instead add a 'click' for 
 - popup on mobile needs to be no bigger then the screen area 
@@ -15,8 +16,6 @@ New format, recommendations, questions (and posts? Gripes? History?)
 Search is broken 
 - Fix Search UI
 Delete post feature 
-Homepage should be the map
-- Nav to map present easier
 Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
 Persistent location issues on chrome/ etc. debug all location
 Manual select location on map
@@ -39,7 +38,6 @@ Ensure consistent UX / Nav between all pages
 Content moderation tools and notification - ban lists 
 Widen posts for desktop, better look at them?
 1 account = 1 like
-Splash page intro, with note on Map usage
 MEET Wilbur, J.Borg, D.McIntyre
 Wipe all content 
 GTM plan

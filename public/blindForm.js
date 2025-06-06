@@ -45,7 +45,7 @@ document.getElementById('blindForm').addEventListener('submit', async function(e
             const errorData = await response.text();
             throw new Error(errorData || 'Failed to submit blind');
         }
-        window.location.href = 'index.html';
+        window.location.href = 'feed.html';
 
     } catch (error) {
         console.error('Blind submission error:', error);

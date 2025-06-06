@@ -71,7 +71,7 @@ document.getElementById('freeForm').addEventListener('submit', async function(e)
         }
 
         // Redirect on success
-        window.location.href = 'index.html';
+        window.location.href = 'feed.html';
         
     } catch (error) {
         console.error('Free submission error:', error);

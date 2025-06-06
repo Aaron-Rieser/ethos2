@@ -348,7 +348,7 @@
 <body>
     <header class="sticky-header">
         <div class="header-content">
-            <a href="/index.html" style="text-decoration: none; color: inherit;">
+            <a href="/feed.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
             <div class="auth-section">
@@ -566,7 +566,7 @@
         }
 
         function viewReference(type, id) {
-            window.location.href = `/index.html?view=${type}&id=${id}`;
+            window.location.href = `/feed.html?view=${type}&id=${id}`;
         }
 
         // Load messages when page loads
@@ -575,7 +575,7 @@
                 await initializeAuth0();
                 const isAuthenticated = await auth0Client.isAuthenticated();
                 if (!isAuthenticated) {
-                    window.location.href = '/index.html';
+                    window.location.href = '/feed.html';
                     return;
                 }
                 await loadMessages();

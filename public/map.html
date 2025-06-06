@@ -773,7 +773,7 @@
     
     <header class="sticky-header">
         <div class="header-content">
-            <a href="/index.html" style="text-decoration: none; color: inherit;">
+            <a href="/feed.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
             <div class="auth-section">
@@ -1468,8 +1468,8 @@
             const radius = document.querySelector('.range-slider').value;
             const [lat, lng] = userLocation;
             
-            // Redirect to index.html with location parameters
-            window.location.href = `/index.html?lat=${lat}&lng=${lng}&radius=${radius}`;
+            // Redirect to feed.html with location parameters
+            window.location.href = `/feed.html?lat=${lat}&lng=${lng}&radius=${radius}`;
         }
     </script>
 
@@ -1484,7 +1484,7 @@
     </div>
     
     <div class="bottom-nav">
-        <a href="index.html" class="nav-btn">Feed view</a>
+        <a href="feed.html" class="nav-btn">Feed view</a>
         <a href="create.html" class="nav-btn">New post</a>
         <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
     </div>

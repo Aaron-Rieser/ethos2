@@ -113,7 +113,7 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
-        window.location.href = 'index.html';
+        window.location.href = 'feed.html';
 
     } catch (error) {
         console.error('Error:', error);

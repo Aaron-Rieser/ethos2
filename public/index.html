@@ -3,212 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="fonts.css">   
-
-    <title>gumshoe</title>
+    <title>Gumshoe - Explore Your City</title>
+    <link rel="stylesheet" href="fonts.css">
     <style>
-        .post-card {
-            border: 1px solid #ddd;
-            margin: 10px;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        .username {
-            font-weight: bold;
-        }
-        .neighbourhood {
-            color: #666;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .filter-info {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #f0f0f0;
-            display: none;
-        }
-        .clear-filter {
-            margin-left: 10px;
-            color: blue;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .no-posts-message {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
-        }
-        .filter-info {
-            margin: 10px 0;
-        }
-        .clear-filter {
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: #3388ff; /* Light blue */
-        display: flex;
-        justify-content: space-between;
-        align-items: stretch;
-        z-index: 1000;
-        height: 60px;
-        box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        opacity: 1;
-        visibility: visible;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
+        :root {
+            --primary-blue: #4a90e2;
+            --dark-blue: #2c3e50;
+            --white: #ffffff;
+            --light-gray: #f5f6fa;
         }
 
-        .bottom-nav .nav-btn {
-        flex: 1 1 0;
-        background: none;
-        border: none;
-        color: #fff;
-        font-family: 'Sixtyfour', system-ui, sans-serif;
-        font-size: 1em;
-        font-weight: 600;
-        text-align: center;
-        text-decoration: none;
-        padding: 0;
-        margin: 0;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        border-right: 2px solid #fff;
-        transition: background 0.2s;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .bottom-nav .nav-btn:last-child {
-        border-right: none;
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-blue);
+            line-height: 1.6;
         }
 
-        .bottom-nav .nav-btn:hover,
-        .bottom-nav .nav-btn:focus {
-        background: rgba(255,255,255,0.12);
-        outline: none;
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
         }
 
-        @media (max-width: 768px) {
-        .bottom-nav {
-            height: 50px;
-        }
-        .bottom-nav .nav-btn {
-            font-size: 0.95em;
-        }
-        }
-
-        /* Adjust main content to not get hidden behind the nav */
-        #posts-container {
-            margin-bottom: 60px;  /* Adds space above the nav bar */
-        }
-        .feed-item {
-            border: 1px solid #ddd;
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        
-        .source-tag {
-            background-color: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.8em;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-        
-        .feed-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin: 8px 0;
-        }
-        
-        .feed-content {
-            margin: 10px 0;
-        }
-        
-        .feed-footer {
+        nav {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .feed-footer button {
-            margin-right: 4px;
+        .site-title {
+            margin: 0;
+            font-size: 24px;
+            color: #000;  /* Add this line to match the black color used in other pages */
         }
 
-        .upvote-count {
-            margin-left: auto;
-        }
-        
-        .feed-media img {
-            max-width: 100%;
-            height: auto;
-            margin: 10px 0;
-        }
-        .weather-card {
-            background-color: #f8f9fa;
-            margin: 10px 0;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #3388ff;
-        }
-
-        .weather-info {
-            font-size: 1.1em;
-            line-height: 1.4;
-            margin: 8px 0;
-        }
-
-        .temperature {
-            font-weight: bold;
-            color: #3388ff;
-        }
-        .weather-attribution {
-            font-size: 0.8em;
-            color: #666;
-            margin-top: 8px;
-        }
-        .road-alerts-card {
-            background-color: #fff8f8;
-            border-left: 4px solid #ff4444;
-        }
-
-        .alerts-count {
-            font-size: 1.1em;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .road-alert {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .road-alert:last-child {
-            border-bottom: none;
-        }
-
-        .alerts-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .error-message {
-        color: #d32f2f;
-        margin: 10px 0;
-        padding: 8px;
-        background-color: #ffebee;
-        border-radius: 4px;
+        .auth-buttons button {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
         .auth-container {
@@ -234,1585 +81,209 @@
             background-color: #f44336;
             color: white;
         }
-
-        #userProfile {
-            margin-left: 10px;
-            font-style: italic;
-        }
-        .post {
-            margin: 20px auto;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            text-align: left;
-        }
-        .post-content img {
-            display: block;
-            margin: 0 auto 15px auto;
-            max-width: 100%;
-        }
-
-        .post-content p {
-            display: block;
-            margin-top: 15px;
-            text-align: left;
-        }
-        .sticky-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 1000;
-            padding: 10px 0;
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-        }
-
-        .site-title {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .auth-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #3388ff;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-        .main-content {
-            margin-top: 60px; /* Adjust based on header height */
-            padding: 20px 15px;
-        }
-
-        /* Update existing auth container styles */
-        .auth-container {
-            margin-bottom: 0;
-        }
-
-        .comments-section {
-            margin-top: 15px;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-
-        .comment {
-            position: relative;
-            padding-left: 0;
-            margin-bottom: 8px;
-        }
-
-        .comment-user {
-            font-weight: bold;
-            color: #666;
-            display: inline;
-        }
-
-        .comment-text {
-            color: #333;
-            display: inline;
-            margin-left: 8px;
-        }
-
-        /* Add this to handle long words */
-        .comment-text, .comment-user {
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            max-width: 100%;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .comment-input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .comment-form button {
-            padding: 8px 16px;
-            background-color: #3388ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .comment-form button:hover {
-            background-color: #2266dd;
-        }
-
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .user-circle {
-            cursor: pointer;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%; /* Position below the user circle */
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1000;
-        }
-
-        .dropdown-content.show {
-            display: block !important; /* Use !important to override any other display settings */
-        }
-
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .show {
-            display: block;
-        }
-        .dropdown-content .user-email {
-            display: block;
-            padding: 12px 16px;
-            color: #666;
-            border-bottom: 1px solid #eee;
-        }
-        .free-header {
-            position: relative;
-            margin-bottom: 10px;
-            min-height: 24px;
-        }
-        .free-tag {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #3388ff;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px 0 12px 0;
-            font-size: 0.9em;
-            font-weight: bold;
-            z-index: 2;
-            display: inline-block;
-        }
-
-        .free-price {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #3388ff;
-        }
-
-        .post-card.free {
-            border: 2px solid #3388ff;
-            box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
-        }
-        .upvote-button {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.2em;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .upvote-button:focus {
-            outline: none;
-        }
-
-        /* Optional: add a subtle hover effect */
-        .upvote-button:hover {
-            opacity: 0.8;
-        }
-
-        .downvote-button {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.2em;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .downvote-button:focus {
-            outline: none;
-        }
-
-        .downvote-button:hover {
-            opacity: 0.8;
-        }
-
-        .comment-button {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.2em;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .comment-button:focus {
-            outline: none;
-        }
-
-        .comment-button:hover {
-            opacity: 0.8;
-        }
-
-        .comment-form {
-            display: none; /* Hide by default */
-        }
-        .post-title {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-
-        .free .post-title {
-            margin-top: 10px;
-        }
-        .message-button {
-            background: none;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.2em;
-            min-width: 44px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .message-button:focus {
-            outline: none;
-        }
-
-        .message-button:hover {
-            opacity: 0.8;
-        }
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: red;
-            color: white;
-            border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
-            display: none;
-        }
-
-        .user-circle {
-            position: relative; /* Add this to position the badge */
-        }
-        #locationNotification {
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            max-width: 90%;
-            width: 400px;
-        }
-        
-        #locationNotification a {
-            margin-top: 10px;
-            display: inline-block;
-        }
-        .search-container {
-            text-align: center;
-            margin: 10px 0;
-        }
-
-        .search-toggle {
-            background-color: #3388ff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        #searchBox {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #searchInput {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 200px;
-        }
-
-        #searchButton {
-            background-color: #3388ff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .blind {
-            border-left: 4px solid #ff69b4;
-        }
-
-        .blind-header {
-            margin-bottom: 10px;
-        }
-
-        .blind-tag {
-            background-color: #ff69b4;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px 0 12px 0;
-            display: inline-block;
-            font-size: 0.9em;
-        }
-
-        .blind .post-content {
-            background-color: #fff0f5;
-        }
-        .top-actions {
-        display: flex;
-        align-items: center;
-        gap: 20px; /* space between the two */
-        justify-content: center; /* center horizontally */
-        margin-bottom: 20px;
-        }
-
-        .top-actions .search-container {
-        margin-top: 0 !important; /* remove the top margin so it's aligned */
-        }
-        #searchDrawer {
-            position: fixed;
-            bottom: 60px; /* Height of the bottom nav */
-            left: 0;
-            width: 100%;
-            height: 60vh;
-            background: white;
-            z-index: 999;
-            display: none;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-        }
-
-        #searchDrawer.active {
+        /* Main Content Styles */
+        main {
+            padding-top: 80px; /* Account for fixed header */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transform: translateY(0);
-        }
-
-        #searchDrawer input[type="text"] {
-            width: 80%;
-            max-width: 500px;
-            padding: 15px;
-            font-size: 1.2em;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        /* New container for buttons */
-        #searchDrawer .button-container {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        #searchDrawer button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1em;
-        }
-
-        #searchButtonDrawer {
-            background-color: #3388ff;
-            color: white;
-        }
-
-        #closeSearchDrawer {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-        /* Adjust overlay to cover the entire area */
-        #searchDrawer::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 60px;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: -1;
-        }
-        .filter-info {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #f0f0f0;
-            display: block; /* Changed from 'none' to 'block' */
-        }
-
-        .range-control {
-            transition: all 0.3s ease;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .range-slider {
-            width: 200px;
-            margin: 0 10px;
-        }
-
-        .range-value {
-            min-width: 60px;
             text-align: center;
         }
 
-        /* Adjust posts container margin when slider is visible */
-        #posts-container {
-            margin-top: 20px;
+        .welcome-section {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        #posts-container.slider-visible {
-            margin-top: 100px;
+        .welcome-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 2rem;
         }
 
-        @media screen and (max-width: 768px) {
-            body {
-                overflow-x: hidden;
-                margin: 0;
-                padding: 0;
-            }
-
-            .post {
-                margin: 20px 0;
-                padding: 0;
-                border: none;
-                width: 100%;
-            }
-
-            .post-content {
-                margin: 0;
-                padding: 0;  /* Remove padding here */
-                width: 100%;
-            }
-
-            .post-content p {
-                margin: 0 0 15px 0;
-                padding: 0 15px;  /* Move padding to paragraph */
-            }
-
-            .post-title {
-                margin: 0 0 10px 0;  /* Reset margins */
-            }
-
-            /* Remove any individual padding that might be causing misalignment */
-            .post-content > * {
-                padding-left: 0;
-                padding-right: 0;
-            }
-            .post-text {
-                margin-bottom: 10px;
-            }
-
-            .post-content img {
-                width: 100vw !important;  /* Force full viewport width */
-                max-width: none !important;  /* Override any max-width */
-                margin-left: -15px;  /* Compensate for container padding */
-                margin-right: -15px;
-                padding: 0;
-                display: block;
-            }
-            .post-card.free {
-                border: 2px solid #3388ff;
-                box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
-                margin: 20px 15px 20px -5px;  /* keeps the extended box */
-                padding: 0 5px;  /* Add inner spacing from the border */
-            }
-            .header-content {
-                padding: 0 10px;
-            }
-
-            .main-content {
-                margin-top: 30px; /* Adjust based on header height */
-            }
-
-            .site-title,
-            .main-title,
-            .neighbourhood-select,
-            .create-post-link {
-                padding-left: 15px;
-                font-size: 1.2em; /* Increase size by 20% */
-            }
-            .header-links,
-            .nav-links {
-                padding-left: 15px;
-            }
-            nav a {
-                display: block;
-                padding-left: 15px;
-                margin-bottom: 10px;
-            }
-
-            /* If you want to maintain the same spacing as the title */
-            nav {
-                padding-left: 0; /* Remove any existing nav padding */
-                margin-top: 15px; /* Add some space after the title */
-            }
-            .upvote-button,
-            .downvote-button,
-            .comment-button 
-            .message-button {
-                padding: 8px 4px;
-                margin-left: -15px; 
-                min-width: 40px; /* Slightly smaller touch targets but still accessible */
-                min-height: 40px;
-                margin-top: 6px;
-            }
-
-            .feed-footer {
-                padding: 0 10px; /* Slightly reduced padding on mobile */
-            }
-
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;  /* Increased gap between buttons */
+            max-width: 400px;
+            margin: 0 auto;
         }
 
-        @media screen and (min-width: 769px) {
-            .post {
-                max-width: 600px;
-                margin: 20px auto;
+        .action-button {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 1.2rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+            font-family: 'Sixtyfour', sans-serif;
+            width: 100%;  /* Ensure all buttons have same width */
+            min-height: 60px;  /* Ensure consistent height */
+            line-height: 1.2;  /* Adjust line height for better text alignment */
+            white-space: nowrap;  /* Prevent text wrapping */
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            background-color: #357abd;
+        }
+
+        .signature {
+            margin-top: 2rem;
+            font-style: italic;
+            color: var(--dark-blue);
+            font-size: 1.1rem;
+        }
+
+        /* Search Modal Styles */
+        .search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .search-modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary-blue);
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .close-search {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--white);
+        }
+
+        @media (max-width: 768px) {
+            .welcome-text {
+                font-size: 2rem;
             }
-            
-            .post-content img {
-                width: 100%;
-                margin: 0 auto 15px auto;
+
+            .action-button {
+                padding: 1rem 1.5rem;
+                font-size: 1.1rem;
             }
         }
     </style>
-        <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
 <body>
-    <header class="sticky-header">
-        <div class="header-content">
-            <a href="/index.html" style="text-decoration: none; color: inherit;">
+    <header>
+        <nav>
+            <a href="index.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
-            <div class="auth-section">
-                <button id="login">Log In</button>
-                <div class="user-dropdown">
-                    <div id="userInitial" class="user-circle" style="display: none;"></div>
-                    <div class="dropdown-content">
-                        <span class="user-email"></span>
-                        <a href="/account.html">My Account & Messages</a>
-                        <button id="logout">Logout</button>
-                    </div>
-                </div>
+            <div class="auth-buttons">
+                <button id="login-button">Login</button>
+                <button id="logout-button" style="display: none;">Logout</button>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <main class="main-content">
-
-        <div style="display: flex; justify-content: center; min-height: 100vh;">
-            <div style="text-align: center;">
-
-                <div id="loginPrompt" class="error-message" style="display: none;">
-                    Please log in to create a post
-                </div>
-                
-                <div id="filter-info" class="filter-info">
-                    <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
-                        Within <span id="current-radius">2</span>km
-                    </span>
-                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer;">Change Range</button>
-                    
-                    <div class="range-control" style="display: none; margin-top: 10px;">
-                        <input type="range" 
-                               class="range-slider" 
-                               min="1" 
-                               max="10" 
-                               value="2" 
-                               step="1">
-                        <span class="range-value">2 km</span>
-                        <button class="set-range-btn" style="margin-left: 10px; padding: 5px 10px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Range</button>
-                    </div>
-                </div>
-
-                <div id="posts-container">
-                    <!-- Posts will be inserted here -->
-                </div>
+    <main>
+        <div class="welcome-section">
+            <h1 class="welcome-text">Welcome to Gumshoe. Explore your city in a whole new way</h1>
+            <div class="action-buttons">
+                <a href="map.html" class="action-button">Map View</a>
+                <a href="feed.html" class="action-button">Feed View</a>
+                <button class="action-button" id="search-button">Search</button>
             </div>
+            <p class="signature">Happy trails :)</p>
         </div>
-
     </main>
 
-    <script>
-
-        // Update the filter info display
-        function updateFilterDisplay() {
-            // First check URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            let radius;
-            
-            if (urlParams.has('radius')) {
-                // If coming from map, use URL parameter
-                radius = urlParams.get('radius');
-                // Store it in localStorage for consistency
-                localStorage.setItem('selectedRadius', radius);
-            } else {
-                // If not coming from map, use localStorage
-                radius = localStorage.getItem('selectedRadius') || '2';
-            }
-            
-            const filterInfo = document.getElementById('filter-info');
-            
-            if (filterInfo) {
-                // Update the radius display
-                const currentRadius = document.getElementById('current-radius');
-                if (currentRadius) {
-                    currentRadius.textContent = radius;
-                }
-                
-                // Update the range slider if it exists
-                const rangeSlider = document.querySelector('.range-slider');
-                if (rangeSlider) {
-                    rangeSlider.value = radius;
-                }
-                
-                // Update the range value display if it exists
-                const rangeValue = document.querySelector('.range-value');
-                if (rangeValue) {
-                    rangeValue.textContent = `${radius} km`;
-                }
-                
-                // Show the filter info section
-                filterInfo.style.display = 'block';
-            }
-        }
-
-        function isWithinRange(postLat, postLng, userLat, userLng, radius) {
-            // Use the Haversine formula to calculate distance
-            const R = 6371; // Earth's radius in km
-            const dLat = (postLat - userLat) * Math.PI / 180;
-            const dLon = (postLng - userLng) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(userLat * Math.PI / 180) * Math.cos(postLat * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            const distance = R * c;
-            
-            return distance <= radius;
-        }
-        
-        // replacing with radius based loading 
-        let isLoading = false;
-        let loadTimeout;
-
-        async function loadCombinedFeed(lat = null, lng = null, radius = null) {
-            if (isLoading) {
-                console.log('Feed load already in progress, skipping');
-                return;
-            }
-
-            console.log('loadCombinedFeed called with:', { lat, lng, radius });
-            isLoading = true;
-
-            try {
-                let latitude, longitude, selectedRadius;
-
-                // First check URL parameters (for map clicks)
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('lat') && urlParams.has('lng')) {
-                    latitude = urlParams.get('lat');
-                    longitude = urlParams.get('lng');
-                    selectedRadius = urlParams.get('radius') || 2;
-                    
-                    // Store the selected values
-                    localStorage.setItem('selectedLat', latitude);
-                    localStorage.setItem('selectedLng', longitude);
-                    localStorage.setItem('selectedRadius', selectedRadius);
-                } else {
-                    // Use passed parameters or localStorage values
-                    latitude = lat || localStorage.getItem('selectedLat');
-                    longitude = lng || localStorage.getItem('selectedLng');
-                    selectedRadius = radius || localStorage.getItem('selectedRadius') || 2;
-                }
-
-                // Validate and normalize radius
-                selectedRadius = Math.min(Math.max(parseInt(selectedRadius), 1), 10);
-
-                // Only show location prompt if we have no coordinates from any source
-                if (!latitude || !longitude) {
-                    console.log('No location coordinates available');
-                    showLocationPrompt('Please enable location access or select a location from the map.');
-                    return;
-                }
-
-                // Add loading indicator
-                const postsContainer = document.getElementById('posts-container');
-                if (!postsContainer) {
-                    console.error('Posts container not found');
-                    return;
-                }
-                postsContainer.innerHTML = '<div class="loading">Loading posts...</div>';
-
-                // Prepare headers
-                const headers = {
-                    'Accept': 'application/json'
-                };
-                if (auth0Client && await auth0Client.isAuthenticated()) {
-                    try {
-                        const token = await auth0Client.getTokenSilently();
-                        headers.Authorization = `Bearer ${token}`;
-                    } catch (authError) {
-                        console.error('Error getting auth token:', authError);
-                        // Continue without auth token - some content might still be accessible
-                    }
-                }
-
-                // Fetch combined feed with timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-                const response = await fetch(
-                    `/api/combined-feed?lat=${latitude}&lng=${longitude}&radius=${selectedRadius}`, 
-                    { 
-                        headers,
-                        signal: controller.signal
-                    }
-                );
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    console.error('Server response error:', errorData);
-                    throw new Error(errorData.error || `Server error: ${response.status}`);
-                }
-
-                const allContent = await response.json();
-
-                // Clear loading indicator and display content
-                postsContainer.innerHTML = '';
-                if (allContent.length === 0) {
-                    postsContainer.innerHTML = `
-                        <div class="no-posts-message">
-                            No posts found in this area. 
-                            Try increasing your search radius or checking back later.
-                        </div>`;
-                } else {
-                    allContent.forEach(item => {
-                        const postElement = createPostElement(item);
-                        postsContainer.appendChild(postElement);
-                    });
-                }
-
-                const currentRadius = document.getElementById('current-radius');
-                if (currentRadius) {
-                    currentRadius.textContent = selectedRadius;
-                }
-
-                // Also update the range slider if it exists
-                const rangeSlider = document.querySelector('.range-slider');
-                const rangeValue = document.querySelector('.range-value');
-                if (rangeSlider) {
-                    rangeSlider.value = selectedRadius;
-                    if (rangeValue) {
-                        rangeValue.textContent = `${selectedRadius} km`;
-                    }
-                }
-
-            } catch (error) {
-                console.error('Error loading combined feed:', error);
-                const postsContainer = document.getElementById('posts-container');
-                if (postsContainer) {
-                    let errorMessage = 'Error loading posts. ';
-                    
-                    if (error.name === 'AbortError') {
-                        errorMessage += 'Request timed out. Please check your connection and try again.';
-                    } else if (error.message.includes('Failed to fetch')) {
-                        errorMessage += 'Network error. Please check your connection and try again.';
-                    } else {
-                        errorMessage += error.message || 'Please try again later.';
-                    }
-
-                    postsContainer.innerHTML = `
-                        <div class="error-message">
-                            ${errorMessage}
-                            <br>
-                            <button onclick="retryLoadFeed()" style="margin-top: 10px; padding: 5px 10px;">
-                                Retry
-                            </button>
-                        </div>`;
-                }
-            } finally {
-                isLoading = false;
-            }
-        }
-
-        // Add debounced version for radius changes
-        function debouncedLoadFeed(lat, lng, radius) {
-            clearTimeout(loadTimeout);
-            loadTimeout = setTimeout(() => {
-                loadCombinedFeed(lat, lng, radius);
-            }, 300);
-        }
-
-        // Add a retry function
-        async function retryLoadFeed() {
-            const lat = localStorage.getItem('selectedLat');
-            const lng = localStorage.getItem('selectedLng');
-            const radius = localStorage.getItem('selectedRadius');
-            await loadCombinedFeed(lat, lng, radius);
-        }
-        async function performDrawerSearch() {
-            const searchTerm = document.getElementById('searchInputDrawer').value.trim();
-            if (!searchTerm) return;
-
-            try {
-                const postsContainer = document.getElementById('posts-container');
-                postsContainer.innerHTML = '<div class="loading">Searching...</div>';
-
-                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-                if (!response.ok) throw new Error('Search failed');
-
-                const results = await response.json();
-                
-                postsContainer.innerHTML = '';
-                if (results.length === 0) {
-                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
-                } else {
-                    results.forEach(item => {
-                        const postElement = createPostElement(item);
-                        postsContainer.appendChild(postElement);
-                    });
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
-            }
-        }
-        // Call loadCombinedFeed when the page loads
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // Initialize Auth0 first
-                await initializeAuth0();
-
-                // Add range slider functionality
-                const changeRangeBtn = document.querySelector('.change-range-btn');
-                const rangeControl = document.querySelector('.range-control');
-                const postsContainer = document.getElementById('posts-container');
-                const currentRadius = document.getElementById('current-radius');
-                const rangeSlider = document.querySelector('.range-slider');
-                const rangeValue = document.querySelector('.range-value');
-                
-                // Initialize with stored values
-                const storedRadius = localStorage.getItem('selectedRadius') || 2;
-                if (currentRadius) currentRadius.textContent = storedRadius;
-                if (rangeSlider) {
-                    rangeSlider.value = storedRadius;
-                    if (rangeValue) rangeValue.textContent = `${storedRadius} km`;
-                }
-                
-                // Toggle range control visibility
-                if (changeRangeBtn && rangeControl) {
-                const setRangeBtn = rangeControl.querySelector('.set-range-btn');
-                let tempRadius = storedRadius; // Store temporary radius value
-
-                changeRangeBtn.addEventListener('click', function() {
-                    const isVisible = rangeControl.style.display === 'block';
-                    rangeControl.style.display = isVisible ? 'none' : 'block';
-                    if (postsContainer) {
-                        postsContainer.classList.toggle('slider-visible', !isVisible);
-                    }
-                    
-                    // Update button text
-                    changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
-                    
-                    // Reset slider to current radius when opening
-                    if (!isVisible) {
-                        tempRadius = currentRadius.textContent;
-                        rangeSlider.value = tempRadius;
-                        rangeValue.textContent = `${tempRadius} km`;
-                    }
-                });
-                
-                // Handle slider input (update both displays)
-                if (rangeSlider) {
-                    rangeSlider.addEventListener('input', function(e) {
-                        const newRadius = parseInt(e.target.value);
-                        if (rangeValue) rangeValue.textContent = `${newRadius} km`;
-                        if (currentRadius) currentRadius.textContent = newRadius; // Update the filter info display
-                        tempRadius = newRadius; // Store temporary value
-                    });
-                }
-                
-                // Handle set range button click
-                if (setRangeBtn) {
-                    setRangeBtn.addEventListener('click', function() {
-                        // Get current location from localStorage
-                        const lat = localStorage.getItem('selectedLat');
-                        const lng = localStorage.getItem('selectedLng');
-                        
-                        if (lat && lng) {
-                            // Store the new radius
-                            localStorage.setItem('selectedRadius', tempRadius);
-                            // Reload feed with new radius
-                            loadCombinedFeed(lat, lng, tempRadius);
-                        }
-                        
-                        // Hide the range control
-                        rangeControl.style.display = 'none';
-                        if (postsContainer) {
-                            postsContainer.classList.remove('slider-visible');
-                        }
-                        changeRangeBtn.textContent = 'Change Range';
-                    });
-                }
-            }
-
-                // 2. Set up search drawer
-                const searchFooterBtn = document.getElementById('searchFooterBtn');
-                const searchDrawer = document.getElementById('searchDrawer');
-                const closeSearchDrawer = document.getElementById('closeSearchDrawer');
-                const searchInputDrawer = document.getElementById('searchInputDrawer');
-                const searchButtonDrawer = document.getElementById('searchButtonDrawer');
-
-                if (searchFooterBtn && searchDrawer) {
-                    searchFooterBtn.addEventListener('click', function() {
-                        searchDrawer.classList.add('active');
-                        searchInputDrawer.focus();
-                    });
-                }
-                if (closeSearchDrawer && searchDrawer) {
-                    closeSearchDrawer.addEventListener('click', function() {
-                        searchDrawer.classList.remove('active');
-                    });
-                }
-                if (searchButtonDrawer) {
-                    searchButtonDrawer.addEventListener('click', performDrawerSearch);
-                }
-                if (searchInputDrawer) {
-                    searchInputDrawer.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') performDrawerSearch();
-                    });
-                }
-
-                // 3. Set up create post link handlers (using querySelectorAll as in original)
-                document.querySelectorAll('.create-post-link').forEach(link => {
-                    link.addEventListener('click', async (e) => {
-                        if (!await auth0Client.isAuthenticated()) {
-                            e.preventDefault();
-                            const loginPrompt = document.getElementById('loginPrompt');
-                            if (loginPrompt) {
-                                loginPrompt.style.display = 'block';
-                                setTimeout(() => {
-                                    loginPrompt.style.display = 'none';
-                                }, 3000);
-                            }
-                        }
-                    });
-                });
-
-                // 4. Set up search toggle
-                const searchToggle = document.getElementById('searchToggle');
-                const searchBox = document.getElementById('searchBox');
-                const searchInput = document.getElementById('searchInput');
-                const searchButton = document.getElementById('searchButton');
-
-                if (searchToggle && searchBox) {
-                    searchToggle.addEventListener('click', () => {
-                        searchBox.style.display = searchBox.style.display === 'none' ? 'flex' : 'none';
-                    });
-                }
-
-                if (searchButton) {
-                    searchButton.addEventListener('click', performSearch);
-                }
-                if (searchInput) {
-                    searchInput.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') {
-                            performSearch();
-                        }
-                    });
-                }
-
-                // 5. Load posts (original functionality)
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('lat') && urlParams.has('lng')) {
-                    const lat = urlParams.get('lat');
-                    const lng = urlParams.get('lng');
-                    const radius = urlParams.get('radius') || '2';
-                    await loadCombinedFeed(lat, lng, radius);
-                } else {
-                    if ("geolocation" in navigator) {
-                        navigator.geolocation.getCurrentPosition(async function(position) {
-                            const lat = position.coords.latitude;
-                            const lng = position.coords.longitude;
-                            const storedRadius = localStorage.getItem('selectedRadius') || 2;
-                            
-                            // Store the location
-                            localStorage.setItem('selectedLat', lat);
-                            localStorage.setItem('selectedLng', lng);
-                            
-                            // Load the feed with the detected location
-                            await loadCombinedFeed(lat, lng, storedRadius);
-                        }, function(error) {
-                            console.error('Geolocation error:', error);
-                            handleGeolocationError(error);
-                        });
-                    } else {
-                        console.error('Geolocation not available');
-                        showLocationPrompt();
-                    }
-                }
-
-                // 6. Setup bottom nav scroll behavior (from original)
-                const topNav = document.querySelector('nav');
-                if (topNav && bottomNav) {
-                    let topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-
-                    // Initially hide bottom nav
-                    bottomNav.style.opacity = '0';
-                    bottomNav.style.visibility = 'hidden';
-
-                    // Handle scroll events
-                    window.addEventListener('scroll', function() {
-                        if (window.scrollY > topNavBottom) {
-                            bottomNav.style.opacity = '1';
-                            bottomNav.style.visibility = 'visible';
-                        } else {
-                            bottomNav.style.opacity = '0';
-                            bottomNav.style.visibility = 'hidden';
-                        }
-                    });
-
-                    // Recalculate on window resize
-                    window.addEventListener('resize', function() {
-                        topNavBottom = topNav.offsetTop + topNav.offsetHeight;
-                    });
-                }
-
-            } catch (error) {
-                console.error('Error in DOMContentLoaded:', error);
-            }
-        });
-
-        // Create post element function, updated jan 29 for free
-        function createPostElement(item) {
-            const postDiv = document.createElement('div');
-            postDiv.className = `post post-card${item.isFree ? ' free' : ''}${item.isBlind ? ' blind' : ''}`;
-            
-            // Format the date
-            const date = new Date(item.created_at);
-            const formattedTime = date.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
-            
-            let imageHtml = item.image_url 
-                ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
-                : '';
-            
-            let typeHtml = '';
-            if (item.isFree) {
-                typeHtml = `
-                    <div class="free-header">
-                        <div class="free-tag">Free</div>
-                    </div>
-                `;
-            } else if (item.isBlind) {
-                typeHtml = `
-                    <div class="blind-header">
-                        <div class="blind-tag">Blind</div>
-                    </div>
-                `;
-            }
-
-            postDiv.innerHTML = `
-                <div class="post-content">
-                    ${typeHtml}
-                    <div class="post-title">${item.title || 'Title'}</div>
-                    <div class="post-text">${item.post || 'No content available'}</div>  
-                    ${imageHtml}
-                    <small>${item.isBlind ? 'Blind Post' : (item.username || 'Anonymous')} • ${formattedTime}</small>                                    
-                    <div class="feed-footer">
-                        <button class="upvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬆️</button>
-                        <button class="downvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬇️</button>
-                        <button class="comment-button" data-id="${item.id}" data-type="${getItemType(item)}">💬</button>
-                        <button class="message-button" data-id="${item.id}" data-type="${getItemType(item)}" data-user-id="${item.user_id}">✉️</button>
-                        <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
-                    </div>
-                    <div class="comments-section">
-                        <div class="comments-container" id="comments-${item.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${getItemType(item)}')">
-                            <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
-                            <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
-                            <button type="submit">Comment</button>
-                        </form>
-                    </div>
-                </div>
-            `;
-            
-            const messageButton = postDiv.querySelector('.message-button');
-            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, getItemType(item)));
-
-            // Add event listener for upvote button
-            const upvoteButton = postDiv.querySelector('.upvote-button');
-            upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isFree));
-            upvoteButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleUpvote(item.id, item.isFree);
-            });
-
-            const downvoteButton = postDiv.querySelector('.downvote-button');
-            downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isFree));
-            downvoteButton.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleDownvote(item.id, item.isFree);
-            });
-
-            const commentButton = postDiv.querySelector('.comment-button');
-            const commentForm = postDiv.querySelector('.comment-form');
-            commentButton.addEventListener('click', () => {
-                commentForm.style.display = commentForm.style.display === 'none' || commentForm.style.display === '' 
-                    ? 'flex' 
-                    : 'none';
-            });
-
-            loadComments(item.id, getItemType(item));
-
-            return postDiv;
-        }
-
-        // Helper function to determine the type of item
-        function getItemType(item) {
-            if (item.isFree) return 'free';
-            if (item.isBlind) return 'blind';
-            return 'post';
-        }
-
-        async function handleUpvote(itemId, isFree) {
-            try {
-                const token = await auth0Client.getTokenSilently();
-                const endpoint = isFree ? `/api/free/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to upvote');
-                }
-
-                const updatedItem = await response.json();
-                
-                // Update only the upvote count element
-                const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
-                if (upvoteCountElement) {
-                    upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
-                }
-
-                // Remove this line to prevent page reload
-                // await loadCombinedFeed();
-                
-            } catch (error) {
-                console.error('Error handling upvote:', error);
-            }
-        }
-
-        async function handleDownvote(itemId, isFree) {
-            try {
-                const token = await auth0Client.getTokenSilently();
-                const endpoint = isFree ? `/api/free/${itemId}/downvote` : `/api/posts/${itemId}/downvote`;
-                
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to downvote');
-                }
-
-                const updatedItem = await response.json();
-                
-                // Update only the upvote count element
-                const upvoteCountElement = document.querySelector(`.upvote-count[data-id="${itemId}"]`);
-                if (upvoteCountElement) {
-                    upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
-                }
-
-                // Remove this line to prevent page reload
-                // await loadCombinedFeed();
-                
-            } catch (error) {
-                console.error('Error handling downvote:', error);
-            }
-        }
-
-        async function loadComments(postId, postType = 'post') {  // Keep the postType parameter
-            try {
-                const response = await fetch(`/api/posts/${postId}/comments?type=${postType}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const comments = await response.json();
-                
-                const commentsContainer = document.getElementById(`comments-${postId}`);
-                if (commentsContainer) {  // Keep the null check
-                    commentsContainer.innerHTML = comments.map(comment => `
-                        <div class="comment">
-                            <span class="comment-user">${comment.username}</span>
-                            <span class="comment-text">${comment.comment}</span>
-                        </div>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading comments:', error);
-            }
-        }
-
-        async function submitComment(event, postId, postType) {
-            event.preventDefault();
-            
-            if (!postType) {
-                console.error('Post type not specified');
-                return;
-            }
-
-            const commentInput = document.querySelector(`#comment-input-${postId}`);
-            if (!commentInput) {
-                console.error(`Comment input not found for ${postType} ${postId}`);
-                return;
-            }
-
-            try {
-                const commentText = commentInput.value.trim();
-                if (!commentText) {
-                    throw new Error('Comment cannot be empty');
-                }
-
-                if (!auth0Client) {
-                    throw new Error('Auth0 client not initialized');
-                }
-
-                const user = await auth0Client.getUser();
-                const token = await auth0Client.getTokenSilently();
-                
-                console.log('Comment submission details:', {
-                    postId,
-                    commentText,
-                    userEmail: user.email,
-                    userId: user.sub,
-                    postType
-                });
-
-                const response = await fetch('/api/comments', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        post_id: parseInt(postId),
-                        comment: commentText,
-                        post_type: postType
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to submit comment');
-                }
-
-                // Clear input and refresh comments
-                commentInput.value = '';
-                await loadComments(postId, postType);
-
-                const commentForm = document.querySelector(`#comments-${postId}`).nextElementSibling;
-                if (commentForm && commentForm.classList.contains('comment-form')) {
-                    commentForm.style.display = 'none';
-                }
-                
-            } catch (error) {
-                console.error('Comment error:', error);
-                const errorDiv = document.querySelector(`#comment-error-${postId}`);
-                if (errorDiv) {
-                    errorDiv.textContent = error.message;
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => {
-                        errorDiv.style.display = 'none';
-                    }, 3000);
-                }
-            }
-        }
-
-        async function handleMessage(itemId, recipientId, itemType) {
-            try {
-                if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to send messages');
-                    return;
-                }
-
-                const message = prompt('Enter your message:');
-                if (!message) return;
-
-                const token = await auth0Client.getTokenSilently();
-                const response = await fetch('/api/messages', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        recipient_id: recipientId,
-                        message: message,
-                        reference_id: itemId,
-                        reference_type: itemType
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to send message');
-                }
-
-                alert('Message sent successfully!');
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
-            }
-        }
-
-        function createFeedElement(item) {
-            const feedDiv = document.createElement('div');
-            feedDiv.className = 'feed-item';
-            
-            if (item.source === 'Toronto Weather') {
-                feedDiv.className = 'weather-card post-card';
-                feedDiv.innerHTML = `
-                    <div class="source-tag">${item.source}</div>
-                    <div class="weather-info">
-                        <strong>Temperature:</strong> ${item.weather.temperature}°C<br>
-                        <strong>Conditions:</strong> ${item.weather.conditions}
-                    </div>
-                    <div class="feed-footer">
-                        <a href="${item.link}" target="_blank">Full Forecast</a>
-                        <small>Updated: ${new Date(item.date).toLocaleTimeString()}</small>
-                        <div class="weather-attribution">Data provided by Environment Canada</div>
-                    </div>
-                `;
-            } 
-            else if (item.source === 'Toronto Road Alerts') {
-                feedDiv.className = 'road-alerts-card post-card';
-                const alertsList = item.roadAlerts.events
-                    .map(event => `
-                        <div class="road-alert">
-                            <strong>${event.RoadwayName}</strong>
-                            <p>${event.Description}</p>
-                        </div>
-                    `).join('');
-
-                feedDiv.innerHTML = `
-                    <div class="source-tag">${item.source}</div>
-                    <div class="alerts-count">${item.roadAlerts.count} Active Alerts</div>
-                    <div class="alerts-list">
-                        ${alertsList}
-                    </div>
-                    <div class="feed-footer">
-                        <a href="${item.link}" target="_blank">View on 511 Ontario</a>
-                        <small>Updated: ${new Date(item.date).toLocaleTimeString()}</small>
-                    </div>
-                `;
-            }
-            else {
-                // Handle any other feed types we might add later
-                let mediaHtml = '';
-                if (item.media && item.media.url) {
-                    mediaHtml = `
-                        <div class="feed-media">
-                            <img src="${item.media.url}" alt="Feed media">
-                        </div>
-                    `;
-                }
-                
-                feedDiv.innerHTML = `
-                    <div class="source-tag">${item.source}</div>
-                    <div class="feed-title">${item.title}</div>
-                    ${mediaHtml}
-                    <div class="feed-content">${item.content}</div>
-                    <div class="feed-footer">
-                        <a href="${item.link}" target="_blank">Read more</a>
-                        <span>${new Date(item.date).toLocaleDateString()}</span>
-                    </div>
-                `;
-            }
-            
-            return feedDiv;
-        }
-        
-        function handleGeolocationError(error) {
-            let message = 'Unable to detect your location. ';
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    message += 'Please enable location access or select a location from the map.';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    message += 'Location information unavailable.';
-                    break;
-                case error.TIMEOUT:
-                    message += 'Location request timed out.';
-                    break;
-                default:
-                    message += 'An unknown error occurred.';
-            }
-            showLocationPrompt(message);
-        }
-
-        function showLocationPrompt(message = 'Please select your location to see nearby posts.') {
-            // Create or update a notification element
-            let notification = document.getElementById('locationNotification');
-            if (!notification) {
-                notification = document.createElement('div');
-                notification.id = 'locationNotification';
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: #f8d7da;
-                    color: #721c24;
-                    padding: 15px;
-                    border-radius: 5px;
-                    text-align: center;
-                    z-index: 1000;
-                `;
-                document.body.appendChild(notification);
-            }
-            
-            notification.innerHTML = `
-                ${message}<br>
-                <a href="map.html" style="color: #721c24; text-decoration: underline;">Open Map</a>
-            `;
-        }
-    </script>
-
-    <div id="searchDrawer">
-        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
-        <div class="button-container">
-            <button id="searchButtonDrawer">Search</button>
-            <button id="closeSearchDrawer">Close</button>
+    <!-- Search Modal -->
+    <div class="search-modal" id="search-modal">
+        <button class="close-search" id="close-search">&times;</button>
+        <div class="search-content">
+            <input type="text" class="search-input" placeholder="Search for places, events, or people...">
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <a href="map.html" class="nav-btn" id="changeRangeBtn">Map view</a>
-        <a href="/create.html" class="nav-btn" id="createPostLink">New post</a>
-        <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
-    </div>
-    <div id="loginPrompt" class="error-message" style="display: none;">
-        Please log in to create a post
-    </div>
+    <!-- Auth0 Script -->
+    <script src="https://cdn.auth0.com/js/auth0/9.22.2/auth0.min.js"></script>
     
     <script>
-        async function performSearch() {
-            const searchTerm = document.getElementById('searchInput').value.trim();
-            if (!searchTerm) return;
-
-            try {
-                const postsContainer = document.getElementById('posts-container');
-                postsContainer.innerHTML = '<div class="loading">Searching...</div>';
-
-                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-                if (!response.ok) throw new Error('Search failed');
-
-                const results = await response.json();
-                
-                postsContainer.innerHTML = '';
-                if (results.length === 0) {
-                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
-                } else {
-                    results.forEach(item => {
-                        const postElement = createPostElement(item);
-                        postsContainer.appendChild(postElement);
-                    });
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auth handling
+            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+            const loginButton = document.getElementById('login-button');
+            const logoutButton = document.getElementById('logout-button');
+            
+            if (isAuthenticated) {
+                loginButton.style.display = 'none';
+                logoutButton.style.display = 'block';
+            } else {
+                loginButton.style.display = 'block';
+                logoutButton.style.display = 'none';
             }
-        }
+
+            // Search modal handling
+            const searchButton = document.getElementById('search-button');
+            const searchModal = document.getElementById('search-modal');
+            const closeSearch = document.getElementById('close-search');
+            const searchInput = document.querySelector('.search-input');
+
+            searchButton.addEventListener('click', () => {
+                searchModal.classList.add('active');
+                searchInput.focus();
+            });
+
+            closeSearch.addEventListener('click', () => {
+                searchModal.classList.remove('active');
+            });
+
+            searchModal.addEventListener('click', (e) => {
+                if (e.target === searchModal) {
+                    searchModal.classList.remove('active');
+                }
+            });
+
+            // Handle search input
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    // Implement search functionality here
+                    console.log('Searching for:', searchInput.value);
+                    // You can redirect to search results page or show results in modal
+                }
+            });
+        });
     </script>
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="auth.js"></script> 
-    <script src="dropdown.js"></script> 
 </body>
 </html>

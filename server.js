@@ -990,7 +990,7 @@ app.get('/api/deals', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: './public' });
+    res.sendFile('feed.html', { root: './public' });
 });
 
 app.get('/api/messages/inbox', authenticateJWT, async (req, res) => {
