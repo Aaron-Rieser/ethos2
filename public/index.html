@@ -154,10 +154,13 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .search-modal.active {
             display: flex;
+            opacity: 1;
             justify-content: center;
             align-items: center;
         }
@@ -168,6 +171,13 @@
             border-radius: 10px;
             width: 90%;
             max-width: 600px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .search-modal.active .search-content {
+            transform: translateY(0);
         }
 
         .search-input {
@@ -338,7 +348,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Auth handling
             const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-            const loginButton = document.getElementById('login-button');
+            const loginButton = document.getElementById('login');  // Changed from 'login-button' to 'login'
             const logoutButton = document.getElementById('logout-button');
             const userCircle = document.getElementById('userInitial');
             const userEmail = document.querySelector('.user-email');
@@ -382,15 +392,62 @@
                 });
             }
 
-            // Search functionality
+            const searchButton = document.getElementById('search-button');
+            const searchModal = document.getElementById('search-modal');
+            const closeSearch = document.getElementById('close-search');
             const searchInput = document.querySelector('.search-input');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        console.log('Searching for:', searchInput.value);
+
+            // Add click handler for search button
+            if (searchButton) {
+                searchButton.addEventListener('click', () => {
+                    if (searchModal) {
+                        searchModal.classList.add('active');
+                        if (searchInput) {
+                            searchInput.focus();
+                            searchInput.value = ''; // Clear previous search
+                        }
                     }
                 });
             }
+
+            // Add click handler for close button
+            if (closeSearch) {
+                closeSearch.addEventListener('click', () => {
+                    if (searchModal) {
+                        searchModal.classList.remove('active');
+                    }
+                });
+            }
+
+            // Add click handler to close modal when clicking outside
+            if (searchModal) {
+                searchModal.addEventListener('click', (e) => {
+                    if (e.target === searchModal) {
+                        searchModal.classList.remove('active');
+                    }
+                });
+            }
+
+            // Add enter key handler for search input
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        const searchTerm = searchInput.value.trim();
+                        if (searchTerm) {
+                            console.log('Searching for:', searchTerm);
+                            // Implement search functionality here
+                            searchModal.classList.remove('active');
+                        }
+                    }
+                });
+            }
+
+            // Add escape key handler to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && searchModal && searchModal.classList.contains('active')) {
+                    searchModal.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>
