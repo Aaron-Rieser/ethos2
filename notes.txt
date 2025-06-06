@@ -2,8 +2,9 @@ MVP___
 
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 
-Homepage should be the map
-- Nav to map present easier
+Search results not working on ALL pages 
+- Fix Search UI
+Email or text notifications 
 When you come from Map, can't change range 
 Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
 - remove the 'scroll for' button instead add a 'click' for 
@@ -11,10 +12,9 @@ Comments on map - pop down vs. Roll down. For this and all states. No trigger th
 - need a differentiator between POPUP and placing LOCATION - this is missing 
 On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
 Like UI - better
+Homepage leaderboard
 New format, recommendations, questions (and posts? Gripes? History?)
 - ensure likes work and they show on map
-Search is broken 
-- Fix Search UI
 Delete post feature 
 Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
 Persistent location issues on chrome/ etc. debug all location
@@ -26,7 +26,6 @@ Multiple comment design a bit smoother
 - Comment ranking logic 
 Add back action noises - like post message etc.
 - downvote notification and algo consideration (but not displayed)
-Email or text notifications 
 FUN launch feature: Rando meet? Local biz offer? Parties? Points for best of the week?
 - Challenge launch + broadcast message feed 
 Message notification design 
