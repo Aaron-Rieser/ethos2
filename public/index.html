@@ -50,14 +50,6 @@
             color: #000;  /* Add this line to match the black color used in other pages */
         }
 
-        .auth-buttons button {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
         .auth-container {
             padding: 10px;
             margin-bottom: 20px;
@@ -67,6 +59,13 @@
         .auth-container button {
             padding: 8px 16px;
             margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .auth-buttons button {
+            padding: 8px 16px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
@@ -190,6 +189,94 @@
             cursor: pointer;
             color: var(--white);
         }
+        .sticky-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 10px 0;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .auth-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3388ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .dropdown-content.show {
+            display: block !important;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .dropdown-content .user-email {
+            display: block;
+            padding: 12px 16px;
+            color: #666;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            display: none;
+        }
 
         @media (max-width: 768px) {
             .welcome-text {
@@ -204,16 +291,23 @@
     </style>
 </head>
 <body>
-    <header>
-        <nav>
+    <header class="sticky-header">
+        <div class="header-content">
             <a href="index.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
-            <div class="auth-buttons">
-                <button id="login-button">Login</button>
-                <button id="logout-button" style="display: none;">Logout</button>
+            <div class="auth-section">
+                <button id="login">Log In</button>
+                <div class="user-dropdown">
+                    <div id="userInitial" class="user-circle" style="display: none;"></div>
+                    <div class="dropdown-content">
+                        <span class="user-email"></span>
+                        <a href="/account.html">My Account & Messages</a>
+                        <button id="logout-button">Logout</button>
+                    </div>
+                </div>
             </div>
-        </nav>
+        </div>
     </header>
 
     <main>
@@ -237,52 +331,66 @@
     </div>
 
     <!-- Auth0 Script -->
-    <script src="https://cdn.auth0.com/js/auth0/9.22.2/auth0.min.js"></script>
-    
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="auth.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Auth handling
             const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
             const loginButton = document.getElementById('login-button');
             const logoutButton = document.getElementById('logout-button');
+            const userCircle = document.getElementById('userInitial');
+            const userEmail = document.querySelector('.user-email');
             
             if (isAuthenticated) {
+                // Hide login button and show user circle
                 loginButton.style.display = 'none';
-                logoutButton.style.display = 'block';
+                const userEmail = localStorage.getItem('userEmail');
+                if (userEmail && userCircle) {
+                    userCircle.textContent = userEmail.charAt(0).toUpperCase();
+                    userCircle.style.display = 'flex';
+                    userCircle.title = userEmail;
+                }
+                if (userEmail && userEmail) {
+                    userEmail.textContent = userEmail.split('@')[0];
+                }
             } else {
+                // Show login button and hide user circle
                 loginButton.style.display = 'block';
-                logoutButton.style.display = 'none';
+                if (userCircle) {
+                    userCircle.style.display = 'none';
+                }
             }
 
-            // Search modal handling
-            const searchButton = document.getElementById('search-button');
-            const searchModal = document.getElementById('search-modal');
-            const closeSearch = document.getElementById('close-search');
+            // Add dropdown functionality
+            if (userCircle) {
+                userCircle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdown = document.querySelector('.dropdown-content');
+                    if (dropdown) {
+                        dropdown.classList.toggle('show');
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                window.addEventListener('click', () => {
+                    const dropdown = document.querySelector('.dropdown-content');
+                    if (dropdown) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+            }
+
+            // Search functionality
             const searchInput = document.querySelector('.search-input');
-
-            searchButton.addEventListener('click', () => {
-                searchModal.classList.add('active');
-                searchInput.focus();
-            });
-
-            closeSearch.addEventListener('click', () => {
-                searchModal.classList.remove('active');
-            });
-
-            searchModal.addEventListener('click', (e) => {
-                if (e.target === searchModal) {
-                    searchModal.classList.remove('active');
-                }
-            });
-
-            // Handle search input
-            searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    // Implement search functionality here
-                    console.log('Searching for:', searchInput.value);
-                    // You can redirect to search results page or show results in modal
-                }
-            });
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        console.log('Searching for:', searchInput.value);
+                    }
+                });
+            }
         });
     </script>
 </body>
