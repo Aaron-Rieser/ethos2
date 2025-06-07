@@ -1437,7 +1437,7 @@ app.get('/api/leaderboard', async (req, res) => {
             WITH ranked_posts AS (
                 SELECT 
                     p.*,
-                    a.username,
+                    a.username as account_username,  // Changed to be explicit
                     CASE 
                         WHEN p.created_at >= NOW() - INTERVAL '24 hours' THEN 3
                         WHEN p.created_at >= NOW() - INTERVAL '7 days' THEN 2
@@ -1449,7 +1449,7 @@ app.get('/api/leaderboard', async (req, res) => {
                 WHERE p.created_at >= NOW() - INTERVAL '30 days'
             )
             SELECT 
-                username,
+                account_username as username,  // Use the aliased column
                 post,
                 upvotes,
                 created_at
