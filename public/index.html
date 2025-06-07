@@ -400,6 +400,13 @@
         </div>
     </header>
 
+    <div id="broadcast-bar" class="broadcast-bar" style="display: none;">
+        <div class="broadcast-content">
+            <span id="broadcast-message"></span>
+            <button id="close-broadcast" class="close-broadcast">×</button>
+        </div>
+    </div>
+
     <main>
         <div class="welcome-section">
             <h1 class="welcome-text">Welcome to Gumshoe. Explore your city in a whole new way</h1>
@@ -412,7 +419,7 @@
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="leaderboard-title">Leaderboard: Top 10 posts</h2>
+            <h2 class="leaderboard-title">Leaderboard: Top posts</h2>
             <div class="leaderboard-table-container">
                 <table class="leaderboard-table">
                     <thead>
@@ -580,6 +587,51 @@
                 }
             }
         }
+
+        async function checkBroadcasts() {
+            try {
+                const response = await fetch('/api/broadcasts');
+                const broadcast = await response.json();
+                
+                const broadcastBar = document.getElementById('broadcast-bar');
+                const broadcastMessage = document.getElementById('broadcast-message');
+                const mainContent = document.querySelector('.main-content');
+                
+                if (broadcast) {
+                    // Check if user has dismissed this broadcast
+                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                    if (!dismissedBroadcasts.includes(broadcast.id)) {
+                        broadcastMessage.textContent = broadcast.message;
+                        broadcastBar.style.display = 'block';
+                        mainContent.classList.add('has-broadcast');
+                    }
+                } else {
+                    broadcastBar.style.display = 'none';
+                    mainContent.classList.remove('has-broadcast');
+                }
+            } catch (error) {
+                console.error('Error checking broadcasts:', error);
+            }
+        }
+
+        // Add event listener for close button
+        document.getElementById('close-broadcast')?.addEventListener('click', () => {
+            const broadcastBar = document.getElementById('broadcast-bar');
+            const mainContent = document.querySelector('.main-content');
+            const broadcastId = broadcastBar.dataset.broadcastId;
+            
+            // Store dismissed broadcast ID
+            const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+            dismissedBroadcasts.push(broadcastId);
+            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+            
+            // Hide broadcast
+            broadcastBar.style.display = 'none';
+            mainContent.classList.remove('has-broadcast');
+        });
+
+        // Check for broadcasts when page loads
+        document.addEventListener('DOMContentLoaded', checkBroadcasts);
 
         function truncateText(text, wordLimit) {
             if (!text) return '';

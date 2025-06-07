@@ -1480,6 +1480,25 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
+app.get('/api/broadcasts', async (req, res) => {
+    try {
+        const query = `
+            SELECT id, message, created_at, expires_at
+            FROM broadcasts
+            WHERE is_active = true 
+            AND expires_at > NOW()
+            ORDER BY created_at DESC
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query);
+        res.json(result.rows[0] || null);
+    } catch (error) {
+        console.error('Error fetching broadcasts:', error);
+        res.status(500).json({ error: 'Error fetching broadcasts' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

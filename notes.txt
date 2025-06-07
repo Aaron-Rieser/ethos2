@@ -12,7 +12,6 @@ Comments on map - pop down vs. Roll down. For this and all states. No trigger th
 - need a differentiator between POPUP and placing LOCATION - this is missing 
 On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
 Like UI - better
-Homepage leaderboard
 New format, recommendations, questions (and posts? Gripes? History?)
 - ensure likes work and they show on map
 Delete post feature 
