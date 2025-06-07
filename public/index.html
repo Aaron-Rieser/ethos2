@@ -287,6 +287,69 @@
             font-size: 12px;
             display: none;
         }
+        .leaderboard-section {
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 800px;
+            padding: 0 1rem;
+        }
+
+        .leaderboard-title {
+            font-size: 1.5rem;
+            color: var(--dark-blue);
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .leaderboard-table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .leaderboard-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-blue);
+        }
+
+        .leaderboard-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .leaderboard-table td:nth-child(1) {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .leaderboard-table td:nth-child(2) {
+            width: 120px;
+        }
+
+        .leaderboard-table td:nth-child(3) {
+            max-width: 400px;
+        }
+
+        .leaderboard-table td:nth-child(4) {
+            width: 80px;
+            text-align: center;
+        }
 
         @media (max-width: 768px) {
             .welcome-text {
@@ -297,6 +360,23 @@
                 padding: 1rem 1.5rem;
                 font-size: 1.1rem;
             }
+            .leaderboard-section {
+                margin-top: 2rem;
+            }
+            
+            .leaderboard-title {
+                font-size: 1.2rem;
+            }
+            
+            .leaderboard-table {
+                font-size: 0.8rem;
+            }
+            
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 0.75rem;
+            }
+        }
         }
     </style>
 </head>
@@ -329,6 +409,25 @@
                 <button class="action-button" id="search-button">Search</button>
             </div>
             <p class="signature">Happy trails :)</p>
+        </div>
+
+        <div class="leaderboard-section">
+            <h2 class="leaderboard-title">Leaderboard: Top 10 posts</h2>
+            <div class="leaderboard-table-container">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Post</th>
+                            <th>Likes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Posts will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
@@ -449,6 +548,48 @@
                 }
             });
         });
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                if (!response.ok) throw new Error('Failed to fetch leaderboard');
+                
+                const posts = await response.json();
+                const leaderboardBody = document.getElementById('leaderboard-body');
+                
+                if (!leaderboardBody) return;
+                
+                leaderboardBody.innerHTML = posts.map((post, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${post.username || 'Anonymous'}</td>
+                        <td>${truncateText(post.post, 100)}</td>
+                        <td>${post.upvotes || 0}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                const leaderboardBody = document.getElementById('leaderboard-body');
+                if (leaderboardBody) {
+                    leaderboardBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem;">
+                                Unable to load leaderboard. Please try again later.
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function truncateText(text, wordLimit) {
+            if (!text) return '';
+            const words = text.split(' ');
+            if (words.length <= wordLimit) return text;
+            return words.slice(0, wordLimit).join(' ') + '...';
+        }
+
+        // Load leaderboard when the page loads
+        loadLeaderboard();
     </script>
 </body>
 </html>

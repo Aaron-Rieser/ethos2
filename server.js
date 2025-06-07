@@ -1430,6 +1430,56 @@ app.get('/api/map-posts', async (req, res) => {
     console.log('=== MAP POSTS REQUEST COMPLETE ===');
 });
 
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        // Get posts from last 24 hours
+        const query = `
+            WITH ranked_posts AS (
+                SELECT 
+                    p.*,
+                    a.username,
+                    CASE 
+                        WHEN p.created_at >= NOW() - INTERVAL '24 hours' THEN 3
+                        WHEN p.created_at >= NOW() - INTERVAL '7 days' THEN 2
+                        WHEN p.created_at >= NOW() - INTERVAL '30 days' THEN 1
+                        ELSE 0
+                    END as time_weight
+                FROM posts p
+                LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                WHERE p.created_at >= NOW() - INTERVAL '30 days'
+            )
+            SELECT 
+                username,
+                post,
+                upvotes,
+                created_at
+            FROM ranked_posts
+            ORDER BY 
+                time_weight DESC,
+                upvotes DESC
+            LIMIT 10
+        `;
+
+        const result = await pool.query(query);
+        
+        // Format the response
+        const leaderboard = result.rows.map(post => ({
+            username: post.username || 'Anonymous',
+            post: post.post,
+            upvotes: post.upvotes || 0,
+            created_at: post.created_at
+        }));
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        res.status(500).json({ 
+            error: 'Error fetching leaderboard',
+            details: error.message 
+        });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
