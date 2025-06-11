@@ -868,6 +868,38 @@
             font-weight: 600;
         }
 
+        /* New styles for heritage popups */
+        .heritage-popup {
+            padding: 12px;
+        }
+        .heritage-popup h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .heritage-popup .description {
+            font-style: italic;
+            margin: 10px 0;
+            line-height: 1.4;
+            color: #666;
+        }
+        .heritage-popup .details {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        .heritage-popup p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        .heritage-popup strong {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -949,8 +981,8 @@
             missed: '#44ff44'   // Green for missed connections
         };
 
-        // Function to create marker popup content
-        function createPopupContent(feature) {
+        // Function to create heritage popup content
+        function createHeritagePopupContent(feature) {
             const properties = feature.properties;
             
             // Create a title that combines address and type
@@ -960,7 +992,7 @@
             ].filter(Boolean).join(' ');
 
             return `
-                <div class="popup-content">
+                <div class="heritage-popup">
                     <h3>${title}</h3>
                     ${properties.DESCRIPTIO ? `<p class="description">${properties.DESCRIPTIO}</p>` : ''}
                     <div class="details">
@@ -971,31 +1003,6 @@
                         ${properties.DESIGNATED ? `<p><strong>Designated:</strong> ${new Date(properties.DESIGNATED).toLocaleDateString()}</p>` : ''}
                         ${properties.BYLAW_NO ? `<p><strong>Bylaw:</strong> ${properties.BYLAW_NO}</p>` : ''}
                     </div>
-                </div>
-            `;
-        }
-
-        // Function to update info panel
-        function updateInfoPanel(feature) {
-            const properties = feature.properties;
-            const infoPanel = document.getElementById('location-info');
-            
-            // Create a title that combines address and type
-            const title = [
-                properties.ADDRESS,
-                properties.TYPE_DESC ? `(${properties.TYPE_DESC})` : ''
-            ].filter(Boolean).join(' ');
-            
-            infoPanel.innerHTML = `
-                <h3>${title}</h3>
-                ${properties.DESCRIPTIO ? `<p class="description">${properties.DESCRIPTIO}</p>` : ''}
-                <div class="details">
-                    ${properties.BUILDING_T ? `<p><strong>Building Type:</strong> ${properties.BUILDING_T}</p>` : ''}
-                    ${properties.CONSTRUCTI ? `<p><strong>Construction:</strong> ${properties.CONSTRUCTI}</p>` : ''}
-                    ${properties.ARCHITECT_ ? `<p><strong>Architect:</strong> ${properties.ARCHITECT_}</p>` : ''}
-                    ${properties.LISTED ? `<p><strong>Listed:</strong> ${new Date(properties.LISTED).toLocaleDateString()}</p>` : ''}
-                    ${properties.DESIGNATED ? `<p><strong>Designated:</strong> ${new Date(properties.DESIGNATED).toLocaleDateString()}</p>` : ''}
-                    ${properties.BYLAW_NO ? `<p><strong>Bylaw:</strong> ${properties.BYLAW_NO}</p>` : ''}
                 </div>
             `;
         }
@@ -1040,10 +1047,7 @@
                         const [lon, lat] = feature.geometry.coordinates;
                         
                         // Create a title for the marker that shows on hover
-                        const markerTitle = [
-                            feature.properties.ADDRESS,
-                            feature.properties.TYPE_DESC ? `(${feature.properties.TYPE_DESC})` : ''
-                        ].filter(Boolean).join(' ');
+                        const markerTitle = feature.properties.ADDRESS || 'Historical Site';
                         
                         const marker = L.marker([lat, lon], {
                             icon: historicalIcon,
@@ -1051,16 +1055,15 @@
                         });
 
                         // Create popup with content
-                        const popupContent = createPopupContent(feature);
+                        const popupContent = createHeritagePopupContent(feature);
                         marker.bindPopup(popupContent, {
                             maxWidth: 300,
-                            minWidth: 200
+                            minWidth: 200,
+                            className: 'heritage-popup'
                         });
 
-                        // Update info panel on click
+                        // Center the map on the clicked marker
                         marker.on('click', () => {
-                            updateInfoPanel(feature);
-                            // Center the map on the clicked marker
                             map.setView([lat, lon], 16);
                         });
 
@@ -1081,14 +1084,6 @@
                     return;
                 }
                 console.error('Error loading heritage data:', error);
-                const infoPanel = document.getElementById('location-info');
-                if (infoPanel) {
-                    infoPanel.innerHTML = `
-                        <h3>Error Loading Data</h3>
-                        <p>Failed to load heritage data. Please try refreshing the page.</p>
-                        <p class="error-details">${error.message}</p>
-                    `;
-                }
             }
         }
 
