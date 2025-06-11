@@ -1006,26 +1006,36 @@
                 const center = map.getCenter();
                 console.log('Fetching heritage data for location:', center);
                 
-                const response = await fetch(`/api/heritage-data?lat=${center.lat}&lng=${center.lng}`);
+                // Cancel any pending requests
+                if (window.currentHeritageRequest) {
+                    window.currentHeritageRequest.abort();
+                }
+                
+                // Create new AbortController for this request
+                const controller = new AbortController();
+                window.currentHeritageRequest = controller;
+                
+                const response = await fetch(`/api/heritage-data?lat=${center.lat}&lng=${center.lng}`, {
+                    signal: controller.signal
+                });
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                allFeatures = await response.json();
+                const features = await response.json();
                 
-                if (!Array.isArray(allFeatures)) {
+                if (!Array.isArray(features)) {
                     throw new Error('Received data is not an array');
                 }
                 
-                console.log('Received data:', allFeatures.length, 'features');
+                console.log('Received data:', features.length, 'features');
                 
-                // Clear existing markers
-                historicalMarkers.forEach(marker => map.removeLayer(marker));
-                historicalMarkers = [];
-
+                // Create a new layer group for the markers
+                const newMarkers = L.layerGroup();
+                
                 // Add markers for all features
-                allFeatures.forEach(feature => {
+                features.forEach(feature => {
                     if (feature.geometry && feature.geometry.coordinates) {
                         const [lon, lat] = feature.geometry.coordinates;
                         
@@ -1038,7 +1048,7 @@
                         const marker = L.marker([lat, lon], {
                             icon: historicalIcon,
                             title: markerTitle
-                        }).addTo(map);
+                        });
 
                         // Create popup with content
                         const popupContent = createPopupContent(feature);
@@ -1054,10 +1064,22 @@
                             map.setView([lat, lon], 16);
                         });
 
-                        historicalMarkers.push(marker);
+                        newMarkers.addLayer(marker);
                     }
                 });
+                
+                // Remove old markers and add new ones in one operation
+                if (historicalMarkers) {
+                    map.removeLayer(historicalMarkers);
+                }
+                historicalMarkers = newMarkers;
+                map.addLayer(historicalMarkers);
+                
             } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Heritage data request aborted');
+                    return;
+                }
                 console.error('Error loading heritage data:', error);
                 const infoPanel = document.getElementById('location-info');
                 if (infoPanel) {
@@ -1070,15 +1092,18 @@
             }
         }
 
-        // Add debounced map move handler
+        // Add debounced map move handler with increased delay
         let heritageDataTimeout;
         map.on('moveend', () => {
             clearTimeout(heritageDataTimeout);
-            heritageDataTimeout = setTimeout(loadHeritageData, 500); // Wait 500ms after map stops moving
+            heritageDataTimeout = setTimeout(loadHeritageData, 1000); // Increased to 1 second
         });
 
         // Load the heritage data when the page loads
-        document.addEventListener('DOMContentLoaded', loadHeritageData);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial load after a short delay to ensure map is ready
+            setTimeout(loadHeritageData, 1000);
+        });
 
         function createDensityGrid(bounds, zoomLevel) {
             // Determine if we're on mobile

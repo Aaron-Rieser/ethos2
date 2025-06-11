@@ -1507,22 +1507,55 @@ app.get('/api/heritage-data', async (req, res) => {
             });
         }
 
+        // Use absolute path to shapefile
+        const shapefilePath = path.join(__dirname, 'Heritage Register Data', 'HRAPQ22025_OpenData.shp');
+        console.log('Attempting to read shapefile from:', shapefilePath);
+
+        // Check if file exists
+        if (!fs.existsSync(shapefilePath)) {
+            console.error('Shapefile not found at path:', shapefilePath);
+            console.error('Current directory:', __dirname);
+            console.error('Directory contents:', fs.readdirSync(__dirname));
+            
+            // Return empty array instead of error to prevent client-side issues
+            return res.json([]);
+        }
+
         // Read the shapefile
-        const source = await shapefile.open('Heritage Register Data/HRAPQ22025_OpenData.shp');
+        console.log('Opening shapefile...');
+        const source = await shapefile.open(shapefilePath);
         const features = [];
+        let count = 0;
         
+        console.log('Reading features...');
         // Read all features from the shapefile
         while (true) {
             const result = await source.read();
             if (result.done) break;
             
-            // Calculate distance for each feature
+            // Only process features within a rough bounding box first
             const [featureLng, featureLat] = result.value.geometry.coordinates;
+            
+            // Quick distance check - if it's more than 10km away, skip it
+            const roughDistance = Math.sqrt(
+                Math.pow(featureLat - userLat, 2) + 
+                Math.pow(featureLng - userLng, 2)
+            ) * 111; // Rough conversion to km
+            
+            if (roughDistance > 10) continue;
+            
+            // Calculate precise distance for closer features
             const distance = calculateDistance(userLat, userLng, featureLat, featureLng);
             
             // Add distance to feature properties
             result.value.properties.distance = distance;
             features.push(result.value);
+            count++;
+            
+            // Log progress every 100 features
+            if (count % 100 === 0) {
+                console.log(`Processed ${count} features...`);
+            }
         }
         
         // Sort features by distance and take closest 100
@@ -1534,10 +1567,10 @@ app.get('/api/heritage-data', async (req, res) => {
         res.json(closestFeatures);
     } catch (error) {
         console.error('Error in heritage data endpoint:', error);
-        res.status(500).json({ 
-            error: 'Error loading heritage data',
-            details: error.message 
-        });
+        console.error('Error stack:', error.stack);
+        
+        // Return empty array instead of error to prevent client-side issues
+        res.json([]);
     }
 });
 
