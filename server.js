@@ -83,7 +83,9 @@ function createPostElement(item) {
     loadComments(item.id, item.isDeal ? 'deal' : 'post');
 
     return postDiv;
-}require('dotenv').config();
+}
+
+require('dotenv').config();
 
 const express = require('express');
 const pool = require('./db');
@@ -94,6 +96,9 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
+const shapefile = require('shapefile');
+const path = require('path');
+const fs = require('fs');
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -1480,24 +1485,78 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-app.get('/api/broadcasts', async (req, res) => {
+// Add heritage data endpoint
+app.get('/api/heritage-data', async (req, res) => {
     try {
-        const query = `
-            SELECT id, message, created_at, expires_at
-            FROM broadcasts
-            WHERE is_active = true 
-            AND expires_at > NOW()
-            ORDER BY created_at DESC
-            LIMIT 1
-        `;
+        const { lat, lng } = req.query;
         
-        const result = await pool.query(query);
-        res.json(result.rows[0] || null);
+        if (!lat || !lng) {
+            return res.status(400).json({ 
+                error: 'Missing location parameters',
+                details: 'lat and lng query parameters are required'
+            });
+        }
+
+        const userLat = parseFloat(lat);
+        const userLng = parseFloat(lng);
+
+        if (isNaN(userLat) || isNaN(userLng)) {
+            return res.status(400).json({ 
+                error: 'Invalid location parameters',
+                details: 'lat and lng must be valid numbers'
+            });
+        }
+
+        // Read the shapefile
+        const source = await shapefile.open('Heritage Register Data/HRAPQ22025_OpenData.shp');
+        const features = [];
+        
+        // Read all features from the shapefile
+        while (true) {
+            const result = await source.read();
+            if (result.done) break;
+            
+            // Calculate distance for each feature
+            const [featureLng, featureLat] = result.value.geometry.coordinates;
+            const distance = calculateDistance(userLat, userLng, featureLat, featureLng);
+            
+            // Add distance to feature properties
+            result.value.properties.distance = distance;
+            features.push(result.value);
+        }
+        
+        // Sort features by distance and take closest 100
+        const closestFeatures = features
+            .sort((a, b) => a.properties.distance - b.properties.distance)
+            .slice(0, 100);
+        
+        console.log(`Returning ${closestFeatures.length} closest heritage features`);
+        res.json(closestFeatures);
     } catch (error) {
-        console.error('Error fetching broadcasts:', error);
-        res.status(500).json({ error: 'Error fetching broadcasts' });
+        console.error('Error in heritage data endpoint:', error);
+        res.status(500).json({ 
+            error: 'Error loading heritage data',
+            details: error.message 
+        });
     }
 });
+
+// Helper function to calculate distance between two points using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+function toRad(degrees) {
+    return degrees * (Math.PI/180);
+}
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
