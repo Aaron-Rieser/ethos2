@@ -1507,64 +1507,65 @@ app.get('/api/heritage-data', async (req, res) => {
             });
         }
 
-        // Use absolute path to shapefile
-        const shapefilePath = path.join(__dirname, 'Heritage Register Data', 'HRAPQ22025_OpenData.shp');
-        console.log('Attempting to read shapefile from:', shapefilePath);
+        console.log('Input coordinates:', { lat: userLat, lng: userLng });
 
-        // Check if file exists
-        if (!fs.existsSync(shapefilePath)) {
-            console.error('Shapefile not found at path:', shapefilePath);
-            console.error('Current directory:', __dirname);
-            console.error('Directory contents:', fs.readdirSync(__dirname));
-            
-            // Return empty array instead of error to prevent client-side issues
-            return res.json([]);
-        }
+        // Query to get closest historical sites using the geom column
+        const query = `
+            SELECT 
+                gid,
+                field1 as name,
+                address,
+                ST_X(geom) as longitude,
+                ST_Y(geom) as latitude,
+                descriptio as description,
+                ST_Distance(
+                    geom::geography,
+                    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+                ) as distance
+            FROM heritage_sites
+            WHERE ST_DWithin(
+                geom::geography,
+                ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
+                50000  -- 50km radius
+            )
+            ORDER BY distance
+            LIMIT 100
+        `;
 
-        // Read the shapefile
-        console.log('Opening shapefile...');
-        const source = await shapefile.open(shapefilePath);
-        const features = [];
-        let count = 0;
+        console.log('Executing heritage query with coordinates:', { lat: userLat, lng: userLng });
+        const result = await pool.query(query, [userLng, userLat]);
+        console.log(`Found ${result.rows.length} heritage sites`);
         
-        console.log('Reading features...');
-        // Read all features from the shapefile
-        while (true) {
-            const result = await source.read();
-            if (result.done) break;
-            
-            // Only process features within a rough bounding box first
-            const [featureLng, featureLat] = result.value.geometry.coordinates;
-            
-            // Quick distance check - if it's more than 10km away, skip it
-            const roughDistance = Math.sqrt(
-                Math.pow(featureLat - userLat, 2) + 
-                Math.pow(featureLng - userLng, 2)
-            ) * 111; // Rough conversion to km
-            
-            if (roughDistance > 10) continue;
-            
-            // Calculate precise distance for closer features
-            const distance = calculateDistance(userLat, userLng, featureLat, featureLng);
-            
-            // Add distance to feature properties
-            result.value.properties.distance = distance;
-            features.push(result.value);
-            count++;
-            
-            // Log progress every 100 features
-            if (count % 100 === 0) {
-                console.log(`Processed ${count} features...`);
+        if (result.rows.length > 0) {
+            console.log('Sample of first result:', {
+                gid: result.rows[0].gid,
+                name: result.rows[0].name,
+                distance: result.rows[0].distance,
+                coordinates: {
+                    lon: result.rows[0].longitude,
+                    lat: result.rows[0].latitude
+                }
+            });
+        }
+        
+        // Format the response to match the expected structure
+        const features = result.rows.map(row => ({
+            type: 'Feature',
+            properties: {
+                id: row.gid,
+                name: row.name,
+                address: row.address,
+                description: row.description,
+                distance: row.distance / 1000 // Convert meters to kilometers
+            },
+            geometry: {
+                type: 'Point',
+                coordinates: [row.longitude, row.latitude]
             }
-        }
-        
-        // Sort features by distance and take closest 100
-        const closestFeatures = features
-            .sort((a, b) => a.properties.distance - b.properties.distance)
-            .slice(0, 100);
-        
-        console.log(`Returning ${closestFeatures.length} closest heritage features`);
-        res.json(closestFeatures);
+        }));
+
+        console.log(`Returning ${features.length} closest heritage features`);
+        res.json(features);
     } catch (error) {
         console.error('Error in heritage data endpoint:', error);
         console.error('Error stack:', error.stack);
@@ -1573,23 +1574,6 @@ app.get('/api/heritage-data', async (req, res) => {
         res.json([]);
     }
 });
-
-// Helper function to calculate distance between two points using Haversine formula
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-}
-
-function toRad(degrees) {
-    return degrees * (Math.PI/180);
-}
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {

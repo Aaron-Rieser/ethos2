@@ -985,24 +985,13 @@
         function createHeritagePopupContent(feature) {
             const properties = feature.properties;
             
-            // Create a title that combines address and type
-            const title = [
-                properties.ADDRESS,
-                properties.TYPE_DESC ? `(${properties.TYPE_DESC})` : ''
-            ].filter(Boolean).join(' ');
-
             return `
                 <div class="heritage-popup">
-                    <h3>${title}</h3>
-                    ${properties.DESCRIPTIO ? `<p class="description">${properties.DESCRIPTIO}</p>` : ''}
-                    <div class="details">
-                        ${properties.BUILDING_T ? `<p><strong>Building Type:</strong> ${properties.BUILDING_T}</p>` : ''}
-                        ${properties.CONSTRUCTI ? `<p><strong>Construction:</strong> ${properties.CONSTRUCTI}</p>` : ''}
-                        ${properties.ARCHITECT_ ? `<p><strong>Architect:</strong> ${properties.ARCHITECT_}</p>` : ''}
-                        ${properties.LISTED ? `<p><strong>Listed:</strong> ${new Date(properties.LISTED).toLocaleDateString()}</p>` : ''}
-                        ${properties.DESIGNATED ? `<p><strong>Designated:</strong> ${new Date(properties.DESIGNATED).toLocaleDateString()}</p>` : ''}
-                        ${properties.BYLAW_NO ? `<p><strong>Bylaw:</strong> ${properties.BYLAW_NO}</p>` : ''}
-                    </div>
+                    <h3>${properties.address || 'No Address'}</h3>
+                    ${properties.description ? `<p><strong>Description:</strong> ${properties.description}</p>` : ''}
+                    ${properties.constructi ? `<p><strong>Date:</strong> ${properties.constructi}</p>` : ''}
+                    ${properties.architect_ ? `<p><strong>Architect:</strong> ${properties.architect_}</p>` : ''}
+                    ${properties.htg_conser ? `<p><strong>Heritage district:</strong> ${properties.htg_conser}</p>` : ''}
                 </div>
             `;
         }
