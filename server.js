@@ -83,9 +83,7 @@ function createPostElement(item) {
     loadComments(item.id, item.isDeal ? 'deal' : 'post');
 
     return postDiv;
-}
-
-require('dotenv').config();
+}require('dotenv').config();
 
 const express = require('express');
 const pool = require('./db');
@@ -96,9 +94,6 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-const shapefile = require('shapefile');
-const path = require('path');
-const fs = require('fs');
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -1482,96 +1477,6 @@ app.get('/api/leaderboard', async (req, res) => {
             error: 'Error fetching leaderboard',
             details: error.message 
         });
-    }
-});
-
-// Add heritage data endpoint
-app.get('/api/heritage-data', async (req, res) => {
-    try {
-        const { lat, lng } = req.query;
-        
-        if (!lat || !lng) {
-            return res.status(400).json({ 
-                error: 'Missing location parameters',
-                details: 'lat and lng query parameters are required'
-            });
-        }
-
-        const userLat = parseFloat(lat);
-        const userLng = parseFloat(lng);
-
-        if (isNaN(userLat) || isNaN(userLng)) {
-            return res.status(400).json({ 
-                error: 'Invalid location parameters',
-                details: 'lat and lng must be valid numbers'
-            });
-        }
-
-        console.log('Input coordinates:', { lat: userLat, lng: userLng });
-
-        // Query to get closest historical sites using the geom column
-        const query = `
-            SELECT 
-                gid,
-                field1 as name,
-                address,
-                ST_X(geom) as longitude,
-                ST_Y(geom) as latitude,
-                descriptio as description,
-                ST_Distance(
-                    geom::geography,
-                    ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
-                ) as distance
-            FROM heritage_sites
-            WHERE ST_DWithin(
-                geom::geography,
-                ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography,
-                50000  -- 50km radius
-            )
-            ORDER BY distance
-            LIMIT 100
-        `;
-
-        console.log('Executing heritage query with coordinates:', { lat: userLat, lng: userLng });
-        const result = await pool.query(query, [userLng, userLat]);
-        console.log(`Found ${result.rows.length} heritage sites`);
-        
-        if (result.rows.length > 0) {
-            console.log('Sample of first result:', {
-                gid: result.rows[0].gid,
-                name: result.rows[0].name,
-                distance: result.rows[0].distance,
-                coordinates: {
-                    lon: result.rows[0].longitude,
-                    lat: result.rows[0].latitude
-                }
-            });
-        }
-        
-        // Format the response to match the expected structure
-        const features = result.rows.map(row => ({
-            type: 'Feature',
-            properties: {
-                id: row.gid,
-                name: row.name,
-                address: row.address,
-                description: row.description,
-                distance: row.distance / 1000 // Convert meters to kilometers
-            },
-            geometry: {
-                type: 'Point',
-                coordinates: [row.longitude, row.latitude]
-            }
-        }));
-
-        console.log(`Returning ${features.length} closest heritage features`);
-        res.json(features);
-    } catch (error) {
-        console.error('Error in heritage data endpoint:', error);
-        console.error('Error stack:', error.stack);
-        
-        // Return empty array instead of error to prevent client-side issues
-        res.json([]);
     }
 });
 

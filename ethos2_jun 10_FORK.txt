@@ -1,74 +1,12 @@
+HISTORY FORK ** 
+
+This version has leaderboard, posts, etc all working
+
+POST FORK 
+
+WE ARE GOING FULL IN HISTORY 
+
 MVP___ 
-
-HISTORY 
-
-CLEAN SQL process -
-- ADD 20 new columns 
-- Execute the merge again AND check all other file types from heritage to see OR just try and convert with shape 
-THEN BACK TO CODE 
-Remove posts from Map for now 
-Load data in Railway for Speed 
-Data styling 
-Distance or choose on map option 
-Game parameters 
-
-
-COLUMN ANALYSIS 
-
-"column_name"	"data_type"	"character_maximum_length"	"is_nullable"
-"gid"	"integer"		"NO"
-"field1"	"double precision"		"YES"
-"folder_row"	"double precision"		"YES"
-"cen"	"double precision"		"YES"
-"yr"	"double precision"		"YES"
-"sequence"	"double precision"		"YES"
-"sec"	"character varying"	254	"YES"
-"rev"	"double precision"		"YES"
-"type"	"character varying"	254	"YES"
-"type_desc"	"character varying"	254	"YES"
-"status_cod"	"double precision"		"YES"
-"status"	"character varying"	254	"YES"
-"in_date"	"date"		"YES"
-"listed"	"date"		"YES"
-"designated"	"date"		"YES"
-"easement_a"	"character varying"	254	"YES"
-"building_t"	"character varying"	254	"YES"
-"descriptio"	"character varying"	254	"YES"
-"bylaw_no"	"character varying"	254	"YES"
-"htg_conser"	"character varying"	254	"YES"
-"omb_date"	"character varying"	254	"YES"
-"reason"	"character varying"	254	"YES"
-"list_numbe"	"character varying"	254	"YES"
-"constructi"	"character varying"	254	"YES"
-"architect_"	"character varying"	254	"YES"
-"year_demol"	"character varying"	254	"YES"
-"property_r"	"double precision"		"YES"
-"property_s"	"character varying"	254	"YES"
-"property_y"	"numeric"		"YES"
-"property_x"	"numeric"		"YES"
-"house"	"character varying"	254	"YES"
-"prefix"	"character varying"	254	"YES"
-"street"	"character varying"	254	"YES"
-"type_1"	"character varying"	254	"YES"
-"direction"	"character varying"	254	"YES"
-"unit_type"	"character varying"	254	"YES"
-"unit"	"character varying"	254	"YES"
-"city"	"character varying"	254	"YES"
-"province"	"character varying"	254	"YES"
-"postal_cod"	"character varying"	254	"YES"
-"address_ty"	"character varying"	254	"YES"
-"roll"	"numeric"		"YES"
-"planning_d"	"character varying"	254	"YES"
-"former_mun"	"character varying"	254	"YES"
-"ward"	"double precision"		"YES"
-"pre_dec_1_"	"double precision"		"YES"
-"address"	"character varying"	254	"YES"
-"geom"	"USER-DEFINED"		"YES"
-
-
-
-
-
 
 CHECK PRD FIRST - IF NOT, RUNPLAN: 
 

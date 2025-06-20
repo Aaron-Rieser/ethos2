@@ -27,7 +27,50 @@ body {
     display: none;
 }
 
-/* Adjust main content */
+.broadcast-bar {
+    background-color: #000;
+    color: #fff;
+    padding: 10px 0;
+    position: sticky;
+    top: 60px; /* Adjust based on your header height */
+    z-index: 1000;
+    width: 100%;
+}
+
+.broadcast-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#broadcast-message {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 14px;
+}
+
+.close-broadcast {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 10px;
+    margin-left: 10px;
+}
+
+.close-broadcast:hover {
+    opacity: 0.8;
+}
+
+/* Adjust main content to account for broadcast bar */
 .main-content {
     margin-top: 20px;
+}
+
+.main-content.has-broadcast {
+    margin-top: 60px; /* Adjust based on broadcast bar height */
 }

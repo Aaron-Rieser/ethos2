@@ -248,6 +248,7 @@
             padding: 10px 20px;
             border-radius: 4px;
             border: 1px solid #b8daff;
+            text-align: center;
         }
         .post-marker {
             border-radius: 50%;
@@ -765,141 +766,6 @@
             }
         }
 
-        /* Heritage Info Panel Styles */
-        #info-panel {
-            position: absolute;
-            top: 100px;
-            right: 20px;
-            width: 300px;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 1000;
-            max-height: calc(100vh - 140px);
-            overflow-y: auto;
-        }
-
-        #info-panel h3 {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-
-        #info-panel .type {
-            color: #e74c3c;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-
-        #info-panel .description {
-            font-style: italic;
-            margin: 10px 0;
-            line-height: 1.4;
-            color: #666;
-        }
-
-        #info-panel .details {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-
-        #info-panel p {
-            margin: 5px 0;
-            line-height: 1.4;
-        }
-
-        #info-panel strong {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        /* Heritage Marker Styles */
-        .historical-marker {
-            cursor: pointer;
-        }
-
-        .historical-marker:hover {
-            filter: brightness(1.2);
-        }
-
-        .popup-content {
-            padding: 10px;
-            max-width: 300px;
-        }
-
-        .popup-content h3 {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-            font-size: 1.1em;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-
-        .popup-content .type {
-            color: #e74c3c;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-
-        .popup-content .description {
-            font-style: italic;
-            margin: 10px 0;
-            line-height: 1.4;
-            color: #666;
-        }
-
-        .popup-content .details {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-
-        .popup-content p {
-            margin: 5px 0;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .popup-content strong {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
-        /* New styles for heritage popups */
-        .heritage-popup {
-            padding: 12px;
-        }
-        .heritage-popup h3 {
-            margin: 0 0 10px 0;
-            color: #2c3e50;
-            font-size: 1.1em;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-        .heritage-popup .description {
-            font-style: italic;
-            margin: 10px 0;
-            line-height: 1.4;
-            color: #666;
-        }
-        .heritage-popup .details {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-        }
-        .heritage-popup p {
-            margin: 5px 0;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-        .heritage-popup strong {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -924,6 +790,13 @@
         </div>
     </header>
 
+    <div id="broadcast-bar" class="broadcast-bar" style="display: none;">
+        <div class="broadcast-content">
+            <span id="broadcast-message"></span>
+            <button id="close-broadcast" class="close-broadcast">×</button>
+        </div>
+    </div>
+
     <main class="main-content">
         <div class="range-control" style="margin-top: 30px"> 
             <input type="range" 
@@ -944,34 +817,22 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // Initialize the map
-        const map = L.map('map').setView([43.6532, -79.3832], 13);
-
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Custom icons
-        const historicalIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        // Global variables
-        let allFeatures = [];
-        let historicalMarkers = [];
+       let map;
         let userMarker;
         let radiusCircle;
         let userLocation;
         let isPopupOpen = false;
         let popupOpenTime = 0;
         const POPUP_COOLDOWN = 5000; // 5 seconds in milliseconds
+
+        // Initialize the map centered on Toronto
+        map = L.map('map').setView([43.66, -79.4460], 12.5);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
         let postsLayer = L.layerGroup().addTo(map);
         let abortController = null;
 
@@ -980,114 +841,6 @@
             deal: '#ff4444',    // Red for deals
             missed: '#44ff44'   // Green for missed connections
         };
-
-        // Function to create heritage popup content
-        function createHeritagePopupContent(feature) {
-            const properties = feature.properties;
-            
-            return `
-                <div class="heritage-popup">
-                    <h3>${properties.address || 'No Address'}</h3>
-                    ${properties.description ? `<p><strong>Description:</strong> ${properties.description}</p>` : ''}
-                    ${properties.constructi ? `<p><strong>Date:</strong> ${properties.constructi}</p>` : ''}
-                    ${properties.architect_ ? `<p><strong>Architect:</strong> ${properties.architect_}</p>` : ''}
-                    ${properties.htg_conser ? `<p><strong>Heritage district:</strong> ${properties.htg_conser}</p>` : ''}
-                </div>
-            `;
-        }
-
-        // Fetch and display heritage data
-        async function loadHeritageData() {
-            try {
-                const center = map.getCenter();
-                console.log('Fetching heritage data for location:', center);
-                
-                // Cancel any pending requests
-                if (window.currentHeritageRequest) {
-                    window.currentHeritageRequest.abort();
-                }
-                
-                // Create new AbortController for this request
-                const controller = new AbortController();
-                window.currentHeritageRequest = controller;
-                
-                const response = await fetch(`/api/heritage-data?lat=${center.lat}&lng=${center.lng}`, {
-                    signal: controller.signal
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const features = await response.json();
-                
-                if (!Array.isArray(features)) {
-                    throw new Error('Received data is not an array');
-                }
-                
-                console.log('Received data:', features.length, 'features');
-                
-                // Create a new layer group for the markers
-                const newMarkers = L.layerGroup();
-                
-                // Add markers for all features
-                features.forEach(feature => {
-                    if (feature.geometry && feature.geometry.coordinates) {
-                        const [lon, lat] = feature.geometry.coordinates;
-                        
-                        // Create a title for the marker that shows on hover
-                        const markerTitle = feature.properties.ADDRESS || 'Historical Site';
-                        
-                        const marker = L.marker([lat, lon], {
-                            icon: historicalIcon,
-                            title: markerTitle
-                        });
-
-                        // Create popup with content
-                        const popupContent = createHeritagePopupContent(feature);
-                        marker.bindPopup(popupContent, {
-                            maxWidth: 300,
-                            minWidth: 200,
-                            className: 'heritage-popup'
-                        });
-
-                        // Center the map on the clicked marker
-                        marker.on('click', () => {
-                            map.setView([lat, lon], 16);
-                        });
-
-                        newMarkers.addLayer(marker);
-                    }
-                });
-                
-                // Remove old markers and add new ones in one operation
-                if (historicalMarkers) {
-                    map.removeLayer(historicalMarkers);
-                }
-                historicalMarkers = newMarkers;
-                map.addLayer(historicalMarkers);
-                
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Heritage data request aborted');
-                    return;
-                }
-                console.error('Error loading heritage data:', error);
-            }
-        }
-
-        // Add debounced map move handler with increased delay
-        let heritageDataTimeout;
-        map.on('moveend', () => {
-            clearTimeout(heritageDataTimeout);
-            heritageDataTimeout = setTimeout(loadHeritageData, 1000); // Increased to 1 second
-        });
-
-        // Load the heritage data when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initial load after a short delay to ensure map is ready
-            setTimeout(loadHeritageData, 1000);
-        });
 
         function createDensityGrid(bounds, zoomLevel) {
             // Determine if we're on mobile
@@ -1512,6 +1265,61 @@
                 if (commentsList) {
                     commentsList.innerHTML = '<div class="error-message">Failed to load comments. Please try again.</div>';
                 }
+            }
+        }
+
+        async function checkBroadcasts() {
+            try {
+                const response = await fetch('/api/broadcasts');
+                const broadcast = await response.json();
+                
+                const broadcastBar = document.getElementById('broadcast-bar');
+                const broadcastMessage = document.getElementById('broadcast-message');
+                const mainContent = document.querySelector('.main-content');
+                
+                if (broadcast) {
+                    // Check if user has dismissed this broadcast
+                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+                    if (!dismissedBroadcasts.includes(broadcast.id)) {
+                        broadcastMessage.textContent = broadcast.message;
+                        broadcastBar.style.display = 'block';
+                        mainContent.classList.add('has-broadcast');
+                    }
+                } else {
+                    broadcastBar.style.display = 'none';
+                    mainContent.classList.remove('has-broadcast');
+                }
+            } catch (error) {
+                console.error('Error checking broadcasts:', error);
+            }
+        }
+
+        // Add event listener for close button
+        document.getElementById('close-broadcast')?.addEventListener('click', () => {
+            const broadcastBar = document.getElementById('broadcast-bar');
+            const mainContent = document.querySelector('.main-content');
+            const broadcastId = broadcastBar.dataset.broadcastId;
+            
+            // Store dismissed broadcast ID
+            const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
+            dismissedBroadcasts.push(broadcastId);
+            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
+            
+            // Hide broadcast
+            broadcastBar.style.display = 'none';
+            mainContent.classList.remove('has-broadcast');
+        });
+
+        // Check for broadcasts when page loads
+        document.addEventListener('DOMContentLoaded', checkBroadcasts);
+
+        function toggleComments(postId) {
+            const commentsSection = document.querySelector(`#comments-${postId}`);
+            if (commentsSection.style.display === 'none') {
+                commentsSection.style.display = 'block';
+                loadAndDisplayComments(postId, 1);
+            } else {
+                commentsSection.style.display = 'none';
             }
         }
 
