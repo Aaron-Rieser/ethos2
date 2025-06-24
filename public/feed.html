@@ -285,6 +285,7 @@
                 border-right: none;
                 max-width: none;
                 width: 100%;
+                padding: 20px 0; /* Remove horizontal padding */
             }
 
             .post-card::before {
@@ -293,11 +294,17 @@
 
             .post-card img {
                 border-radius: 0;
-                margin: 0;
-                width: 100vw;
-                margin-left: calc(-25px - 1px); /* Compensate for card padding and border */
-                margin-right: calc(-25px - 1px);
-                max-width: calc(100vw + 50px + 2px);
+                margin: 20px 0;
+                width: 100%;
+                max-width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            /* Add padding back to text content */
+            .post-title, .post-text, .post-meta, .feed-footer {
+                padding-left: 20px;
+                padding-right: 20px;
             }
         }
 

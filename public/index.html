@@ -131,11 +131,13 @@
             justify-content: center;
             text-align: center;
             background: var(--color-paper);
+            width: 100%;
         }
 
         .welcome-section {
             padding: 3rem 2rem;
             max-width: 800px;
+            width: 100%;
             margin: 0 auto;
             background: var(--color-cream);
             border-radius: 16px;
@@ -481,6 +483,10 @@
             border: 1px solid #d4c4a8;
             position: relative;
             overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .leaderboard-section::before {
@@ -568,30 +574,37 @@
             text-align: center;
         }
 
+        /* Mobile-specific adjustments */
         @media (max-width: 768px) {
-            .welcome-text {
-                font-size: 1.25rem;
+            main {
+                padding: 100px 0 0 0;
+                justify-content: flex-start;
             }
 
-            .action-button {
-                padding: 1rem 1.5rem;
-                font-size: 1.1rem;
+            .welcome-section {
+                margin: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                max-width: none;
+                width: 100%;
             }
+
+            .welcome-section::before {
+                border-radius: 0;
+            }
+
             .leaderboard-section {
-                margin-top: 2rem;
+                margin: 2rem 0 0 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                max-width: none;
+                width: 100%;
             }
-            
-            .leaderboard-title {
-                font-size: 1.2rem;
-            }
-            
-            .leaderboard-table {
-                font-size: 0.8rem;
-            }
-            
-            .leaderboard-table th,
-            .leaderboard-table td {
-                padding: 0.75rem;
+
+            .leaderboard-section::before {
+                border-radius: 0;
             }
         }
     </style>
