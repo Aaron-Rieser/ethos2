@@ -35,7 +35,7 @@
         }
 
         /* Preserve Sixtyfour for titles - DO NOT CHANGE */
-        .site-title, h1, .main-title {
+        .site-title, .main-title {
             font-family: 'Sixtyfour', system-ui, sans-serif !important;
             color: var(--color-charcoal);
         }
@@ -109,11 +109,11 @@
             gap: 4vh;
             text-align: left;
             background: var(--color-cream);
-            padding: 40px;
-            border-radius: 16px;
+            padding: 50px;
+            border-radius: 20px;
             box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.05),
-                0 10px 15px rgba(0, 0, 0, 0.1);
+                0 8px 16px rgba(0, 0, 0, 0.08),
+                0 16px 32px rgba(0, 0, 0, 0.06);
             border: 1px solid #d4c4a8;
             position: relative;
             overflow: hidden;
@@ -125,21 +125,60 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 6px;
             background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
-            border-radius: 16px 16px 0 0;
+            border-radius: 20px 20px 0 0;
         }
 
-        /* Typography Hierarchy */
-        h1 {
+        .form-container::after {
+            content: '✦ ✦ ✦';
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--color-vintage-blue);
+            font-size: 1.2rem;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.5em;
+            opacity: 0.6;
+        }
+
+        /* Form Title - Specific styling to avoid conflicts */
+        .form-title {
             font-size: 2.2em;
             font-weight: 700;
             line-height: 1.2;
             margin: 0 0 30px 0;
             color: var(--color-charcoal);
             letter-spacing: -0.02em;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Playfair Display', serif !important;
             text-align: center;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .form-title::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
+            border-radius: 2px;
+        }
+
+        .form-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 2px;
+            background: var(--color-sepia);
+            border-radius: 1px;
         }
 
         /* Enhanced Form Elements */
@@ -147,7 +186,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
         }
 
         label {
@@ -158,18 +197,29 @@
             letter-spacing: 0.8px;
             font-family: 'Source Serif Pro', serif;
             margin-bottom: 8px;
+            position: relative;
+        }
+
+        label::after {
+            content: '✦';
+            position: absolute;
+            right: 0;
+            top: 0;
+            color: var(--color-vintage-blue);
+            font-size: 0.8em;
         }
 
         select, input[type="text"], textarea {
-            padding: 14px 16px;
+            padding: 16px 20px;
             border: 2px solid #d4c4a8;
             border-radius: 8px;
             width: 100%;
-            font-size: 1em;
-            transition: all 0.2s ease;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
             background: var(--color-paper);
             font-family: 'Crimson Text', serif;
             color: var(--color-ink);
+            line-height: 1.6;
         }
 
         select:focus, input[type="text"]:focus, textarea:focus {
@@ -177,10 +227,11 @@
             border-color: var(--color-vintage-blue);
             box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
             background: var(--color-aged);
+            transform: translateY(-1px);
         }
 
         textarea {
-            min-height: 120px;
+            min-height: 140px;
             resize: vertical;
             line-height: 1.6;
         }
@@ -200,32 +251,51 @@
             font-weight: 600;
             transition: color 0.2s ease;
             font-family: 'Source Serif Pro', serif;
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
             transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
 
         .nav-links a:hover {
             color: var(--color-vintage-blue-light);
             background: rgba(44, 82, 130, 0.1);
+            border-color: var(--color-vintage-blue);
         }
 
         /* Enhanced Submit Button */
         button[type="submit"] {
             background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             color: white;
-            padding: 16px 32px;
+            padding: 18px 36px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             margin-top: 4vh;
-            font-size: 1.1em;
+            font-size: 1.2em;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(44, 82, 130, 0.3);
-            font-family: 'Source Serif Pro', serif;
+            font-family: 'Playfair Display', serif;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button[type="submit"]:hover::before {
+            left: 100%;
         }
 
         button[type="submit"]:hover {
@@ -248,13 +318,14 @@
         /* Enhanced Error Messages */
         .error-message {
             color: #dc2626;
-            margin: 15px 0;
-            padding: 12px 16px;
+            margin: 20px 0;
+            padding: 16px 20px;
             background: #fef2f2;
-            border-radius: 6px;
+            border-radius: 8px;
             border-left: 4px solid #dc2626;
             font-family: 'Source Serif Pro', serif;
-            font-size: 0.9em;
+            font-size: 0.95em;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
         }
 
         /* Enhanced Auth Container */
@@ -452,7 +523,7 @@
 
     <main class="main-content">
         <div class="form-container">
-            <h2>create a new post</h2>
+            <h2 class="form-title">create a new post</h2>
             
             <nav class="nav-links">
                 <a href="/map.html">Choose my location</a>
