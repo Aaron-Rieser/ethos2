@@ -9,10 +9,42 @@
     <title>gumshoe</title>
     <style>
         .post-card {
-            border: 1px solid #ddd;
-            margin: 10px;
-            padding: 15px;
-            border-radius: 5px;
+            border: 1px solid #e2e8f0;
+            margin: 15px auto;
+            padding: 20px;
+            border-radius: 16px;
+            max-width: 600px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            box-shadow: 
+                0 1px 3px rgba(0, 0, 0, 0.1),
+                0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .post-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3388ff, #5ba3ff);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .post-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-card img {
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 15px 0;
         }
         .username {
             font-weight: bold;
@@ -341,105 +373,26 @@
         }
 
         .comment-form {
-            display: flex;
-            gap: 10px;
+            display: none; /* Hide by default */
+        }
+
+        .post-title {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .free .post-title {
             margin-top: 10px;
         }
 
-        .comment-input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        .message-button:hover {
+            background: rgba(168, 85, 247, 0.1);
+            transform: scale(1.1);
         }
 
-        .comment-form button {
-            padding: 8px 16px;
-            background-color: #3388ff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .comment-form button:hover {
-            background-color: #2266dd;
-        }
-
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .user-circle {
-            cursor: pointer;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%; /* Position below the user circle */
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1000;
-        }
-
-        .dropdown-content.show {
-            display: block !important; /* Use !important to override any other display settings */
-        }
-
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .show {
-            display: block;
-        }
-        .dropdown-content .user-email {
-            display: block;
-            padding: 12px 16px;
-            color: #666;
-            border-bottom: 1px solid #eee;
-        }
-        .free-header {
-            position: relative;
-            margin-bottom: 10px;
-            min-height: 24px;
-        }
-        .free-tag {
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #3388ff;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px 0 12px 0;
-            font-size: 0.9em;
-            font-weight: bold;
-            z-index: 2;
-            display: inline-block;
-        }
-
-        .free-price {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #3388ff;
-        }
-
-        .post-card.free {
-            border: 2px solid #3388ff;
-            box-shadow: 0 2px 4px rgba(51, 136, 255, 0.1);
-        }
         .upvote-button {
             background: none;
             border: none;
@@ -452,15 +405,17 @@
             align-items: center;
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
         .upvote-button:focus {
             outline: none;
         }
 
-        /* Optional: add a subtle hover effect */
         .upvote-button:hover {
-            opacity: 0.8;
+            background: rgba(51, 136, 255, 0.1);
+            transform: scale(1.1);
         }
 
         .downvote-button {
@@ -475,6 +430,8 @@
             align-items: center;
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
         .downvote-button:focus {
@@ -482,7 +439,8 @@
         }
 
         .downvote-button:hover {
-            opacity: 0.8;
+            background: rgba(255, 105, 180, 0.1);
+            transform: scale(1.1);
         }
 
         .comment-button {
@@ -497,6 +455,8 @@
             align-items: center;
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
         .comment-button:focus {
@@ -504,23 +464,10 @@
         }
 
         .comment-button:hover {
-            opacity: 0.8;
+            background: rgba(34, 197, 94, 0.1);
+            transform: scale(1.1);
         }
 
-        .comment-form {
-            display: none; /* Hide by default */
-        }
-        .post-title {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: left;
-        }
-
-        .free .post-title {
-            margin-top: 10px;
-        }
         .message-button {
             background: none;
             border: none;
@@ -533,15 +480,14 @@
             align-items: center;
             justify-content: center;
             -webkit-tap-highlight-color: transparent;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
 
         .message-button:focus {
             outline: none;
         }
 
-        .message-button:hover {
-            opacity: 0.8;
-        }
         .notification-badge {
             position: absolute;
             top: -5px;
@@ -613,16 +559,29 @@
         }
 
         .blind-tag {
-            background-color: #ff69b4;
+            background: linear-gradient(135deg, #ff69b4, #ff8fab);
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px 0 12px 0;
+            padding: 6px 16px;
+            border-radius: 20px 0 20px 0;
             display: inline-block;
             font-size: 0.9em;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .blind .post-content {
             background-color: #fff0f5;
+        }
+
+        .post-card.blind {
+            border: 2px solid #ff69b4;
+            box-shadow: 0 4px 12px rgba(255, 105, 180, 0.15);
+        }
+
+        .post-card.blind::before {
+            background: linear-gradient(90deg, #ff69b4, #ff8fab);
         }
         .top-actions {
         display: flex;
@@ -846,6 +805,44 @@
                 width: 100%;
                 margin: 0 auto 15px auto;
             }
+        }
+
+        .free-header {
+            position: relative;
+            margin-bottom: 10px;
+            min-height: 24px;
+        }
+
+        .free-tag {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #3388ff, #5ba3ff);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px 0 20px 0;
+            font-size: 0.9em;
+            font-weight: bold;
+            z-index: 2;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(51, 136, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .free-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #3388ff;
+        }
+
+        .post-card.free {
+            border: 2px solid #3388ff;
+            box-shadow: 0 4px 12px rgba(51, 136, 255, 0.15);
+        }
+
+        .post-card.free::before {
+            background: linear-gradient(90deg, #3388ff, #5ba3ff);
         }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
