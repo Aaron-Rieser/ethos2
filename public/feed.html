@@ -888,7 +888,7 @@
                 
                 <div id="filter-info" class="filter-info">
                     <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
-                        Within <span id="current-radius">2</span>km
+                        Within <span id="current-radius">2</span><span id="current-radius-unit">km</span>
                     </span>
                     <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer;">Change Range</button>
                     
@@ -896,7 +896,7 @@
                         <input type="range" 
                                class="range-slider" 
                                min="1" 
-                               max="10" 
+                               max="11" 
                                value="2" 
                                step="1">
                         <span class="range-value">2 km</span>
@@ -935,22 +935,16 @@
             if (filterInfo) {
                 // Update the radius display
                 const currentRadius = document.getElementById('current-radius');
+                const currentRadiusUnit = document.getElementById('current-radius-unit');
                 if (currentRadius) {
-                    currentRadius.textContent = radius;
+                    currentRadius.textContent = radius === 'all' ? 'All' : radius;
+                    if (currentRadiusUnit) currentRadiusUnit.textContent = radius === 'all' ? '' : 'km';
                 }
-                
                 // Update the range slider if it exists
                 const rangeSlider = document.querySelector('.range-slider');
                 if (rangeSlider) {
-                    rangeSlider.value = radius;
+                    rangeSlider.value = radius === 'all' ? 11 : radius;
                 }
-                
-                // Update the range value display if it exists
-                const rangeValue = document.querySelector('.range-value');
-                if (rangeValue) {
-                    rangeValue.textContent = `${radius} km`;
-                }
-                
                 // Show the filter info section
                 filterInfo.style.display = 'block';
             }
@@ -993,7 +987,6 @@
                     latitude = urlParams.get('lat');
                     longitude = urlParams.get('lng');
                     selectedRadius = urlParams.get('radius') || 2;
-                    
                     // Store the selected values
                     localStorage.setItem('selectedLat', latitude);
                     localStorage.setItem('selectedLng', longitude);
@@ -1005,8 +998,11 @@
                     selectedRadius = radius || localStorage.getItem('selectedRadius') || 2;
                 }
 
-                // Validate and normalize radius
-                selectedRadius = Math.min(Math.max(parseInt(selectedRadius), 1), 10);
+                // Validate and normalize radius (only for numeric values)
+                if (selectedRadius !== 'all') {
+                    selectedRadius = Math.min(Math.max(parseInt(selectedRadius), 1), 11);
+                    if (selectedRadius === 11) selectedRadius = 'all';
+                }
 
                 // Only show location prompt if we have no coordinates from any source
                 if (!latitude || !longitude) {
@@ -1075,17 +1071,19 @@
                 }
 
                 const currentRadius = document.getElementById('current-radius');
+                const currentRadiusUnit = document.getElementById('current-radius-unit');
                 if (currentRadius) {
-                    currentRadius.textContent = selectedRadius;
+                    currentRadius.textContent = selectedRadius === 'all' ? 'All' : selectedRadius;
+                    if (currentRadiusUnit) currentRadiusUnit.textContent = selectedRadius === 'all' ? '' : 'km';
                 }
 
                 // Also update the range slider if it exists
                 const rangeSlider = document.querySelector('.range-slider');
                 const rangeValue = document.querySelector('.range-value');
                 if (rangeSlider) {
-                    rangeSlider.value = selectedRadius;
+                    rangeSlider.value = selectedRadius === 'all' ? 11 : selectedRadius;
                     if (rangeValue) {
-                        rangeValue.textContent = `${selectedRadius} km`;
+                        rangeValue.textContent = selectedRadius === 'all' ? 'All' : `${selectedRadius} km`;
                     }
                 }
 
@@ -1174,11 +1172,13 @@
                 const rangeValue = document.querySelector('.range-value');
                 
                 // Initialize with stored values
-                const storedRadius = localStorage.getItem('selectedRadius') || 2;
-                if (currentRadius) currentRadius.textContent = storedRadius;
+                const storedRadius = localStorage.getItem('selectedRadius') || '2';
+                if (currentRadius) {
+                    currentRadius.textContent = storedRadius === 'all' ? 'All' : storedRadius;
+                }
                 if (rangeSlider) {
-                    rangeSlider.value = storedRadius;
-                    if (rangeValue) rangeValue.textContent = `${storedRadius} km`;
+                    rangeSlider.value = storedRadius === 'all' ? 11 : storedRadius;
+                    if (rangeValue) rangeValue.textContent = storedRadius === 'all' ? 'All' : `${storedRadius} km`;
                 }
                 
                 // Toggle range control visibility
@@ -1198,9 +1198,9 @@
                     
                     // Reset slider to current radius when opening
                     if (!isVisible) {
-                        tempRadius = currentRadius.textContent;
-                        rangeSlider.value = tempRadius;
-                        rangeValue.textContent = `${tempRadius} km`;
+                        tempRadius = currentRadius.textContent === 'All' ? 'all' : currentRadius.textContent;
+                        rangeSlider.value = tempRadius === 'all' ? 11 : tempRadius;
+                        rangeValue.textContent = tempRadius === 'all' ? 'All' : `${tempRadius} km`;
                     }
                 });
                 
@@ -1208,9 +1208,9 @@
                 if (rangeSlider) {
                     rangeSlider.addEventListener('input', function(e) {
                         const newRadius = parseInt(e.target.value);
-                        if (rangeValue) rangeValue.textContent = `${newRadius} km`;
-                        if (currentRadius) currentRadius.textContent = newRadius; // Update the filter info display
-                        tempRadius = newRadius; // Store temporary value
+                        if (rangeValue) rangeValue.textContent = newRadius === 11 ? 'All' : `${newRadius} km`;
+                        if (currentRadius) currentRadius.textContent = newRadius === 11 ? 'All' : newRadius; // Update the filter info display
+                        tempRadius = newRadius === 11 ? 'all' : newRadius; // Store temporary value
                     });
                 }
                 

@@ -1,14 +1,7 @@
-HISTORY FORK ** 
+FORK CANCELLED 
 
-This version has leaderboard, posts, etc all working
-
-POST FORK 
-
-WE ARE GOING FULL IN HISTORY 
-
-MVP___ 
-
-CHECK PRD FIRST - IF NOT, RUNPLAN: 
+Features list
+Then APIs for content 
 
 Search results not working on ALL pages 
 - Fix Search UI

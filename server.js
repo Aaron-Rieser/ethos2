@@ -83,7 +83,9 @@ function createPostElement(item) {
     loadComments(item.id, item.isDeal ? 'deal' : 'post');
 
     return postDiv;
-}require('dotenv').config();
+}
+
+require('dotenv').config();
 
 const express = require('express');
 const pool = require('./db');
@@ -857,17 +859,56 @@ app.get('/api/posts', async (req, res) => {
             });
         }
 
-        const radiusInKm = parseFloat(radius);
-        if (isNaN(radiusInKm)) {
+        // Parse and validate numeric values
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        
+        // Handle "all" radius option
+        let radiusInKm;
+        if (radius === 'all') {
+            radiusInKm = 'all';
+        } else {
+            radiusInKm = parseFloat(radius);
+            if (isNaN(radiusInKm)) {
+                console.error('Invalid radius parameter:', { radius });
+                return res.status(400).json({ 
+                    error: 'Invalid radius parameter',
+                    details: { provided: radius }
+                });
+            }
+        }
+
+        if (isNaN(latitude) || isNaN(longitude)) {
+            console.error('Invalid coordinate parameters:', { lat, lng });
             return res.status(400).json({ 
-                error: 'Invalid radius parameter',
-                details: { provided: radius }
+                error: 'Invalid coordinate parameters',
+                details: { 
+                    latitude: isNaN(latitude),
+                    longitude: isNaN(longitude)
+                }
+            });
+        }
+
+        // Validate coordinate ranges
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+            console.error('Coordinates out of range:', { latitude, longitude });
+            return res.status(400).json({ 
+                error: 'Coordinates out of range',
+                details: { latitude, longitude }
             });
         }
 
         console.log('Executing query with radius:', radiusInKm);
         
-        const query = `
+        const query = radiusInKm === 'all' ? `
+            SELECT 
+                p.*,
+                a.username,
+                NULL AS distance
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            ORDER BY p.created_at DESC
+        ` : `
             SELECT 
                 p.*,
                 a.username,
@@ -894,10 +935,12 @@ app.get('/api/posts', async (req, res) => {
             ORDER BY p.created_at DESC
         `;
         
-        const values = [parseFloat(lat), parseFloat(lng), radiusInKm];
+        const values = radiusInKm === 'all' ? [] : [parseFloat(lat), parseFloat(lng), radiusInKm];
         console.log('Executing query with values:', values);
 
-        const postsResult = await pool.query(query, values);
+        const postsResult = radiusInKm === 'all' ? 
+            await pool.query(query) : 
+            await pool.query(query, values);
         console.log(`Found ${postsResult.rows.length} posts`);
 
         // Format dates and add feeds
@@ -1185,16 +1228,29 @@ app.get('/api/combined-feed', async (req, res) => {
         // Parse and validate numeric values
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lng);
-        const radiusInKm = parseFloat(radius);
+        
+        // Handle "all" radius option
+        let radiusInKm;
+        if (radius === 'all') {
+            radiusInKm = 'all';
+        } else {
+            radiusInKm = parseFloat(radius);
+            if (isNaN(radiusInKm)) {
+                console.error('Invalid radius parameter:', { radius });
+                return res.status(400).json({ 
+                    error: 'Invalid radius parameter',
+                    details: { provided: radius }
+                });
+            }
+        }
 
-        if (isNaN(latitude) || isNaN(longitude) || isNaN(radiusInKm)) {
-            console.error('Invalid numeric parameters:', { lat, lng, radius });
+        if (isNaN(latitude) || isNaN(longitude)) {
+            console.error('Invalid coordinate parameters:', { lat, lng });
             return res.status(400).json({ 
-                error: 'Invalid numeric parameters',
+                error: 'Invalid coordinate parameters',
                 details: { 
                     latitude: isNaN(latitude),
-                    longitude: isNaN(longitude),
-                    radius: isNaN(radiusInKm)
+                    longitude: isNaN(longitude)
                 }
             });
         }
@@ -1213,7 +1269,15 @@ app.get('/api/combined-feed', async (req, res) => {
         // Fetch posts with error handling
         let formattedPosts = [];
         try {
-            const postsQuery = `
+            const postsQuery = radiusInKm === 'all' ? `
+                SELECT 
+                    p.*, 
+                    a.username,
+                    false as "isDeal",
+                    'post' as "type"
+                FROM posts p
+                LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            ` : `
                 SELECT 
                     p.*, 
                     a.username,
@@ -1231,7 +1295,9 @@ app.get('/api/combined-feed', async (req, res) => {
                     )
                 ) <= $3
             `;
-            const postsResult = await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
+            const postsResult = radiusInKm === 'all' ? 
+                await pool.query(postsQuery) : 
+                await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
             formattedPosts = postsResult.rows.map(post => ({
                 ...post,
                 isDeal: false,
@@ -1246,7 +1312,15 @@ app.get('/api/combined-feed', async (req, res) => {
         // Fetch deals with error handling
         let formattedDeals = [];
         try {
-            const dealsQuery = `
+            const dealsQuery = radiusInKm === 'all' ? `
+                SELECT 
+                    d.*, 
+                    a.username,
+                    true as "isDeal",
+                    'deal' as "type"
+                FROM deals d
+                LEFT JOIN accounts a ON d.user_id = a.auth0_id
+            ` : `
                 SELECT 
                     d.*, 
                     a.username,
@@ -1264,7 +1338,9 @@ app.get('/api/combined-feed', async (req, res) => {
                     )
                 ) <= $3
             `;
-            const dealsResult = await pool.query(dealsQuery, [latitude, longitude, radiusInKm]);
+            const dealsResult = radiusInKm === 'all' ? 
+                await pool.query(dealsQuery) : 
+                await pool.query(dealsQuery, [latitude, longitude, radiusInKm]);
             formattedDeals = dealsResult.rows.map(deal => ({
                 ...deal,
                 isDeal: true,
@@ -1279,7 +1355,15 @@ app.get('/api/combined-feed', async (req, res) => {
         // Fetch missed connections with error handling
         let formattedMissed = [];
         try {
-            const missedQuery = `
+            const missedQuery = radiusInKm === 'all' ? `
+                SELECT 
+                    m.*, 
+                    a.username,
+                    false as "isDeal",
+                    'missed' as "type"
+                FROM missed_connections m
+                LEFT JOIN accounts a ON m.user_id = a.auth0_id
+            ` : `
                 SELECT 
                     m.*, 
                     a.username,
@@ -1297,7 +1381,9 @@ app.get('/api/combined-feed', async (req, res) => {
                     )
                 ) <= $3
             `;
-            const missedResult = await pool.query(missedQuery, [latitude, longitude, radiusInKm]);
+            const missedResult = radiusInKm === 'all' ? 
+                await pool.query(missedQuery) : 
+                await pool.query(missedQuery, [latitude, longitude, radiusInKm]);
             formattedMissed = missedResult.rows.map(missed => ({
                 ...missed,
                 isDeal: false,

@@ -802,7 +802,7 @@
             <input type="range" 
                    class="range-slider" 
                    min="1" 
-                   max="10" 
+                   max="11" 
                    value="1" 
                    step="1">
             <span class="range-value">1 km</span>
@@ -1367,7 +1367,7 @@
                 userLocation = [e.latlng.lat, e.latlng.lng];
                 if (radiusCircle) {
                     const radius = document.querySelector('.range-slider').value;
-                    updateRadius(parseInt(radius));
+                    updateRadius(radius);
                 }
             }
         });
@@ -1400,16 +1400,19 @@
                     map.removeLayer(radiusCircle);
                 }
                 
-                radiusCircle = L.circle(userLocation, {
-                    radius: radius * 1000, // Convert km to meters
-                    color: '#3388ff',
-                    fillColor: '#3388ff',
-                    fillOpacity: 0.1,
-                    weight: 2
-                }).addTo(map);
+                // Only show circle if radius is not "all"
+                if (radius !== 'all') {
+                    radiusCircle = L.circle(userLocation, {
+                        radius: radius * 1000, // Convert km to meters
+                        color: '#3388ff',
+                        fillColor: '#3388ff',
+                        fillOpacity: 0.1,
+                        weight: 2
+                    }).addTo(map);
+                }
 
                 // Update the range display
-                document.querySelector('.range-value').textContent = `${radius} km`;
+                document.querySelector('.range-value').textContent = radius === 'all' ? 'All' : `${radius} km`;
             }
         }
 
@@ -1504,7 +1507,8 @@
 
         // Add range slider event listener
         document.querySelector('.range-slider').addEventListener('input', function(e) {
-            updateRadius(parseInt(e.target.value));
+            const val = parseInt(e.target.value);
+            document.querySelector('.range-value').textContent = val === 11 ? 'All' : `${val} km`;
         });
 
         // Initialize location when page loads
@@ -1517,7 +1521,8 @@
                 return;
             }
             
-            const radius = document.querySelector('.range-slider').value;
+            let radius = document.querySelector('.range-slider').value;
+            if (parseInt(radius) === 11) radius = 'all';
             const [lat, lng] = userLocation;
             
             // Redirect to feed.html with location parameters
