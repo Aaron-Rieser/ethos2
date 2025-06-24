@@ -150,6 +150,7 @@
             line-height: 0.8;
             margin: 0.05em 0.05em 0 0;
             color: var(--color-vintage-blue);
+            margin-right: 8px; /* Safe zone between drop cap and image */
         }
 
         /* Enhanced Images */
@@ -268,6 +269,36 @@
             margin-top: 80px;
             padding: 20px 15px;
             background: var(--color-paper);
+        }
+
+        /* Mobile-specific styles for full-width cards and images */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 0;
+                margin-top: 80px;
+            }
+
+            .post-card {
+                margin: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                max-width: none;
+                width: 100%;
+            }
+
+            .post-card::before {
+                border-radius: 0;
+            }
+
+            .post-card img {
+                border-radius: 0;
+                margin: 0;
+                width: 100vw;
+                margin-left: calc(-25px - 1px); /* Compensate for card padding and border */
+                margin-right: calc(-25px - 1px);
+                max-width: calc(100vw + 50px + 2px);
+            }
         }
 
         /* Preserve Bottom Navigation Sixtyfour Font */
