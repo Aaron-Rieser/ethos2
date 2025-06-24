@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gumshoe - Explore Your City</title>
     <link rel="stylesheet" href="fonts.css">
+    <!-- Import vintage serif fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        /* Vintage Periodical Typography & Styling */
         :root {
-            --primary-blue: #4a90e2;
-            --dark-blue: #2c3e50;
-            --white: #ffffff;
-            --light-gray: #f5f6fa;
+            /* Vintage Color Palette */
+            --color-paper: #faf8f3;
+            --color-cream: #fffff0;
+            --color-aged: #f5f1e8;
+            --color-charcoal: #1a1a1a;
+            --color-sepia: #8b4513;
+            --color-warm-brown: #a0522d;
+            --color-vintage-blue: #2c5282;
+            --color-vintage-blue-light: #4a90e2;
+            --color-ink: #2d3748;
         }
 
         * {
@@ -20,20 +29,28 @@
         }
 
         body {
-            background-color: var(--light-gray);
-            color: var(--dark-blue);
-            line-height: 1.6;
+            background: var(--color-paper);
+            color: var(--color-charcoal);
+            line-height: 1.7;
+            font-feature-settings: "liga" 1, "kern" 1;
         }
 
-        /* Header Styles */
+        /* Preserve Sixtyfour for titles - DO NOT CHANGE */
+        .site-title, h1, .main-title {
+            font-family: 'Sixtyfour', system-ui, sans-serif !important;
+            color: var(--color-charcoal);
+        }
+
+        /* Enhanced Header */
         header {
-            background-color: var(--white);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--color-cream);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 1rem 2rem;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
+            border-bottom: 2px solid var(--color-vintage-blue);
         }
 
         nav {
@@ -46,105 +63,162 @@
 
         .site-title {
             margin: 0;
-            font-size: 24px;
-            color: #000;  /* Add this line to match the black color used in other pages */
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--color-charcoal);
         }
 
         .auth-container {
-            padding: 10px;
+            padding: 12px 20px;
             margin-bottom: 20px;
             text-align: right;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .auth-container button {
             padding: 8px 16px;
             margin-left: 10px;
-            border: none;
-            border-radius: 4px;
+            border: 1px solid var(--color-vintage-blue);
+            border-radius: 6px;
             cursor: pointer;
+            background: var(--color-cream);
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            transition: all 0.2s ease;
+        }
+
+        .auth-container button:hover {
+            background: var(--color-vintage-blue);
+            color: white;
         }
 
         .auth-buttons button {
             padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
+            border: 1px solid var(--color-vintage-blue);
+            border-radius: 6px;
             cursor: pointer;
+            background: var(--color-cream);
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            transition: all 0.2s ease;
+        }
+
+        .auth-buttons button:hover {
+            background: var(--color-vintage-blue);
+            color: white;
         }
 
         #login {
-            background-color: #3388ff;
+            background: var(--color-vintage-blue);
             color: white;
         }
 
         #logout {
-            background-color: #f44336;
+            background: var(--color-vintage-blue-light);
             color: white;
         }
-        /* Main Content Styles */
+
+        /* Enhanced Main Content */
         main {
-            padding-top: 80px; /* Account for fixed header */
+            padding-top: 100px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
+            background: var(--color-paper);
         }
 
         .welcome-section {
-            padding: 2rem;
-            max-width: 800px;
+            padding: 3rem 2rem;
+            max-width: 900px;
             margin: 0 auto;
+            background: var(--color-cream);
+            border-radius: 16px;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.05),
+                0 10px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d4c4a8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
+            border-radius: 16px 16px 0 0;
         }
 
         .welcome-text {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--dark-blue);
-            margin-bottom: 2rem;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 2.5rem;
+            font-family: 'Playfair Display', serif;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
         }
 
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;  /* Increased gap between buttons */
-            max-width: 400px;
+            gap: 1.8rem;
+            max-width: 450px;
             margin: 0 auto;
         }
 
         .action-button {
-            background-color: var(--primary-blue);
-            color: var(--white);
-            padding: 1.2rem 2rem;
+            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
+            color: white;
+            padding: 1.4rem 2.5rem;
             border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: block;
             text-align: center;
-            font-family: 'Sixtyfour', sans-serif;
-            width: 100%;  /* Ensure all buttons have same width */
-            min-height: 60px;  /* Ensure consistent height */
-            line-height: 1.2;  /* Adjust line height for better text alignment */
-            white-space: nowrap;  /* Prevent text wrapping */
+            font-family: 'Sixtyfour', system-ui, sans-serif !important;
+            width: 100%;
+            min-height: 70px;
+            line-height: 1.2;
+            white-space: nowrap;
+            box-shadow: 0 4px 8px rgba(44, 82, 130, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .action-button:hover {
-            transform: translateY(-2px);
-            background-color: #357abd;
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, var(--color-vintage-blue-light), var(--color-vintage-blue));
+            box-shadow: 0 6px 12px rgba(44, 82, 130, 0.4);
+        }
+
+        .action-button:active {
+            transform: translateY(-1px);
         }
 
         .signature {
-            margin-top: 2rem;
+            margin-top: 3rem;
             font-style: italic;
-            color: var(--dark-blue);
-            font-size: 1.1rem;
+            color: var(--color-vintage-blue);
+            font-size: 1.2rem;
+            font-family: 'Crimson Text', serif;
+            opacity: 0.8;
         }
 
-        /* Search Modal Styles */
+        /* Enhanced Search Modal */
         .search-modal {
             display: none;
             position: fixed;
@@ -152,7 +226,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             z-index: 2000;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -166,14 +240,18 @@
         }
 
         .search-content {
-            background-color: var(--white);
-            padding: 2rem;
-            border-radius: 10px;
+            background: var(--color-cream);
+            padding: 3rem;
+            border-radius: 16px;
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
             position: relative;
             transform: translateY(-20px);
             transition: transform 0.3s ease;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d4c4a8;
         }
 
         .search-modal.active .search-content {
@@ -182,22 +260,39 @@
 
         .search-input {
             width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border: 2px solid var(--primary-blue);
-            border-radius: 5px;
-            margin-bottom: 1rem;
+            padding: 1.2rem;
+            font-size: 1.2rem;
+            border: 2px solid var(--color-vintage-blue);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            background: var(--color-paper);
+            font-family: 'Crimson Text', serif;
+            color: var(--color-ink);
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-vintage-blue-light);
+            box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+            background: var(--color-aged);
         }
 
         .close-search {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            top: 1.5rem;
+            right: 1.5rem;
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
-            color: var(--white);
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            transition: color 0.2s ease;
+        }
+
+        .close-search:hover {
+            color: var(--color-vintage-blue-light);
         }
         .sticky-header {
             position: fixed;
@@ -376,7 +471,6 @@
             .leaderboard-table td {
                 padding: 0.75rem;
             }
-        }
         }
     </style>
 </head>

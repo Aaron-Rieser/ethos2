@@ -19,7 +19,8 @@
             --color-charcoal: #1a1a1a;
             --color-sepia: #8b4513;
             --color-warm-brown: #a0522d;
-            --color-vintage-blue: #4a5568;
+            --color-vintage-blue: #2c5282;
+            --color-vintage-blue-light: #4a90e2;
             --color-ink: #2d3748;
         }
 
@@ -76,14 +77,14 @@
             width: 36px;
             height: 36px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--color-sepia), var(--color-warm-brown));
+            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-family: 'Source Serif Pro', serif;
-            box-shadow: 0 2px 4px rgba(139, 69, 19, 0.3);
+            box-shadow: 0 2px 4px rgba(44, 82, 130, 0.3);
         }
 
         /* Vintage Post Cards */
@@ -109,7 +110,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--color-sepia), var(--color-warm-brown));
+            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             border-radius: 8px 8px 0 0;
         }
 
@@ -138,7 +139,6 @@
             line-height: 1.8;
             color: var(--color-ink);
             text-align: justify;
-            text-indent: 1.5em;
             margin: 15px 0;
         }
 
@@ -148,8 +148,8 @@
             font-weight: 700;
             float: left;
             line-height: 0.8;
-            margin: 0.1em 0.1em 0 0;
-            color: var(--color-sepia);
+            margin: 0.05em 0.05em 0 0;
+            color: var(--color-vintage-blue);
         }
 
         /* Enhanced Images */
@@ -165,7 +165,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            background: linear-gradient(135deg, var(--color-sepia), var(--color-warm-brown));
+            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             color: white;
             padding: 8px 18px;
             border-radius: 0 0 12px 0;
@@ -174,13 +174,13 @@
             font-family: 'Source Serif Pro', serif;
             z-index: 2;
             display: inline-block;
-            box-shadow: 0 2px 6px rgba(139, 69, 19, 0.4);
+            box-shadow: 0 2px 6px rgba(44, 82, 130, 0.4);
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
 
         .blind-tag {
-            background: linear-gradient(135deg, #8b4513, #a0522d);
+            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             color: white;
             padding: 8px 18px;
             border-radius: 0 0 12px 0;
@@ -188,7 +188,7 @@
             font-size: 0.85em;
             font-weight: 600;
             font-family: 'Source Serif Pro', serif;
-            box-shadow: 0 2px 6px rgba(139, 69, 19, 0.4);
+            box-shadow: 0 2px 6px rgba(44, 82, 130, 0.4);
             text-transform: uppercase;
             letter-spacing: 0.8px;
         }
@@ -222,26 +222,26 @@
         }
 
         .upvote-button:hover {
-            background: rgba(139, 69, 19, 0.1);
-            border-color: var(--color-sepia);
+            background: rgba(44, 82, 130, 0.1);
+            border-color: var(--color-vintage-blue);
             transform: scale(1.05);
         }
 
         .downvote-button:hover {
-            background: rgba(160, 82, 45, 0.1);
-            border-color: var(--color-warm-brown);
+            background: rgba(74, 144, 226, 0.1);
+            border-color: var(--color-vintage-blue-light);
             transform: scale(1.05);
         }
 
         .comment-button:hover {
-            background: rgba(74, 85, 104, 0.1);
+            background: rgba(44, 82, 130, 0.1);
             border-color: var(--color-vintage-blue);
             transform: scale(1.05);
         }
 
         .message-button:hover {
-            background: rgba(45, 55, 72, 0.1);
-            border-color: var(--color-ink);
+            background: rgba(74, 144, 226, 0.1);
+            border-color: var(--color-vintage-blue-light);
             transform: scale(1.05);
         }
 
@@ -299,7 +299,7 @@
         
         .clear-filter {
             margin-left: 15px;
-            color: var(--color-sepia);
+            color: var(--color-vintage-blue);
             cursor: pointer;
             text-decoration: underline;
             font-weight: 600;
@@ -320,13 +320,13 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background: linear-gradient(135deg, var(--color-sepia), var(--color-warm-brown));
+            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
             display: flex;
             justify-content: space-between;
             align-items: stretch;
             z-index: 1000;
             height: 60px;
-            box-shadow: 0 -4px 12px rgba(139, 69, 19, 0.3);
+            box-shadow: 0 -4px 12px rgba(44, 82, 130, 0.3);
             opacity: 1;
             visibility: visible;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -397,7 +397,7 @@
 
         .comment-user {
             font-weight: 600;
-            color: var(--color-sepia);
+            color: var(--color-vintage-blue);
             display: inline;
             font-family: 'Source Serif Pro', serif;
         }
@@ -424,27 +424,27 @@
         .auth-container button {
             padding: 8px 16px;
             margin-left: 10px;
-            border: 1px solid var(--color-sepia);
+            border: 1px solid var(--color-vintage-blue);
             border-radius: 6px;
             cursor: pointer;
             background: var(--color-cream);
-            color: var(--color-sepia);
+            color: var(--color-vintage-blue);
             font-family: 'Source Serif Pro', serif;
             transition: all 0.2s ease;
         }
 
         .auth-container button:hover {
-            background: var(--color-sepia);
+            background: var(--color-vintage-blue);
             color: white;
         }
 
         #login {
-            background: var(--color-sepia);
+            background: var(--color-vintage-blue);
             color: white;
         }
 
         #logout {
-            background: var(--color-warm-brown);
+            background: var(--color-vintage-blue-light);
             color: white;
         }
 
@@ -480,7 +480,7 @@
         }
 
         .search-toggle {
-            background: var(--color-sepia);
+            background: var(--color-vintage-blue);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -505,7 +505,7 @@
         }
 
         #searchButton {
-            background: var(--color-sepia);
+            background: var(--color-vintage-blue);
             color: white;
             border: none;
             padding: 10px 20px;
@@ -523,6 +523,72 @@
             border-radius: 6px;
             border-left: 4px solid #dc2626;
             font-family: 'Source Serif Pro', serif;
+        }
+
+        /* User Dropdown Styles */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-circle {
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--color-cream);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border: 1px solid #d4c4a8;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .dropdown-content.show {
+            display: block !important;
+        }
+
+        .dropdown-content .user-email {
+            display: block;
+            padding: 12px 16px;
+            color: var(--color-vintage-blue);
+            border-bottom: 1px solid #d4c4a8;
+            font-family: 'Source Serif Pro', serif;
+            font-style: italic;
+        }
+
+        .dropdown-content a {
+            color: var(--color-charcoal);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-family: 'Source Serif Pro', serif;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background: rgba(44, 82, 130, 0.1);
+        }
+
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-family: 'Source Serif Pro', serif;
+            color: var(--color-charcoal);
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-content button:hover {
+            background: rgba(44, 82, 130, 0.1);
         }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
