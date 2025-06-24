@@ -378,8 +378,9 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         console.log('Received file:', req.file);
         const { post, title, latitude, longitude } = req.body;  // Removed neighbourhood
         
-        if (!post || !title) {  // Removed neighbourhood check
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!title) {  // Only require title
+            console.error('Missing required fields:', { title });
+            return res.status(400).json({ error: 'Title is required' });
         }
 
         const image_url = req.file ? req.file.path : null;
@@ -497,9 +498,9 @@ app.post('/api/deals', authenticateJWT, upload.single('image'), async (req, res)
         const numericLongitude = parseFloat(longitude); 
         console.log('Parsed price:', numericPrice);
 
-        if (!post || !title) {  // Removed neighbourhood check
-            console.error('Missing required fields:', { post, title });
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!title) {  // Only require title
+            console.error('Missing required fields:', { title });
+            return res.status(400).json({ error: 'Title is required' });
         }
 
         if (!price || isNaN(numericPrice)) {
@@ -626,8 +627,8 @@ app.post('/api/missed-connections', authenticateJWT, upload.single('image'), asy
         
         const { post, title, latitude, longitude } = req.body;  // Removed neighbourhood
         
-        if (!post || !title) {  // Removed neighbourhood check
-            return res.status(400).json({ error: 'Missing required fields' });
+        if (!title) {  // Only require title
+            return res.status(400).json({ error: 'Title is required' });
         }
 
         const image_url = req.file ? req.file.path : null;

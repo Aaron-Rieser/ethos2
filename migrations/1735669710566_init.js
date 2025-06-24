@@ -4,7 +4,7 @@ exports.up = (pgm) => {
         id: 'id',
         neighbourhood: { type: 'varchar(255)', notNull: true },
         username: { type: 'varchar(255)', notNull: true },
-        post: { type: 'text', notNull: true },
+        post: { type: 'text' },
         latitude: { type: 'decimal' },
         longitude: { type: 'decimal' },
         image_url: { type: 'text' },
