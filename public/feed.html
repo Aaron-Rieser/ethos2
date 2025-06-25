@@ -656,6 +656,7 @@
             border-radius: 16px;
             width: 90%;
             max-width: 700px;
+            max-height: 80vh;
             position: relative;
             transform: translateY(-20px);
             transition: transform 0.3s ease;
@@ -663,6 +664,7 @@
                 0 8px 16px rgba(0, 0, 0, 0.2),
                 0 16px 32px rgba(0, 0, 0, 0.1);
             border: 1px solid #d4c4a8;
+            overflow-y: auto;
         }
 
         .search-modal.active .search-content {
@@ -707,6 +709,54 @@
             overflow-y: auto;
             border-top: 1px solid #d4c4a8;
             padding-top: 1.5rem;
+        }
+
+        .search-results.collapsed {
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .search-results-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--color-aged);
+            border: 1px solid #d4c4a8;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-results-header.visible {
+            display: flex;
+        }
+
+        .search-results-header:hover {
+            background: var(--color-paper);
+            border-color: var(--color-vintage-blue);
+        }
+
+        .search-results-count {
+            font-family: 'Source Serif Pro', serif;
+            font-weight: 600;
+            color: var(--color-vintage-blue);
+        }
+
+        .search-results-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--color-vintage-blue);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .search-results-toggle.expanded {
+            transform: rotate(180deg);
         }
 
         .search-placeholder {
@@ -770,6 +820,77 @@
             color: var(--color-vintage-blue);
             font-family: 'Source Serif Pro', serif;
             padding: 2rem;
+        }
+
+        .expanded-post {
+            display: none;
+            background: var(--color-paper);
+            border: 1px solid #d4c4a8;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        .expanded-post.visible {
+            display: block;
+        }
+
+        .expanded-post-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .expanded-post-content {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.1em;
+            color: var(--color-ink);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .expanded-post-meta {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 0.9em;
+            color: var(--color-vintage-blue);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #d4c4a8;
+        }
+
+        .expanded-post-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .expanded-post-actions button {
+            background: var(--color-vintage-blue);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-family: 'Source Serif Pro', serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .expanded-post-actions button:hover {
+            background: var(--color-vintage-blue-light);
+            transform: translateY(-1px);
+        }
+
+        .back-to-results {
+            background: var(--color-aged) !important;
+            color: var(--color-ink) !important;
+        }
+
+        .back-to-results:hover {
+            background: var(--color-paper) !important;
         }
 
         .close-search {
@@ -1249,6 +1370,39 @@
                         searchModal.classList.remove('active');
                     }
                 });
+
+                // Add event listeners for collapsible results
+                const searchResultsHeader = document.getElementById('search-results-header');
+                const searchResultsToggle = document.getElementById('search-results-toggle');
+                const backToResults = document.getElementById('back-to-results');
+                const viewInFeed = document.getElementById('view-in-feed');
+
+                if (searchResultsHeader) {
+                    searchResultsHeader.addEventListener('click', () => {
+                        const searchResults = document.getElementById('search-results');
+                        const searchResultsToggle = document.getElementById('search-results-toggle');
+                        const expandedPost = document.getElementById('expanded-post');
+                        
+                        if (searchResults.classList.contains('collapsed')) {
+                            // Expand results
+                            searchResults.classList.remove('collapsed');
+                            searchResultsToggle.classList.remove('expanded');
+                            expandedPost.classList.remove('visible');
+                        } else {
+                            // Collapse results
+                            searchResults.classList.add('collapsed');
+                            searchResultsToggle.classList.add('expanded');
+                        }
+                    });
+                }
+
+                if (backToResults) {
+                    backToResults.addEventListener('click', collapseResults);
+                }
+
+                if (viewInFeed) {
+                    viewInFeed.addEventListener('click', viewPostFromModal);
+                }
 
                 // 3. Set up create post link handlers (using querySelectorAll as in original)
                 document.querySelectorAll('.create-post-link').forEach(link => {
@@ -1803,6 +1957,13 @@
         // Modal search functionality
         async function performModalSearch(searchTerm) {
             const searchResults = document.getElementById('search-results');
+            const searchResultsHeader = document.getElementById('search-results-header');
+            const expandedPost = document.getElementById('expanded-post');
+            
+            // Reset modal state
+            searchResults.classList.remove('collapsed');
+            searchResultsHeader.classList.remove('visible');
+            expandedPost.classList.remove('visible');
             
             // Show loading state
             searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
@@ -1813,6 +1974,10 @@
                 if (!response.ok) throw new Error('Search failed');
                 
                 const results = await response.json();
+                
+                // Store results for later use
+                window.currentSearchResults = results;
+                window.currentSearchTerm = searchTerm;
                 
                 // Display results
                 displayModalSearchResults(results, searchTerm);
@@ -1825,11 +1990,17 @@
 
         function displayModalSearchResults(posts, searchTerm) {
             const searchResults = document.getElementById('search-results');
+            const searchResultsHeader = document.getElementById('search-results-header');
+            const searchResultsCount = document.getElementById('search-results-count');
             
             if (posts.length === 0) {
                 searchResults.innerHTML = `<div class="search-no-results">No posts found for "${searchTerm}"</div>`;
                 return;
             }
+            
+            // Show results header
+            searchResultsCount.textContent = `${posts.length} result${posts.length === 1 ? '' : 's'} found`;
+            searchResultsHeader.classList.add('visible');
             
             const resultsHTML = posts.map(post => {
                 const title = post.title || 'Untitled';
@@ -1837,7 +2008,7 @@
                 const username = post.username || 'Anonymous';
                 
                 return `
-                    <div class="search-result-item" onclick="viewPostFromModal('${post.id}')">
+                    <div class="search-result-item" onclick="expandPost('${post.id}')">
                         <div class="search-result-title">${highlightSearchTerm(title, searchTerm)}</div>
                         ${content ? `<div class="search-result-text">${highlightSearchTerm(truncateText(content, 150), searchTerm)}</div>` : ''}
                         <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
@@ -1848,6 +2019,63 @@
             searchResults.innerHTML = resultsHTML;
         }
 
+        async function expandPost(postId) {
+            const searchResults = document.getElementById('search-results');
+            const searchResultsHeader = document.getElementById('search-results-header');
+            const searchResultsToggle = document.getElementById('search-results-toggle');
+            const expandedPost = document.getElementById('expanded-post');
+            const expandedPostTitle = document.getElementById('expanded-post-title');
+            const expandedPostContent = document.getElementById('expanded-post-content');
+            const expandedPostMeta = document.getElementById('expanded-post-meta');
+            
+            try {
+                // Fetch full post data
+                const response = await fetch(`/api/posts/${postId}`);
+                if (!response.ok) throw new Error('Failed to fetch post');
+                
+                const post = await response.json();
+                
+                // Collapse results list
+                searchResults.classList.add('collapsed');
+                searchResultsToggle.classList.add('expanded');
+                
+                // Display expanded post
+                expandedPostTitle.textContent = post.title || 'Untitled';
+                expandedPostContent.textContent = post.post || post.description || '';
+                expandedPostMeta.innerHTML = `
+                    by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
+                    ${post.latitude && post.longitude ? ` • 📍 ${post.latitude.toFixed(4)}, ${post.longitude.toFixed(4)}` : ''}
+                `;
+                
+                // Store current post ID for navigation
+                window.currentExpandedPostId = postId;
+                
+                // Show expanded post
+                expandedPost.classList.add('visible');
+                
+                // Scroll to expanded post
+                expandedPost.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+            } catch (error) {
+                console.error('Error expanding post:', error);
+                alert('Error loading post details. Please try again.');
+            }
+        }
+
+        function collapseResults() {
+            const searchResults = document.getElementById('search-results');
+            const searchResultsHeader = document.getElementById('search-results-header');
+            const searchResultsToggle = document.getElementById('search-results-toggle');
+            const expandedPost = document.getElementById('expanded-post');
+            
+            // Expand results list
+            searchResults.classList.remove('collapsed');
+            searchResultsToggle.classList.remove('expanded');
+            
+            // Hide expanded post
+            expandedPost.classList.remove('visible');
+        }
+
         function highlightSearchTerm(text, searchTerm) {
             if (!text || !searchTerm) return text;
             const regex = new RegExp(`(${searchTerm})`, 'gi');
@@ -1856,16 +2084,23 @@
 
         function showSearchPlaceholder() {
             const searchResults = document.getElementById('search-results');
+            const searchResultsHeader = document.getElementById('search-results-header');
+            const expandedPost = document.getElementById('expanded-post');
+            
+            // Reset modal state
+            searchResults.classList.remove('collapsed');
+            searchResultsHeader.classList.remove('visible');
+            expandedPost.classList.remove('visible');
+            
             searchResults.innerHTML = '<div class="search-placeholder"><p>Enter a search term to find posts...</p></div>';
         }
 
-        function viewPostFromModal(postId) {
-            // Close modal and navigate to feed
+        function viewPostFromModal() {
+            // Close modal - we're already on the feed page
             const searchModal = document.getElementById('search-modal');
             if (searchModal) {
                 searchModal.classList.remove('active');
             }
-            // The post will be visible in the feed
         }
 
         function formatDate(dateString) {
@@ -1921,9 +2156,28 @@
                 <h3 class="search-title">Search Posts</h3>
                 <input type="text" class="search-input" placeholder="Search for places, events, or people...">
             </div>
+            
+            <!-- Collapsible Results Header -->
+            <div class="search-results-header" id="search-results-header">
+                <span class="search-results-count" id="search-results-count"></span>
+                <button class="search-results-toggle" id="search-results-toggle">▼</button>
+            </div>
+            
+            <!-- Search Results List -->
             <div class="search-results" id="search-results">
                 <div class="search-placeholder">
                     <p>Enter a search term to find posts...</p>
+                </div>
+            </div>
+            
+            <!-- Expanded Post View -->
+            <div class="expanded-post" id="expanded-post">
+                <div class="expanded-post-title" id="expanded-post-title"></div>
+                <div class="expanded-post-content" id="expanded-post-content"></div>
+                <div class="expanded-post-meta" id="expanded-post-meta"></div>
+                <div class="expanded-post-actions">
+                    <button class="back-to-results" id="back-to-results">Back to Results</button>
+                    <button id="view-in-feed">View in Feed</button>
                 </div>
             </div>
         </div>

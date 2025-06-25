@@ -1197,6 +1197,34 @@ app.get('/api/search', async (req, res) => {
     }
 });
 
+// Add endpoint to fetch individual post by ID
+app.get('/api/posts/:id', async (req, res) => {
+    try {
+        const postId = req.params.id;
+        
+        const postQuery = `
+            SELECT 
+                p.*,
+                a.username
+            FROM posts p
+            LEFT JOIN accounts a ON p.user_id = a.auth0_id
+            WHERE p.id = $1
+        `;
+        
+        const result = await pool.query(postQuery, [postId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+        
+        res.json(result.rows[0]);
+
+    } catch (error) {
+        console.error('Error fetching post:', error);
+        res.status(500).json({ error: 'Error fetching post' });
+    }
+});
+
 app.get('/api/combined-feed', async (req, res) => {
     try {
         const { lat, lng, radius = 2 } = req.query;
