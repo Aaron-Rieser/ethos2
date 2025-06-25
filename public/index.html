@@ -362,6 +362,19 @@
             transform: translateY(0);
         }
 
+        .search-header {
+            margin-bottom: 2rem;
+        }
+
+        .search-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
         .search-input {
             width: 100%;
             padding: 1.2rem;
@@ -380,6 +393,76 @@
             border-color: var(--color-vintage-blue-light);
             box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
             background: var(--color-aged);
+        }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid #d4c4a8;
+            padding-top: 1.5rem;
+        }
+
+        .search-placeholder {
+            text-align: center;
+            color: var(--color-ink);
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .search-result-item {
+            background: var(--color-paper);
+            border: 1px solid #d4c4a8;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .search-result-item:hover {
+            background: var(--color-aged);
+            border-color: var(--color-vintage-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(44, 82, 130, 0.1);
+        }
+
+        .search-result-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-text {
+            font-family: 'Crimson Text', serif;
+            font-size: 1em;
+            color: var(--color-ink);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-meta {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 0.9em;
+            color: var(--color-vintage-blue);
+            font-style: italic;
+        }
+
+        .search-no-results {
+            text-align: center;
+            color: var(--color-ink);
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .search-loading {
+            text-align: center;
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            padding: 2rem;
         }
 
         .close-search {
@@ -689,7 +772,15 @@
     <div class="search-modal" id="search-modal">
         <button class="close-search" id="close-search">&times;</button>
         <div class="search-content">
-            <input type="text" class="search-input" placeholder="Search for places, events, or people...">
+            <div class="search-header">
+                <h3 class="search-title">Search Posts</h3>
+                <input type="text" class="search-input" placeholder="Search for places, events, or people...">
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-placeholder">
+                    <p>Enter a search term to find posts...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -787,10 +878,18 @@
                     if (e.key === 'Enter') {
                         const searchTerm = searchInput.value.trim();
                         if (searchTerm) {
-                            console.log('Searching for:', searchTerm);
-                            // Implement search functionality here
-                            searchModal.classList.remove('active');
+                            performSearch(searchTerm);
                         }
+                    }
+                });
+
+                // Add real-time search as user types
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.trim();
+                    if (searchTerm.length >= 2) {
+                        performSearch(searchTerm);
+                    } else if (searchTerm.length === 0) {
+                        showSearchPlaceholder();
                     }
                 });
             }
@@ -802,6 +901,92 @@
                 }
             });
         });
+
+        // Search functionality
+        async function performSearch(searchTerm) {
+            const searchResults = document.getElementById('search-results');
+            
+            // Show loading state
+            searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+            
+            try {
+                // Fetch posts from the API
+                const response = await fetch('/api/posts');
+                if (!response.ok) throw new Error('Failed to fetch posts');
+                
+                const posts = await response.json();
+                
+                // Filter posts based on search term
+                const filteredPosts = posts.filter(post => {
+                    const searchLower = searchTerm.toLowerCase();
+                    const titleMatch = post.title && post.title.toLowerCase().includes(searchLower);
+                    const descriptionMatch = post.description && post.description.toLowerCase().includes(searchLower);
+                    const usernameMatch = post.username && post.username.toLowerCase().includes(searchLower);
+                    
+                    return titleMatch || descriptionMatch || usernameMatch;
+                });
+                
+                // Display results
+                displaySearchResults(filteredPosts, searchTerm);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="search-no-results">Error loading search results. Please try again.</div>';
+            }
+        }
+
+        function displaySearchResults(posts, searchTerm) {
+            const searchResults = document.getElementById('search-results');
+            
+            if (posts.length === 0) {
+                searchResults.innerHTML = `<div class="search-no-results">No posts found for "${searchTerm}"</div>`;
+                return;
+            }
+            
+            const resultsHTML = posts.map(post => `
+                <div class="search-result-item" onclick="viewPost('${post.id}')">
+                    <div class="search-result-title">${highlightSearchTerm(post.title, searchTerm)}</div>
+                    ${post.description ? `<div class="search-result-text">${highlightSearchTerm(truncateText(post.description, 150), searchTerm)}</div>` : ''}
+                    <div class="search-result-meta">by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}</div>
+                </div>
+            `).join('');
+            
+            searchResults.innerHTML = resultsHTML;
+        }
+
+        function highlightSearchTerm(text, searchTerm) {
+            if (!text || !searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<mark style="background: rgba(44, 82, 130, 0.2); padding: 0 2px; border-radius: 2px;">$1</mark>');
+        }
+
+        function showSearchPlaceholder() {
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Enter a search term to find posts...</p></div>';
+        }
+
+        function viewPost(postId) {
+            // Navigate to feed page and scroll to the specific post
+            // For now, just navigate to feed
+            window.location.href = '/feed.html';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
         async function loadLeaderboard() {
             try {
                 const response = await fetch('/api/leaderboard');
@@ -879,13 +1064,6 @@
 
         // Check for broadcasts when page loads
         document.addEventListener('DOMContentLoaded', checkBroadcasts);
-
-        function truncateText(text, wordLimit) {
-            if (!text) return '';
-            const words = text.split(' ');
-            if (words.length <= wordLimit) return text;
-            return words.slice(0, wordLimit).join(' ') + '...';
-        }
 
         // Load leaderboard when the page loads
         loadLeaderboard();
