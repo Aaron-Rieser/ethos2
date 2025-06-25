@@ -910,24 +910,14 @@
             searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
             
             try {
-                // Fetch posts from the API
-                const response = await fetch('/api/posts');
-                if (!response.ok) throw new Error('Failed to fetch posts');
+                // Use the working search endpoint from feed/map pages
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) throw new Error('Search failed');
                 
-                const posts = await response.json();
-                
-                // Filter posts based on search term
-                const filteredPosts = posts.filter(post => {
-                    const searchLower = searchTerm.toLowerCase();
-                    const titleMatch = post.title && post.title.toLowerCase().includes(searchLower);
-                    const descriptionMatch = post.description && post.description.toLowerCase().includes(searchLower);
-                    const usernameMatch = post.username && post.username.toLowerCase().includes(searchLower);
-                    
-                    return titleMatch || descriptionMatch || usernameMatch;
-                });
+                const results = await response.json();
                 
                 // Display results
-                displaySearchResults(filteredPosts, searchTerm);
+                displaySearchResults(results, searchTerm);
                 
             } catch (error) {
                 console.error('Search error:', error);
@@ -943,13 +933,24 @@
                 return;
             }
             
-            const resultsHTML = posts.map(post => `
-                <div class="search-result-item" onclick="viewPost('${post.id}')">
-                    <div class="search-result-title">${highlightSearchTerm(post.title, searchTerm)}</div>
-                    ${post.description ? `<div class="search-result-text">${highlightSearchTerm(truncateText(post.description, 150), searchTerm)}</div>` : ''}
-                    <div class="search-result-meta">by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}</div>
-                </div>
-            `).join('');
+            const resultsHTML = posts.map(post => {
+                // Handle both posts and deals from the search endpoint
+                const title = post.title || 'Untitled';
+                const content = post.post || post.description || '';
+                const username = post.username || 'Anonymous';
+                const isDeal = post.isDeal || false;
+                
+                return `
+                    <div class="search-result-item" onclick="viewPost('${post.id}', '${post.item_type || 'post'}')">
+                        <div class="search-result-title">
+                            ${highlightSearchTerm(title, searchTerm)}
+                            ${isDeal ? '<span style="color: var(--color-vintage-blue); font-size: 0.8em; margin-left: 8px;">(Deal)</span>' : ''}
+                        </div>
+                        ${content ? `<div class="search-result-text">${highlightSearchTerm(truncateText(content, 150), searchTerm)}</div>` : ''}
+                        <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
+                    </div>
+                `;
+            }).join('');
             
             searchResults.innerHTML = resultsHTML;
         }
@@ -965,9 +966,8 @@
             searchResults.innerHTML = '<div class="search-placeholder"><p>Enter a search term to find posts...</p></div>';
         }
 
-        function viewPost(postId) {
-            // Navigate to feed page and scroll to the specific post
-            // For now, just navigate to feed
+        function viewPost(postId, itemType) {
+            // Navigate to feed page - the search results will be available there
             window.location.href = '/feed.html';
         }
 
