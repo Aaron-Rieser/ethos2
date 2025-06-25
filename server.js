@@ -1168,7 +1168,7 @@ app.get('/api/search', async (req, res) => {
             return res.status(400).json({ error: 'Search term is required' });
         }
 
-        // Search in both posts and deals tables
+        // Search only in posts table (deals table doesn't exist in production)
         const postsQuery = `
             SELECT 
                 p.*,
@@ -1181,28 +1181,12 @@ app.get('/api/search', async (req, res) => {
                  LOWER(p.post) LIKE LOWER($1))
         `;
 
-        const dealsQuery = `
-            SELECT 
-                d.*,
-                'deal' as item_type,
-                true as isDeal,
-                a.username
-            FROM deals d
-            LEFT JOIN accounts a ON d.user_id = a.auth0_id
-            WHERE 
-                (LOWER(d.title) LIKE LOWER($1) OR 
-                 LOWER(d.post) LIKE LOWER($1))
-        `;
-
         const searchPattern = `%${searchTerm}%`;
         
-        const [postsResult, dealsResult] = await Promise.all([
-            pool.query(postsQuery, [searchPattern]),
-            pool.query(dealsQuery, [searchPattern])
-        ]);
+        const postsResult = await pool.query(postsQuery, [searchPattern]);
 
-        // Combine and sort results by date
-        const allResults = [...postsResult.rows, ...dealsResult.rows]
+        // Sort results by date
+        const allResults = postsResult.rows
             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         res.json(allResults);
