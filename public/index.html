@@ -202,18 +202,32 @@
             color: var(--color-vintage-blue);
             font-weight: 900;
             text-shadow: 2px 2px 4px rgba(44, 82, 130, 0.2);
+            font-size: 1.8em;
+            display: inline;
+            text-transform: lowercase;
+        }
+
+        .welcome-text .welcome-prefix {
+            font-family: 'Playfair Display', serif;
+            color: var(--color-charcoal);
+            font-weight: 400;
+            text-transform: none;
+            font-size: 0.7em;
+            display: inline;
+            margin-right: 0.3em;
         }
 
         .welcome-text .subtitle {
-            font-size: 0.6em;
+            font-size: 1.2em;
             font-weight: 400;
             text-transform: none;
             font-family: 'Crimson Text', serif;
             color: var(--color-ink);
-            margin-top: 0.5em;
+            margin: 1rem 0 2rem 0;
             display: block;
             font-style: italic;
             letter-spacing: 0.02em;
+            text-align: center;
         }
 
         .action-buttons {
@@ -502,12 +516,12 @@
 
         .leaderboard-title {
             font-family: 'Playfair Display', serif;
-            font-size: 2.2em;
-            font-weight: 700;
+            font-size: 1.6em;
+            font-weight: 400;
             color: var(--color-charcoal);
             text-align: center;
             margin-bottom: 2rem;
-            text-transform: uppercase;
+            text-transform: none;
             letter-spacing: 0.05em;
             position: relative;
         }
@@ -639,9 +653,10 @@
     <main>
         <div class="welcome-section">
             <h1 class="welcome-text">
+                <span class="welcome-prefix">Welcome to</span>
                 <span class="brand-name">gumshoe</span>
-                <span class="subtitle">Explore your city in a whole new way</span>
             </h1>
+            <p class="subtitle">Explore your city in a whole new way</p>
             <div class="action-buttons">
                 <a href="map.html" class="action-button">Map View</a>
                 <a href="feed.html" class="action-button">Feed View</a>
