@@ -2141,7 +2141,8 @@
                 expandedPostContent.textContent = post.post || post.description || '';
                 expandedPostMeta.innerHTML = `
                     by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
-                    ${post.latitude && post.longitude ? ` • 📍 ${post.latitude.toFixed(4)}, ${post.longitude.toFixed(4)}` : ''}
+                    ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
+                        ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
                 `;
                 
                 // Store current post ID for navigation
