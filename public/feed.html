@@ -628,6 +628,171 @@
         .dropdown-content button:hover {
             background: rgba(44, 82, 130, 0.1);
         }
+
+        /* Enhanced Search Modal */
+        .search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .search-modal.active {
+            display: flex;
+            opacity: 1;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-content {
+            background: var(--color-cream);
+            padding: 3rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            box-shadow: 
+                0 8px 16px rgba(0, 0, 0, 0.2),
+                0 16px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d4c4a8;
+        }
+
+        .search-modal.active .search-content {
+            transform: translateY(0);
+        }
+
+        .search-header {
+            margin-bottom: 2rem;
+        }
+
+        .search-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.2rem;
+            border: 2px solid var(--color-vintage-blue);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            background: var(--color-paper);
+            font-family: 'Crimson Text', serif;
+            color: var(--color-ink);
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-vintage-blue-light);
+            box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
+            background: var(--color-aged);
+        }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            border-top: 1px solid #d4c4a8;
+            padding-top: 1.5rem;
+        }
+
+        .search-placeholder {
+            text-align: center;
+            color: var(--color-ink);
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        .search-result-item {
+            background: var(--color-paper);
+            border: 1px solid #d4c4a8;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .search-result-item:hover {
+            background: var(--color-aged);
+            border-color: var(--color-vintage-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(44, 82, 130, 0.1);
+        }
+
+        .search-result-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-text {
+            font-family: 'Crimson Text', serif;
+            font-size: 1em;
+            color: var(--color-ink);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result-meta {
+            font-family: 'Source Serif Pro', serif;
+            font-size: 0.9em;
+            color: var(--color-vintage-blue);
+            font-style: italic;
+        }
+
+        .search-no-results {
+            text-align: center;
+            color: var(--color-ink);
+            font-family: 'Crimson Text', serif;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .search-loading {
+            text-align: center;
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            padding: 2rem;
+        }
+
+        .close-search {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--color-vintage-blue);
+            font-family: 'Source Serif Pro', serif;
+            transition: color 0.2s ease;
+        }
+
+        .close-search:hover {
+            color: var(--color-vintage-blue-light);
+        }
+
+        /* Remove old search drawer styles */
+        #searchDrawer {
+            display: none !important;
+        }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -1019,32 +1184,71 @@
                 }
             }
 
-                // 2. Set up search drawer
+                // 2. Set up search modal
                 const searchFooterBtn = document.getElementById('searchFooterBtn');
-                const searchDrawer = document.getElementById('searchDrawer');
-                const closeSearchDrawer = document.getElementById('closeSearchDrawer');
-                const searchInputDrawer = document.getElementById('searchInputDrawer');
-                const searchButtonDrawer = document.getElementById('searchButtonDrawer');
+                const searchModal = document.getElementById('search-modal');
+                const closeSearch = document.getElementById('close-search');
+                const modalSearchInput = document.querySelector('.search-input');
 
-                if (searchFooterBtn && searchDrawer) {
-                    searchFooterBtn.addEventListener('click', function() {
-                        searchDrawer.classList.add('active');
-                        searchInputDrawer.focus();
+                // Add click handler for search button
+                if (searchFooterBtn) {
+                    searchFooterBtn.addEventListener('click', () => {
+                        if (searchModal) {
+                            searchModal.classList.add('active');
+                            if (modalSearchInput) {
+                                modalSearchInput.focus();
+                                modalSearchInput.value = ''; // Clear previous search
+                            }
+                        }
                     });
                 }
-                if (closeSearchDrawer && searchDrawer) {
-                    closeSearchDrawer.addEventListener('click', function() {
-                        searchDrawer.classList.remove('active');
+
+                // Add click handler for close button
+                if (closeSearch) {
+                    closeSearch.addEventListener('click', () => {
+                        if (searchModal) {
+                            searchModal.classList.remove('active');
+                        }
                     });
                 }
-                if (searchButtonDrawer) {
-                    searchButtonDrawer.addEventListener('click', performDrawerSearch);
-                }
-                if (searchInputDrawer) {
-                    searchInputDrawer.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') performDrawerSearch();
+
+                // Add click handler to close modal when clicking outside
+                if (searchModal) {
+                    searchModal.addEventListener('click', (e) => {
+                        if (e.target === searchModal) {
+                            searchModal.classList.remove('active');
+                        }
                     });
                 }
+
+                // Add enter key handler for search input
+                if (modalSearchInput) {
+                    modalSearchInput.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            const searchTerm = modalSearchInput.value.trim();
+                            if (searchTerm) {
+                                performModalSearch(searchTerm);
+                            }
+                        }
+                    });
+
+                    // Add real-time search as user types
+                    modalSearchInput.addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.trim();
+                        if (searchTerm.length >= 2) {
+                            performModalSearch(searchTerm);
+                        } else if (searchTerm.length === 0) {
+                            showSearchPlaceholder();
+                        }
+                    });
+                }
+
+                // Add escape key handler to close modal
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && searchModal && searchModal.classList.contains('active')) {
+                        searchModal.classList.remove('active');
+                    }
+                });
 
                 // 3. Set up create post link handlers (using querySelectorAll as in original)
                 document.querySelectorAll('.create-post-link').forEach(link => {
@@ -1595,13 +1799,133 @@
                 <a href="map.html" style="color: #721c24; text-decoration: underline;">Open Map</a>
             `;
         }
+
+        // Modal search functionality
+        async function performModalSearch(searchTerm) {
+            const searchResults = document.getElementById('search-results');
+            
+            // Show loading state
+            searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
+            
+            try {
+                // Use the working search endpoint
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) throw new Error('Search failed');
+                
+                const results = await response.json();
+                
+                // Display results
+                displayModalSearchResults(results, searchTerm);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<div class="search-no-results">Error loading search results. Please try again.</div>';
+            }
+        }
+
+        function displayModalSearchResults(posts, searchTerm) {
+            const searchResults = document.getElementById('search-results');
+            
+            if (posts.length === 0) {
+                searchResults.innerHTML = `<div class="search-no-results">No posts found for "${searchTerm}"</div>`;
+                return;
+            }
+            
+            const resultsHTML = posts.map(post => {
+                const title = post.title || 'Untitled';
+                const content = post.post || post.description || '';
+                const username = post.username || 'Anonymous';
+                
+                return `
+                    <div class="search-result-item" onclick="viewPostFromModal('${post.id}')">
+                        <div class="search-result-title">${highlightSearchTerm(title, searchTerm)}</div>
+                        ${content ? `<div class="search-result-text">${highlightSearchTerm(truncateText(content, 150), searchTerm)}</div>` : ''}
+                        <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            searchResults.innerHTML = resultsHTML;
+        }
+
+        function highlightSearchTerm(text, searchTerm) {
+            if (!text || !searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<mark style="background: rgba(44, 82, 130, 0.2); padding: 0 2px; border-radius: 2px;">$1</mark>');
+        }
+
+        function showSearchPlaceholder() {
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = '<div class="search-placeholder"><p>Enter a search term to find posts...</p></div>';
+        }
+
+        function viewPostFromModal(postId) {
+            // Close modal and navigate to feed
+            const searchModal = document.getElementById('search-modal');
+            if (searchModal) {
+                searchModal.classList.remove('active');
+            }
+            // The post will be visible in the feed
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            if (!searchTerm) return;
+
+            try {
+                const postsContainer = document.getElementById('posts-container');
+                postsContainer.innerHTML = '<div class="loading">Searching...</div>';
+
+                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) throw new Error('Search failed');
+
+                const results = await response.json();
+                
+                postsContainer.innerHTML = '';
+                if (results.length === 0) {
+                    postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
+                } else {
+                    results.forEach(item => {
+                        const postElement = createPostElement(item);
+                        postsContainer.appendChild(postElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                postsContainer.innerHTML = '<div class="error-message">Error performing search. Please try again.</div>';
+            }
+        }
     </script>
 
-    <div id="searchDrawer">
-        <input type="text" id="searchInputDrawer" placeholder="Enter search terms..." />
-        <div class="button-container">
-            <button id="searchButtonDrawer">Search</button>
-            <button id="closeSearchDrawer">Close</button>
+    <!-- Search Modal -->
+    <div class="search-modal" id="search-modal">
+        <button class="close-search" id="close-search">&times;</button>
+        <div class="search-content">
+            <div class="search-header">
+                <h3 class="search-title">Search Posts</h3>
+                <input type="text" class="search-input" placeholder="Search for places, events, or people...">
+            </div>
+            <div class="search-results" id="search-results">
+                <div class="search-placeholder">
+                    <p>Enter a search term to find posts...</p>
+                </div>
+            </div>
         </div>
     </div>
 
