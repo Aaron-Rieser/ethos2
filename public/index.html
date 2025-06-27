@@ -824,6 +824,36 @@
             .leaderboard-section::before {
                 border-radius: 0;
             }
+
+            .welcome-text .brand-name {
+                font-size: 1.2em;
+                word-break: break-word;
+                max-width: 100%;
+                display: block;
+                line-height: 1.2;
+            }
+            
+            .welcome-text .welcome-prefix {
+                font-size: 0.6em;
+                display: block;
+                margin-right: 0;
+                margin-bottom: 0.2em;
+            }
+            
+            .welcome-text {
+                text-align: center;
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-text .brand-name {
+                font-size: 1em;
+            }
+            
+            .welcome-text .welcome-prefix {
+                font-size: 0.5em;
+            }
         }
     </style>
 </head>
