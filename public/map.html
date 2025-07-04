@@ -2280,6 +2280,11 @@
 
         // Set up search modal functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Auth0
+            if (typeof initializeAuth0 === 'function') {
+                initializeAuth0();
+            }
+            
             const searchFooterBtn = document.getElementById('searchFooterBtn');
             const searchModal = document.getElementById('search-modal');
             const closeSearch = document.getElementById('close-search');
