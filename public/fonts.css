@@ -18,10 +18,12 @@ h2 {
     font-family: 'Sixtyfour';
     font-size: 1em;
 }
+
 .bottom-nav a {
     font-family: 'Sixtyfour', system-ui;
-    font-size: 0.7em; /* You might want to adjust size since Sixtyfour is quite bold */
+    font-size: 0.7em;
 }
+
 /* Keep original font for auth elements */
 #login,
 #logout,
@@ -33,13 +35,13 @@ h2 {
 
 h1 {
     font-family: 'Sixtyfour', sans-serif;
-    font-size: 2em; /* Base size for desktop */
+    font-size: 2em;
 }
 
 /* Mobile specific title styling */
 @media screen and (max-width: 768px) {
     h1 {
-        font-size: 1.4em; /* 20% larger than desktop */
+        font-size: 1.4em;
         padding-left: 15px;
         margin-left: 0;
     }

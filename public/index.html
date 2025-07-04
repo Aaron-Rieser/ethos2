@@ -5,21 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gumshoe - Explore Your City</title>
     <link rel="stylesheet" href="fonts.css">
-    <!-- Import vintage serif fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Source+Serif+Pro:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* Vintage Periodical Typography & Styling */
         :root {
-            /* Vintage Color Palette */
-            --color-paper: #faf8f3;
-            --color-cream: #fffff0;
-            --color-aged: #f5f1e8;
-            --color-charcoal: #1a1a1a;
-            --color-sepia: #8b4513;
-            --color-warm-brown: #a0522d;
-            --color-vintage-blue: #2c5282;
-            --color-vintage-blue-light: #4a90e2;
-            --color-ink: #2d3748;
+            --primary-blue: #4a90e2;
+            --dark-blue: #2c3e50;
+            --white: #ffffff;
+            --light-gray: #f5f6fa;
         }
 
         * {
@@ -29,28 +20,20 @@
         }
 
         body {
-            background: var(--color-paper);
-            color: var(--color-charcoal);
-            line-height: 1.7;
-            font-feature-settings: "liga" 1, "kern" 1;
+            background-color: var(--light-gray);
+            color: var(--dark-blue);
+            line-height: 1.6;
         }
 
-        /* Preserve Sixtyfour for titles - DO NOT CHANGE */
-        .site-title, h1, .main-title {
-            font-family: 'Sixtyfour', system-ui, sans-serif !important;
-            color: var(--color-charcoal);
-        }
-
-        /* Enhanced Header */
+        /* Header Styles */
         header {
-            background: var(--color-cream);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             padding: 1rem 2rem;
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            border-bottom: 2px solid var(--color-vintage-blue);
         }
 
         nav {
@@ -63,266 +46,106 @@
 
         .site-title {
             margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            color: var(--color-charcoal);
+            font-size: 24px;
+            color: #000;
         }
 
         .auth-container {
-            padding: 12px 20px;
+            padding: 10px;
             margin-bottom: 20px;
             text-align: right;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .auth-container button {
             padding: 8px 16px;
             margin-left: 10px;
-            border: 1px solid var(--color-vintage-blue);
-            border-radius: 6px;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            background: var(--color-cream);
-            color: var(--color-vintage-blue);
-            font-family: 'Source Serif Pro', serif;
-            transition: all 0.2s ease;
-        }
-
-        .auth-container button:hover {
-            background: var(--color-vintage-blue);
-            color: white;
         }
 
         .auth-buttons button {
             padding: 8px 16px;
-            border: 1px solid var(--color-vintage-blue);
-            border-radius: 6px;
+            border: none;
+            border-radius: 4px;
             cursor: pointer;
-            background: var(--color-cream);
-            color: var(--color-vintage-blue);
-            font-family: 'Source Serif Pro', serif;
-            transition: all 0.2s ease;
-        }
-
-        .auth-buttons button:hover {
-            background: var(--color-vintage-blue);
-            color: white;
         }
 
         #login {
-            background: var(--color-vintage-blue);
+            background-color: #3388ff;
             color: white;
         }
 
         #logout {
-            background: var(--color-vintage-blue-light);
+            background-color: #f44336;
             color: white;
         }
 
-        /* Enhanced Main Content */
+        /* Main Content Styles */
         main {
-            padding-top: 100px;
+            padding-top: 80px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            background: var(--color-paper);
-            width: 100%;
         }
 
         .welcome-section {
-            padding: 3rem 2rem;
+            padding: 2rem;
             max-width: 800px;
-            width: 100%;
             margin: 0 auto;
-            background: var(--color-cream);
-            border-radius: 16px;
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.05),
-                0 10px 15px rgba(0, 0, 0, 0.1);
-            border: 1px solid #d4c4a8;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .welcome-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
-            border-radius: 16px 16px 0 0;
         }
 
         .welcome-text {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--color-charcoal);
-            margin-bottom: 2.5rem;
-            font-family: 'Playfair Display', serif;
-            line-height: 1.2;
-            letter-spacing: -0.02em;
-            text-transform: uppercase;
-            text-align: center;
-            position: relative;
-        }
-
-        .welcome-text::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
-            border-radius: 2px;
-        }
-
-        .welcome-text::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 2px;
-            background: var(--color-sepia);
-            border-radius: 1px;
-        }
-
-        .welcome-text .brand-name {
-            font-family: 'Sixtyfour', system-ui, sans-serif !important;
-            color: var(--color-vintage-blue);
-            font-weight: 900;
-            text-shadow: 2px 2px 4px rgba(44, 82, 130, 0.2);
-            font-size: 1.8em;
-            display: inline;
-            text-transform: lowercase;
-        }
-
-        .welcome-text .welcome-prefix {
-            font-family: 'Playfair Display', serif;
-            color: var(--color-charcoal);
-            font-weight: 400;
-            text-transform: none;
-            font-size: 0.7em;
-            display: inline;
-            margin-right: 0.3em;
-        }
-
-        .welcome-text .subtitle {
-            font-size: 1.2em;
-            font-weight: 400;
-            text-transform: none;
-            font-family: 'Crimson Text', serif;
-            color: var(--color-ink);
-            margin: 1rem 0 2rem 0;
-            display: block;
-            font-style: italic;
-            letter-spacing: 0.02em;
-            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 2rem;
         }
 
         .action-buttons {
             display: flex;
             flex-direction: column;
-            gap: 1.8rem;
-            max-width: 450px;
+            gap: 1.5rem;
+            max-width: 400px;
             margin: 0 auto;
-            position: relative;
-        }
-
-        .action-buttons::before {
-            content: '✦ ✦ ✦';
-            text-align: center;
-            color: var(--color-vintage-blue);
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            font-family: 'Playfair Display', serif;
-            letter-spacing: 0.5em;
         }
 
         .action-button {
-            background: linear-gradient(135deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
-            color: white;
-            padding: 1.4rem 2.5rem;
+            background-color: var(--primary-blue);
+            color: var(--white);
+            padding: 1.2rem 2rem;
             border: none;
-            border-radius: 12px;
-            font-size: 1.3rem;
-            font-weight: 600;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: transform 0.2s, background-color 0.2s;
             text-decoration: none;
             display: block;
             text-align: center;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Sixtyfour', sans-serif;
             width: 100%;
-            min-height: 70px;
+            min-height: 60px;
             line-height: 1.2;
             white-space: nowrap;
-            box-shadow: 0 4px 8px rgba(44, 82, 130, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-
-        .action-button:hover::before {
-            left: 100%;
         }
 
         .action-button:hover {
-            transform: translateY(-3px);
-            background: linear-gradient(135deg, var(--color-vintage-blue-light), var(--color-vintage-blue));
-            box-shadow: 0 6px 12px rgba(44, 82, 130, 0.4);
-        }
-
-        .action-button:active {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            background-color: #357abd;
         }
 
         .signature {
-            margin-top: 3rem;
+            margin-top: 2rem;
             font-style: italic;
-            color: var(--color-vintage-blue);
-            font-size: 1.2rem;
-            font-family: 'Crimson Text', serif;
-            opacity: 0.8;
-            text-align: center;
-            position: relative;
+            color: var(--dark-blue);
+            font-size: 1.1rem;
         }
 
-        .signature::before {
-            content: '—';
-            margin-right: 0.5em;
-            color: var(--color-sepia);
-        }
-
-        .signature::after {
-            content: '—';
-            margin-left: 0.5em;
-            color: var(--color-sepia);
-        }
-
-        /* Enhanced Search Modal */
+        /* Search Modal Styles - Keep the enhanced search functionality */
         .search-modal {
             display: none;
             position: fixed;
@@ -344,7 +167,7 @@
         }
 
         .search-content {
-            background: var(--color-cream);
+            background: var(--white);
             padding: 3rem;
             border-radius: 16px;
             width: 90%;
@@ -369,10 +192,9 @@
         }
 
         .search-title {
-            font-family: 'Playfair Display', serif;
             font-size: 1.8em;
             font-weight: 700;
-            color: var(--color-charcoal);
+            color: var(--dark-blue);
             margin-bottom: 1.5rem;
             text-align: center;
         }
@@ -381,20 +203,18 @@
             width: 100%;
             padding: 1.2rem;
             font-size: 1.2rem;
-            border: 2px solid var(--color-vintage-blue);
+            border: 2px solid var(--primary-blue);
             border-radius: 8px;
             margin-bottom: 1.5rem;
-            background: var(--color-paper);
-            font-family: 'Crimson Text', serif;
-            color: var(--color-ink);
+            background: var(--white);
+            color: var(--dark-blue);
             transition: all 0.2s ease;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--color-vintage-blue-light);
-            box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.1);
-            background: var(--color-aged);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
 
         .search-results {
@@ -416,7 +236,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 1rem;
-            background: var(--color-aged);
+            background: #f5f5f5;
             border: 1px solid #d4c4a8;
             border-radius: 8px;
             margin-bottom: 1rem;
@@ -429,21 +249,20 @@
         }
 
         .search-results-header:hover {
-            background: var(--color-paper);
-            border-color: var(--color-vintage-blue);
+            background: var(--white);
+            border-color: var(--primary-blue);
         }
 
         .search-results-count {
-            font-family: 'Source Serif Pro', serif;
             font-weight: 600;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
         }
 
         .search-results-toggle {
             background: none;
             border: none;
             font-size: 1.2rem;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             cursor: pointer;
             transition: transform 0.2s ease;
         }
@@ -454,14 +273,13 @@
 
         .search-placeholder {
             text-align: center;
-            color: var(--color-ink);
-            font-family: 'Crimson Text', serif;
+            color: var(--dark-blue);
             font-style: italic;
             opacity: 0.7;
         }
 
         .search-result-item {
-            background: var(--color-paper);
+            background: var(--white);
             border: 1px solid #d4c4a8;
             border-radius: 8px;
             padding: 1.5rem;
@@ -471,53 +289,48 @@
         }
 
         .search-result-item:hover {
-            background: var(--color-aged);
-            border-color: var(--color-vintage-blue);
+            background: #f5f5f5;
+            border-color: var(--primary-blue);
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(44, 82, 130, 0.1);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
         }
 
         .search-result-title {
-            font-family: 'Playfair Display', serif;
             font-size: 1.2em;
             font-weight: 700;
-            color: var(--color-charcoal);
+            color: var(--dark-blue);
             margin-bottom: 0.5rem;
         }
 
         .search-result-text {
-            font-family: 'Crimson Text', serif;
             font-size: 1em;
-            color: var(--color-ink);
+            color: var(--dark-blue);
             line-height: 1.5;
             margin-bottom: 0.5rem;
         }
 
         .search-result-meta {
-            font-family: 'Source Serif Pro', serif;
             font-size: 0.9em;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             font-style: italic;
         }
 
         .search-no-results {
             text-align: center;
-            color: var(--color-ink);
-            font-family: 'Crimson Text', serif;
+            color: var(--dark-blue);
             font-style: italic;
             padding: 2rem;
         }
 
         .search-loading {
             text-align: center;
-            color: var(--color-vintage-blue);
-            font-family: 'Source Serif Pro', serif;
+            color: var(--primary-blue);
             padding: 2rem;
         }
 
         .expanded-post {
             display: none;
-            background: var(--color-paper);
+            background: var(--white);
             border: 1px solid #d4c4a8;
             border-radius: 8px;
             padding: 2rem;
@@ -529,26 +342,23 @@
         }
 
         .expanded-post-title {
-            font-family: 'Playfair Display', serif;
             font-size: 1.5em;
             font-weight: 700;
-            color: var(--color-charcoal);
+            color: var(--dark-blue);
             margin-bottom: 1rem;
             line-height: 1.3;
         }
 
         .expanded-post-content {
-            font-family: 'Crimson Text', serif;
             font-size: 1.1em;
-            color: var(--color-ink);
+            color: var(--dark-blue);
             line-height: 1.7;
             margin-bottom: 1.5rem;
         }
 
         .expanded-post-meta {
-            font-family: 'Source Serif Pro', serif;
             font-size: 0.9em;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
             border-bottom: 1px solid #d4c4a8;
@@ -561,29 +371,28 @@
         }
 
         .expanded-post-actions button {
-            background: var(--color-vintage-blue);
+            background: var(--primary-blue);
             color: white;
             border: none;
             padding: 0.8rem 1.5rem;
             border-radius: 6px;
-            font-family: 'Source Serif Pro', serif;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .expanded-post-actions button:hover {
-            background: var(--color-vintage-blue-light);
+            background: #357abd;
             transform: translateY(-1px);
         }
 
         .back-to-results {
-            background: var(--color-aged) !important;
-            color: var(--color-ink) !important;
+            background: #f5f5f5 !important;
+            color: var(--dark-blue) !important;
         }
 
         .back-to-results:hover {
-            background: var(--color-paper) !important;
+            background: var(--white) !important;
         }
 
         .close-search {
@@ -594,14 +403,14 @@
             border: none;
             font-size: 1.8rem;
             cursor: pointer;
-            color: var(--color-vintage-blue);
-            font-family: 'Source Serif Pro', serif;
+            color: var(--primary-blue);
             transition: color 0.2s ease;
         }
 
         .close-search:hover {
-            color: var(--color-vintage-blue-light);
+            color: #357abd;
         }
+
         .sticky-header {
             position: fixed;
             top: 0;
@@ -690,56 +499,19 @@
             font-size: 12px;
             display: none;
         }
-        .leaderboard-section {
-            margin-top: 4rem;
-            padding: 2rem;
-            background: var(--color-cream);
-            border-radius: 16px;
-            box-shadow: 
-                0 4px 6px rgba(0, 0, 0, 0.05),
-                0 10px 15px rgba(0, 0, 0, 0.1);
-            border: 1px solid #d4c4a8;
-            position: relative;
-            overflow: hidden;
-            max-width: 800px;
-            width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
 
-        .leaderboard-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-vintage-blue), var(--color-vintage-blue-light));
-            border-radius: 16px 16px 0 0;
+        .leaderboard-section {
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 800px;
+            padding: 0 1rem;
         }
 
         .leaderboard-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.6em;
-            font-weight: 400;
-            color: var(--color-charcoal);
-            text-align: center;
-            margin-bottom: 2rem;
-            text-transform: none;
-            letter-spacing: 0.05em;
-            position: relative;
-        }
-
-        .leaderboard-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
-            height: 3px;
-            background: var(--color-sepia);
-            border-radius: 2px;
+            font-size: 1.5rem;
+            color: var(--dark-blue);
+            margin-bottom: 1.5rem;
+            text-align: left;
         }
 
         .leaderboard-table-container {
@@ -792,67 +564,31 @@
             text-align: center;
         }
 
-        /* Mobile-specific adjustments */
         @media (max-width: 768px) {
-            main {
-                padding: 100px 0 0 0;
-                justify-content: flex-start;
-            }
-
-            .welcome-section {
-                margin: 0;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                max-width: none;
-                width: 100%;
-            }
-
-            .welcome-section::before {
-                border-radius: 0;
-            }
-
-            .leaderboard-section {
-                margin: 2rem 0 0 0;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                max-width: none;
-                width: 100%;
-            }
-
-            .leaderboard-section::before {
-                border-radius: 0;
-            }
-
-            .welcome-text .brand-name {
-                font-size: 1.2em;
-                word-break: break-word;
-                max-width: 100%;
-                display: block;
-                line-height: 1.2;
-            }
-            
-            .welcome-text .welcome-prefix {
-                font-size: 0.6em;
-                display: block;
-                margin-right: 0;
-                margin-bottom: 0.2em;
-            }
-            
             .welcome-text {
-                text-align: center;
-                padding: 0 1rem;
+                font-size: 1.25rem;
             }
-        }
 
-        @media (max-width: 480px) {
-            .welcome-text .brand-name {
-                font-size: 0.75em;
+            .action-button {
+                padding: 1rem 1.5rem;
+                font-size: 1.1rem;
             }
             
-            .welcome-text .welcome-prefix {
-                font-size: 0.5em;
+            .leaderboard-section {
+                margin-top: 2rem;
+            }
+            
+            .leaderboard-title {
+                font-size: 1.2rem;
+            }
+            
+            .leaderboard-table {
+                font-size: 0.8rem;
+            }
+            
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 0.75rem;
             }
         }
     </style>
@@ -877,42 +613,35 @@
         </div>
     </header>
 
-    <div id="broadcast-bar" class="broadcast-bar" style="display: none;">
-        <div class="broadcast-content">
-            <span id="broadcast-message"></span>
-            <button id="close-broadcast" class="close-broadcast">×</button>
-        </div>
-    </div>
-
     <main>
         <div class="welcome-section">
-            <h1 class="welcome-text">
-                <span class="welcome-prefix">Welcome to</span>
-                <span class="brand-name">gumshoe</span>
-            </h1>
-            <p class="subtitle">Explore your city in a whole new way</p>
+            <h1 class="welcome-text">Welcome to <span class="brand-name">gumshoe</span></h1>
+            <p class="subtitle">Your neighborhood's digital bulletin board</p>
+            
             <div class="action-buttons">
-                <a href="map.html" class="action-button">Map View</a>
-                <a href="feed.html" class="action-button">Feed View</a>
-                <button class="action-button" id="search-button">Search</button>
+                <a href="feed.html" class="action-button">Browse Posts</a>
+                <a href="map.html" class="action-button">View Map</a>
+                <a href="create.html" class="action-button">Create Post</a>
+                <button class="action-button" onclick="openSearch()">Search Posts</button>
             </div>
-            <p class="signature">Happy trails :)</p>
+            
+            <p class="signature">Connect with your community</p>
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="leaderboard-title">Leaderboard: Top posts</h2>
+            <h2 class="leaderboard-title">Top Contributors</h2>
             <div class="leaderboard-table-container">
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
                             <th>Rank</th>
                             <th>User</th>
-                            <th>Post</th>
-                            <th>Likes</th>
+                            <th>Neighborhood</th>
+                            <th>Posts</th>
                         </tr>
                     </thead>
-                    <tbody id="leaderboard-body">
-                        <!-- Posts will be inserted here -->
+                    <tbody id="leaderboardBody">
+                        <!-- Leaderboard data will be populated here -->
                     </tbody>
                 </table>
             </div>
@@ -920,439 +649,159 @@
     </main>
 
     <!-- Search Modal -->
-    <div class="search-modal" id="search-modal">
-        <button class="close-search" id="close-search">&times;</button>
+    <div id="searchModal" class="search-modal">
         <div class="search-content">
+            <button class="close-search" onclick="closeSearch()">&times;</button>
+            
             <div class="search-header">
-                <h3 class="search-title">Search Posts</h3>
-                <input type="text" class="search-input" placeholder="Search for places, events, or people...">
+                <h2 class="search-title">Search Posts</h2>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for posts, neighborhoods, or users..." onkeyup="handleSearch()">
             </div>
             
-            <!-- Collapsible Results Header -->
-            <div class="search-results-header" id="search-results-header">
-                <span class="search-results-count" id="search-results-count"></span>
-                <button class="search-results-toggle" id="search-results-toggle">▼</button>
-            </div>
-            
-            <!-- Search Results List -->
-            <div class="search-results" id="search-results">
-                <div class="search-placeholder">
-                    <p>Enter a search term to find posts...</p>
+            <div id="searchResults" class="search-results collapsed">
+                <div id="searchResultsHeader" class="search-results-header">
+                    <span id="searchResultsCount" class="search-results-count">0 results found</span>
+                    <button id="searchResultsToggle" class="search-results-toggle" onclick="toggleSearchResults()">▼</button>
                 </div>
-            </div>
-            
-            <!-- Expanded Post View -->
-            <div class="expanded-post" id="expanded-post">
-                <div class="expanded-post-title" id="expanded-post-title"></div>
-                <div class="expanded-post-content" id="expanded-post-content"></div>
-                <div class="expanded-post-meta" id="expanded-post-meta"></div>
-                <div class="expanded-post-actions">
-                    <button class="back-to-results" id="back-to-results">Back to Results</button>
-                    <button id="view-in-feed">View in Feed</button>
+                <div id="searchResultsList">
+                    <!-- Search results will be populated here -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Auth0 Script -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auth handling
-            const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-            const loginButton = document.getElementById('login');  // Changed from 'login-button' to 'login'
-            const logoutButton = document.getElementById('logout-button');
-            const userCircle = document.getElementById('userInitial');
-            const userEmail = document.querySelector('.user-email');
+        // Search functionality
+        let searchTimeout;
+        let searchResults = [];
+
+        function openSearch() {
+            document.getElementById('searchModal').classList.add('active');
+            document.getElementById('searchInput').focus();
+        }
+
+        function closeSearch() {
+            document.getElementById('searchModal').classList.remove('active');
+            document.getElementById('searchResults').classList.add('collapsed');
+            document.getElementById('searchResultsHeader').classList.remove('visible');
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResultsList').innerHTML = '';
+        }
+
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            const query = document.getElementById('searchInput').value.trim();
             
-            if (isAuthenticated) {
-                // Hide login button and show user circle
-                loginButton.style.display = 'none';
-                const userEmail = localStorage.getItem('userEmail');
-                if (userEmail && userCircle) {
-                    userCircle.textContent = userEmail.charAt(0).toUpperCase();
-                    userCircle.style.display = 'flex';
-                    userCircle.title = userEmail;
-                }
-                if (userEmail && userEmail) {
-                    userEmail.textContent = userEmail.split('@')[0];
-                }
+            if (query.length < 2) {
+                document.getElementById('searchResults').classList.add('collapsed');
+                document.getElementById('searchResultsHeader').classList.remove('visible');
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                performSearch(query);
+            }, 300);
+        }
+
+        async function performSearch(query) {
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                searchResults = data.results || [];
+                displaySearchResults(searchResults);
+            } catch (error) {
+                console.error('Search error:', error);
+                displaySearchResults([]);
+            }
+        }
+
+        function displaySearchResults(results) {
+            const resultsList = document.getElementById('searchResultsList');
+            const resultsCount = document.getElementById('searchResultsCount');
+            const resultsHeader = document.getElementById('searchResultsHeader');
+            
+            resultsCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''} found`;
+            
+            if (results.length > 0) {
+                resultsHeader.classList.add('visible');
+                document.getElementById('searchResults').classList.remove('collapsed');
+                
+                resultsList.innerHTML = results.map((result, index) => `
+                    <div class="search-result-item" onclick="expandSearchResult(${index})">
+                        <div class="search-result-title">${result.title}</div>
+                        <div class="search-result-text">${result.text.substring(0, 150)}${result.text.length > 150 ? '...' : ''}</div>
+                        <div class="search-result-meta">by ${result.username} in ${result.neighbourhood}</div>
+                    </div>
+                `).join('');
             } else {
-                // Show login button and hide user circle
-                loginButton.style.display = 'block';
-                if (userCircle) {
-                    userCircle.style.display = 'none';
-                }
+                resultsHeader.classList.remove('visible');
+                document.getElementById('searchResults').classList.add('collapsed');
+                resultsList.innerHTML = '<div class="search-no-results">No results found</div>';
             }
+        }
 
-            // Add dropdown functionality
-            if (userCircle) {
-                userCircle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const dropdown = document.querySelector('.dropdown-content');
-                    if (dropdown) {
-                        dropdown.classList.toggle('show');
-                    }
-                });
+        function expandSearchResult(index) {
+            const result = searchResults[index];
+            const resultsList = document.getElementById('searchResultsList');
+            
+            resultsList.innerHTML = `
+                <div class="expanded-post visible">
+                    <h3 class="expanded-post-title">${result.title}</h3>
+                    <div class="expanded-post-content">${result.text}</div>
+                    <div class="expanded-post-meta">Posted by ${result.username} in ${result.neighbourhood} on ${new Date(result.created_at).toLocaleDateString()}</div>
+                    <div class="expanded-post-actions">
+                        <button class="back-to-results" onclick="displaySearchResults(searchResults)">Back to Results</button>
+                    </div>
+                </div>
+            `;
+        }
 
-                // Close dropdown when clicking outside
-                window.addEventListener('click', () => {
-                    const dropdown = document.querySelector('.dropdown-content');
-                    if (dropdown) {
-                        dropdown.classList.remove('show');
-                    }
-                });
+        function toggleSearchResults() {
+            const results = document.getElementById('searchResults');
+            const toggle = document.getElementById('searchResultsToggle');
+            
+            if (results.classList.contains('collapsed')) {
+                results.classList.remove('collapsed');
+                toggle.classList.add('expanded');
+            } else {
+                results.classList.add('collapsed');
+                toggle.classList.remove('expanded');
             }
+        }
 
-            const searchButton = document.getElementById('search-button');
-            const searchModal = document.getElementById('search-modal');
-            const closeSearch = document.getElementById('close-search');
-            const searchInput = document.querySelector('.search-input');
-
-            // Add click handler for search button
-            if (searchButton) {
-                searchButton.addEventListener('click', () => {
-                    if (searchModal) {
-                        searchModal.classList.add('active');
-                        if (searchInput) {
-                            searchInput.focus();
-                            searchInput.value = ''; // Clear previous search
-                        }
-                    }
-                });
-            }
-
-            // Add click handler for close button
-            if (closeSearch) {
-                closeSearch.addEventListener('click', () => {
-                    if (searchModal) {
-                        searchModal.classList.remove('active');
-                    }
-                });
-            }
-
-            // Add click handler to close modal when clicking outside
-            if (searchModal) {
-                searchModal.addEventListener('click', (e) => {
-                    if (e.target === searchModal) {
-                        searchModal.classList.remove('active');
-                    }
-                });
-            }
-
-            // Add enter key handler for search input
-            if (searchInput) {
-                searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        const searchTerm = searchInput.value.trim();
-                        if (searchTerm) {
-                            performSearch(searchTerm);
-                        }
-                    }
-                });
-
-                // Add real-time search as user types
-                searchInput.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.trim();
-                    if (searchTerm.length >= 2) {
-                        performSearch(searchTerm);
-                    } else if (searchTerm.length === 0) {
-                        showSearchPlaceholder();
-                    }
-                });
-            }
-
-            // Add escape key handler to close modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && searchModal && searchModal.classList.contains('active')) {
-                    searchModal.classList.remove('active');
-                }
-            });
-
-            // Add event listeners for collapsible results
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const searchResultsToggle = document.getElementById('search-results-toggle');
-            const backToResults = document.getElementById('back-to-results');
-            const viewInFeed = document.getElementById('view-in-feed');
-
-            if (searchResultsHeader) {
-                searchResultsHeader.addEventListener('click', () => {
-                    const searchResults = document.getElementById('search-results');
-                    const searchResultsToggle = document.getElementById('search-results-toggle');
-                    const expandedPost = document.getElementById('expanded-post');
-                    
-                    if (searchResults.classList.contains('collapsed')) {
-                        // Expand results
-                        searchResults.classList.remove('collapsed');
-                        searchResultsToggle.classList.remove('expanded');
-                        expandedPost.classList.remove('visible');
-                    } else {
-                        // Collapse results
-                        searchResults.classList.add('collapsed');
-                        searchResultsToggle.classList.add('expanded');
-                    }
-                });
-            }
-
-            if (backToResults) {
-                backToResults.addEventListener('click', collapseResults);
-            }
-
-            if (viewInFeed) {
-                viewInFeed.addEventListener('click', viewPostFromModal);
+        // Close search modal when clicking outside
+        document.getElementById('searchModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSearch();
             }
         });
 
-        // Search functionality
-        async function performSearch(searchTerm) {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const expandedPost = document.getElementById('expanded-post');
-            
-            // Reset modal state
-            searchResults.classList.remove('collapsed');
-            searchResultsHeader.classList.remove('visible');
-            expandedPost.classList.remove('visible');
-            
-            // Show loading state
-            searchResults.innerHTML = '<div class="search-loading">Searching...</div>';
-            
-            try {
-                // Use the working search endpoint
-                const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}`);
-                if (!response.ok) throw new Error('Search failed');
-                
-                const results = await response.json();
-                
-                // Store results for later use
-                window.currentSearchResults = results;
-                window.currentSearchTerm = searchTerm;
-                
-                // Display results
-                displaySearchResults(results, searchTerm);
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                searchResults.innerHTML = '<div class="search-no-results">Error loading search results. Please try again.</div>';
-            }
-        }
-
-        function displaySearchResults(posts, searchTerm) {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const searchResultsCount = document.getElementById('search-results-count');
-            
-            if (posts.length === 0) {
-                searchResults.innerHTML = `<div class="search-no-results">No posts found for "${searchTerm}"</div>`;
-                return;
-            }
-            
-            // Show results header
-            searchResultsCount.textContent = `${posts.length} result${posts.length === 1 ? '' : 's'} found`;
-            searchResultsHeader.classList.add('visible');
-            
-            const resultsHTML = posts.map(post => {
-                const title = post.title || 'Untitled';
-                const content = post.post || post.description || '';
-                const username = post.username || 'Anonymous';
-                
-                return `
-                    <div class="search-result-item" onclick="expandPost('${post.id}')">
-                        <div class="search-result-title">${highlightSearchTerm(title, searchTerm)}</div>
-                        ${content ? `<div class="search-result-text">${highlightSearchTerm(truncateText(content, 150), searchTerm)}</div>` : ''}
-                        <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            searchResults.innerHTML = resultsHTML;
-        }
-
-        async function expandPost(postId) {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const searchResultsToggle = document.getElementById('search-results-toggle');
-            const expandedPost = document.getElementById('expanded-post');
-            const expandedPostTitle = document.getElementById('expanded-post-title');
-            const expandedPostContent = document.getElementById('expanded-post-content');
-            const expandedPostMeta = document.getElementById('expanded-post-meta');
-            
-            try {
-                // Fetch full post data
-                const response = await fetch(`/api/posts/${postId}`);
-                if (!response.ok) throw new Error('Failed to fetch post');
-                
-                const post = await response.json();
-                
-                // Collapse results list
-                searchResults.classList.add('collapsed');
-                searchResultsToggle.classList.add('expanded');
-                
-                // Display expanded post
-                expandedPostTitle.textContent = post.title || 'Untitled';
-                expandedPostContent.textContent = post.post || post.description || '';
-                expandedPostMeta.innerHTML = `
-                    by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
-                    ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
-                        ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
-                `;
-                
-                // Store current post ID for navigation
-                window.currentExpandedPostId = postId;
-                
-                // Show expanded post
-                expandedPost.classList.add('visible');
-                
-                // Scroll to expanded post
-                expandedPost.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-            } catch (error) {
-                console.error('Error expanding post:', error);
-                alert('Error loading post details. Please try again.');
-            }
-        }
-
-        function collapseResults() {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const searchResultsToggle = document.getElementById('search-results-toggle');
-            const expandedPost = document.getElementById('expanded-post');
-            
-            // Expand results list
-            searchResults.classList.remove('collapsed');
-            searchResultsToggle.classList.remove('expanded');
-            
-            // Hide expanded post
-            expandedPost.classList.remove('visible');
-        }
-
-        function highlightSearchTerm(text, searchTerm) {
-            if (!text || !searchTerm) return text;
-            const regex = new RegExp(`(${searchTerm})`, 'gi');
-            return text.replace(regex, '<mark style="background: rgba(44, 82, 130, 0.2); padding: 0 2px; border-radius: 2px;">$1</mark>');
-        }
-
-        function showSearchPlaceholder() {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const expandedPost = document.getElementById('expanded-post');
-            
-            // Reset modal state
-            searchResults.classList.remove('collapsed');
-            searchResultsHeader.classList.remove('visible');
-            expandedPost.classList.remove('visible');
-            
-            searchResults.innerHTML = '<div class="search-placeholder"><p>Enter a search term to find posts...</p></div>';
-        }
-
-        function viewPost(postId) {
-            // Navigate to feed page - the search results will be available there
-            window.location.href = '/feed.html';
-        }
-
-        function viewPostFromModal() {
-            // Navigate to feed page
-            window.location.href = '/feed.html';
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-            });
-        }
-
-        function truncateText(text, maxLength) {
-            if (!text) return '';
-            if (text.length <= maxLength) return text;
-            return text.substring(0, maxLength) + '...';
-        }
-
+        // Load leaderboard data
         async function loadLeaderboard() {
             try {
                 const response = await fetch('/api/leaderboard');
-                if (!response.ok) throw new Error('Failed to fetch leaderboard');
+                const data = await response.json();
                 
-                const posts = await response.json();
-                const leaderboardBody = document.getElementById('leaderboard-body');
-                
-                if (!leaderboardBody) return;
-                
-                leaderboardBody.innerHTML = posts.map((post, index) => `
+                const leaderboardBody = document.getElementById('leaderboardBody');
+                leaderboardBody.innerHTML = data.map((user, index) => `
                     <tr>
                         <td>${index + 1}</td>
-                        <td>${post.username || 'Anonymous'}</td>
-                        <td>${truncateText(post.post, 100)}</td>
-                        <td>${post.upvotes || 0}</td>
+                        <td>${user.username}</td>
+                        <td>${user.neighbourhood}</td>
+                        <td>${user.post_count}</td>
                     </tr>
                 `).join('');
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
-                const leaderboardBody = document.getElementById('leaderboard-body');
-                if (leaderboardBody) {
-                    leaderboardBody.innerHTML = `
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 2rem;">
-                                Unable to load leaderboard. Please try again later.
-                            </td>
-                        </tr>
-                    `;
-                }
             }
         }
 
-        async function checkBroadcasts() {
-            try {
-                const response = await fetch('/api/broadcasts');
-                const broadcast = await response.json();
-                
-                const broadcastBar = document.getElementById('broadcast-bar');
-                const broadcastMessage = document.getElementById('broadcast-message');
-                const mainContent = document.querySelector('.main-content');
-                
-                if (broadcast) {
-                    // Check if user has dismissed this broadcast
-                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-                    if (!dismissedBroadcasts.includes(broadcast.id)) {
-                        broadcastMessage.textContent = broadcast.message;
-                        broadcastBar.style.display = 'block';
-                        mainContent.classList.add('has-broadcast');
-                    }
-                } else {
-                    broadcastBar.style.display = 'none';
-                    mainContent.classList.remove('has-broadcast');
-                }
-            } catch (error) {
-                console.error('Error checking broadcasts:', error);
-            }
-        }
-
-        // Add event listener for close button
-        document.getElementById('close-broadcast')?.addEventListener('click', () => {
-            const broadcastBar = document.getElementById('broadcast-bar');
-            const mainContent = document.querySelector('.main-content');
-            const broadcastId = broadcastBar.dataset.broadcastId;
-            
-            // Store dismissed broadcast ID
-            const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-            dismissedBroadcasts.push(broadcastId);
-            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-            
-            // Hide broadcast
-            broadcastBar.style.display = 'none';
-            mainContent.classList.remove('has-broadcast');
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLeaderboard();
         });
-
-        // Check for broadcasts when page loads
-        document.addEventListener('DOMContentLoaded', checkBroadcasts);
-
-        // Load leaderboard when the page loads
-        loadLeaderboard();
     </script>
 </body>
 </html>
