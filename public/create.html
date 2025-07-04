@@ -132,7 +132,7 @@
             position: absolute;
             right: 0;
             top: 0;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             font-size: 0.8em;
         }
 
@@ -171,11 +171,11 @@
         }
 
         .nav-links a {
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             text-decoration: none;
             font-weight: 600;
             transition: color 0.2s ease;
-            font-family: 'Source Serif Pro', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             padding: 10px 20px;
             border-radius: 8px;
             transition: all 0.2s ease;
@@ -183,9 +183,9 @@
         }
 
         .nav-links a:hover {
-            color: var(--color-vintage-blue-light);
-            background: rgba(44, 82, 130, 0.1);
-            border-color: var(--color-vintage-blue);
+            color: var(--dark-blue);
+            background: rgba(51, 136, 255, 0.1);
+            border-color: var(--primary-blue);
         }
 
         /* Submit Button */
@@ -261,20 +261,20 @@
         }
 
         #login {
-            background: var(--color-vintage-blue);
+            background: var(--primary-blue);
             color: white;
         }
 
         #logout {
-            background: var(--color-vintage-blue-light);
+            background: var(--dark-blue);
             color: white;
         }
 
         #userProfile {
             margin-left: 10px;
             font-style: italic;
-            font-family: 'Source Serif Pro', serif;
-            color: var(--color-vintage-blue);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--primary-blue);
         }
 
         /* Bottom Navigation */
@@ -344,11 +344,11 @@
             position: absolute;
             right: 0;
             top: 100%;
-            background: var(--color-cream);
+            background: var(--white);
             min-width: 200px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.2);
             z-index: 1000;
-            border: 1px solid #d4c4a8;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             overflow: hidden;
         }
@@ -360,23 +360,23 @@
         .dropdown-content .user-email {
             display: block;
             padding: 12px 16px;
-            color: var(--color-vintage-blue);
-            border-bottom: 1px solid #d4c4a8;
-            font-family: 'Source Serif Pro', serif;
+            color: var(--primary-blue);
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'Inter', system-ui, sans-serif;
             font-style: italic;
         }
 
         .dropdown-content a {
-            color: var(--color-charcoal);
+            color: var(--text-dark);
             padding: 12px 16px;
             text-decoration: none;
             display: block;
-            font-family: 'Source Serif Pro', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             transition: background 0.2s ease;
         }
 
         .dropdown-content a:hover {
-            background: rgba(44, 82, 130, 0.1);
+            background: rgba(51, 136, 255, 0.1);
         }
 
         .dropdown-content button {
@@ -386,13 +386,13 @@
             border: none;
             padding: 12px 16px;
             cursor: pointer;
-            font-family: 'Source Serif Pro', serif;
-            color: var(--color-charcoal);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-dark);
             transition: background 0.2s ease;
         }
 
         .dropdown-content button:hover {
-            background: rgba(44, 82, 130, 0.1);
+            background: rgba(51, 136, 255, 0.1);
         }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -512,6 +512,11 @@
     <script>
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Auth0
+        if (typeof initializeAuth0 === 'function') {
+            initializeAuth0();
+        }
+        
         // Location permission check
         if (localStorage.getItem('locationPermissionGranted') === 'true') {
             console.log('Location will be included with post');

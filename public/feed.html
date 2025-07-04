@@ -8,6 +8,17 @@
 
     <title>gumshoe</title>
     <style>
+        /* CSS Variables */
+        :root {
+            --primary-blue: #3388ff;
+            --dark-blue: #2c6bb6;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --border-color: #dddddd;
+        }
+        
         .post-card {
             border: 1px solid #ddd;
             margin: 10px;
@@ -584,12 +595,12 @@
         }
 
         #login {
-            background: var(--color-vintage-blue);
+            background: var(--primary-blue);
             color: white;
         }
 
         #logout {
-            background: var(--color-vintage-blue-light);
+            background: var(--dark-blue);
             color: white;
         }
 
@@ -701,7 +712,7 @@
         .dropdown-content .user-email {
             display: block;
             padding: 12px 16px;
-            color: var(--color-vintage-blue);
+            color: var(--primary-blue);
             border-bottom: 1px solid #d4c4a8;
             font-family: 'Source Serif Pro', serif;
             font-style: italic;
