@@ -1467,6 +1467,18 @@
             padding-top: 0;
             border-top: none;
         }
+        .expanded-post {
+            display: none;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        .expanded-post.visible {
+            display: block;
+        }
 
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -2295,41 +2307,14 @@
             searchResults.innerHTML = resultsHTML;
         }
 
-        function displayModalSearchResults(posts, searchTerm) {
-            const searchResults = document.getElementById('search-results');
-            const searchResultsHeader = document.getElementById('search-results-header');
-            const searchResultsCount = document.getElementById('search-results-count');
-            
-            if (posts.length === 0) {
-                searchResults.innerHTML = `<div class="search-no-results">No posts found for "${searchTerm}"</div>`;
-                return;
-            }
-            
-            // Show results header
-            searchResultsCount.textContent = `${posts.length} result${posts.length === 1 ? '' : 's'} found`;
-            searchResultsHeader.classList.add('visible');
-            
-            const resultsHTML = posts.map(post => {
-                const title = post.title || 'Untitled';
-                const content = post.post || post.description || '';
-                const username = post.username || 'Anonymous';
-                
-                return `
-                    <div class="search-result-item" onclick="expandPost('${post.id}')">
-                        <div class="search-result-title">${highlightSearchTerm(title, searchTerm)}</div>
-                        ${content ? `<div class="search-result-text">${highlightSearchTerm(truncateText(content, 150), searchTerm)}</div>` : ''}
-                        <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
-                    </div>
-                `;
-            }).join('');
-            
-            searchResults.innerHTML = resultsHTML;
-        }
-
         async function expandPost(postId) {
             const searchResults = document.getElementById('search-results');
             const searchResultsHeader = document.getElementById('search-results-header');
             const searchResultsToggle = document.getElementById('search-results-toggle');
+            const expandedPost = document.getElementById('expanded-post');
+            const expandedPostTitle = document.getElementById('expanded-post-title');
+            const expandedPostContent = document.getElementById('expanded-post-content');
+            const expandedPostMeta = document.getElementById('expanded-post-meta');
             
             try {
                 // Fetch full post data
@@ -2342,21 +2327,23 @@
                 searchResults.classList.add('collapsed');
                 searchResultsToggle.classList.add('expanded');
                 
-                // Create expanded post content dynamically
-                searchResults.innerHTML = `
-                    <div class="expanded-post visible">
-                        <h3 class="expanded-post-title">${post.title || 'Untitled'}</h3>
-                        <div class="expanded-post-content">${post.post || post.description || ''}</div>
-                        <div class="expanded-post-meta">
-                            by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
-                            ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
-                                ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
-                        </div>
-                        <div class="expanded-post-actions">
-                            <button class="back-to-results" onclick="displayModalSearchResults(window.currentSearchResults, window.currentSearchTerm)">Back to Results</button>
-                        </div>
-                    </div>
+                // Display expanded post
+                expandedPostTitle.textContent = post.title || 'Untitled';
+                expandedPostContent.textContent = post.post || post.description || '';
+                expandedPostMeta.innerHTML = `
+                    by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
+                    ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
+                        ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
                 `;
+                
+                // Store current post ID for navigation
+                window.currentExpandedPostId = postId;
+                
+                // Show expanded post
+                expandedPost.classList.add('visible');
+                
+                // Scroll to expanded post
+                expandedPost.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
             } catch (error) {
                 console.error('Error expanding post:', error);
@@ -2543,7 +2530,12 @@
             
             <!-- Expanded Post View -->
             <div class="expanded-post" id="expanded-post">
-                <!-- Content will be dynamically created -->
+                <div class="expanded-post-title" id="expanded-post-title"></div>
+                <div class="expanded-post-content" id="expanded-post-content"></div>
+                <div class="expanded-post-meta" id="expanded-post-meta"></div>
+                <div class="expanded-post-actions">
+                    <button class="back-to-results" id="back-to-results">Back to Results</button>
+                </div>
             </div>
         </div>
     </div>
