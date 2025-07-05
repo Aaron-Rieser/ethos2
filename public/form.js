@@ -1,3 +1,57 @@
+// Image compression function
+function compressImage(file) {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calculate new dimensions while maintaining aspect ratio
+            let { width, height } = img;
+            const maxSize = 1920; // Max dimension
+            
+            if (width > maxSize || height > maxSize) {
+                if (width > height) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                } else {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to blob with quality compression
+            canvas.toBlob((blob) => {
+                resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+            }, 'image/jpeg', 0.8); // 80% quality
+        };
+        
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+// Handle image upload with compression
+async function handleImageUpload(file) {
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+        try {
+            console.log('Compressing image...');
+            const compressedFile = await compressImage(file);
+            console.log(`Compressed: ${file.size} → ${compressedFile.size} bytes`);
+            return compressedFile;
+        } catch (error) {
+            console.error('Compression failed:', error);
+            return file; // Fallback to original
+        }
+    }
+    return file;
+}
+
 document.getElementById('postForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -99,14 +153,17 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             formData.append('longitude', lng.toString());
         }
         
-        // Handle image
+        // Handle image with compression
         const imageInput = document.getElementById('image');
         const imageFile = imageInput.files[0];
         if (imageFile) {
             if (imageFile.size > 5 * 1024 * 1024) {
-                throw new Error('File size exceeds 5MB limit');
+                // Show compression message
+                loadingIndicator.textContent = 'Compressing image...';
             }
-            formData.append('image', imageFile);
+            
+            const processedFile = await handleImageUpload(imageFile);
+            formData.append('image', processedFile);
         }
 
         // Submit post
