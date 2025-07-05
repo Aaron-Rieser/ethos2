@@ -324,13 +324,13 @@
 
         /* Post Cards - Enhanced with fun shadows and borders */
         .post-card {
-            border: 2px solid #e8e8e8;
+            border: 2px solid var(--border-color);
             margin: 10px;
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04), 4px 4px 12px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
-            background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+            background: transparent;
             position: relative;
             overflow: hidden;
         }
@@ -455,7 +455,7 @@
             gap: 12px;
             margin-top: 20px;
             padding-top: 15px;
-            border-top: 1px solid #d4c4a8;
+            border-top: 1px solid var(--border-color);
         }
 
         .upvote-count {

@@ -513,13 +513,14 @@
 
         .leaderboard-title {
             font-size: 1.5rem;
-            color: var(--dark-blue);
+            color: var(--text-dark);
             margin-bottom: 1.5rem;
             text-align: left;
         }
 
         .leaderboard-table-container {
-            background: white;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow-x: auto;
@@ -535,13 +536,14 @@
         .leaderboard-table td {
             padding: 1rem;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
         }
 
         .leaderboard-table th {
-            background-color: #f8f9fa;
+            background: transparent;
             font-weight: 600;
-            color: var(--dark-blue);
+            color: var(--text-dark);
         }
 
         .leaderboard-table tr:last-child td {
