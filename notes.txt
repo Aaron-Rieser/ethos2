@@ -1,9 +1,8 @@
 FORK CANCELLED 
 
-Features list
-Then APIs for content 
-
-Search results not working on ALL pages 
+Search on Index 
+Consistent Login 
+Persistent login challenges 
 - Fix Search UI
 Email or text notifications 
 When you come from Map, can't change range 
