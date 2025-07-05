@@ -129,6 +129,32 @@
         #posts-container {
             margin-bottom: 60px;  /* Adds space above the nav bar */
         }
+        #posts-container.posts-left-aligned {
+            text-align: left;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        #posts-container.posts-left-aligned .feed-item,
+        #posts-container.posts-left-aligned .post-card,
+        #posts-container.posts-left-aligned .weather-card,
+        #posts-container.posts-left-aligned .road-alerts-card {
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        #posts-container.posts-left-aligned .feed-title,
+        #posts-container.posts-left-aligned .feed-content,
+        #posts-container.posts-left-aligned .weather-info,
+        #posts-container.posts-left-aligned .alerts-count,
+        #posts-container.posts-left-aligned .road-alert {
+            text-align: left;
+        }
+
+        #posts-container.posts-left-aligned .feed-footer {
+            justify-content: flex-start;
+        }
         .feed-item {
             border: 1px solid #ddd;
             margin: 10px 0;
@@ -1076,7 +1102,7 @@
                     </div>
                 </div>
 
-                <div id="posts-container">
+                <div id="posts-container" class="posts-left-aligned">
                     <!-- Posts will be inserted here -->
                 </div>
             </div>
