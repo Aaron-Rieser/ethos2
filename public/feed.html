@@ -361,24 +361,7 @@
             margin: 10px 0;
         }
 
-        /* Tags */
-        .free-tag {
-            background-color: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.8em;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
 
-        .blind-tag {
-            background-color: #f0f0f0;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.8em;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
 
         /* Metadata */
         .post-meta {
@@ -1693,38 +1676,22 @@
                 ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
             
-            let typeHtml = '';
-            if (item.isFree) {
-                typeHtml = `
-                    <div class="free-header">
-                        <div class="free-tag">Free</div>
-                    </div>
-                `;
-            } else if (item.isBlind) {
-                typeHtml = `
-                    <div class="blind-header">
-                        <div class="blind-tag">Blind</div>
-                    </div>
-                `;
-            }
-
             postDiv.innerHTML = `
                 <div class="post-content">
-                    ${typeHtml}
                     <div class="post-title">${item.title || 'Title'}</div>
                     <div class="post-text">${item.post || 'No content available'}</div>  
                     ${imageHtml}
-                    <small>${item.isBlind ? 'Blind Post' : (item.username || 'Anonymous')} • ${formattedTime}</small>                                    
+                    <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                                    
                     <div class="feed-footer">
-                        <button class="upvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬆️</button>
-                        <button class="downvote-button" data-id="${item.id}" data-type="${getItemType(item)}">⬇️</button>
-                        <button class="comment-button" data-id="${item.id}" data-type="${getItemType(item)}">💬</button>
-                        <button class="message-button" data-id="${item.id}" data-type="${getItemType(item)}" data-user-id="${item.user_id}">✉️</button>
+                        <button class="upvote-button" data-id="${item.id}">⬆️</button>
+                        <button class="downvote-button" data-id="${item.id}">⬇️</button>
+                        <button class="comment-button" data-id="${item.id}">💬</button>
+                        <button class="message-button" data-id="${item.id}" data-user-id="${item.user_id}">✉️</button>
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
                         <div class="comments-container" id="comments-${item.id}"></div>
-                        <form class="comment-form" onsubmit="submitComment(event, ${item.id}, '${getItemType(item)}')">
+                        <form class="comment-form" onsubmit="submitComment(event, ${item.id})">
                             <input type="text" id="comment-input-${item.id}" class="comment-input" placeholder="Add a comment..." required>
                             <div id="comment-error-${item.id}" class="error-message" style="display: none;"></div>
                             <button type="submit">Comment</button>
@@ -1734,21 +1701,21 @@
             `;
             
             const messageButton = postDiv.querySelector('.message-button');
-            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id, getItemType(item)));
+            messageButton.addEventListener('click', () => handleMessage(item.id, item.user_id));
 
             // Add event listener for upvote button
             const upvoteButton = postDiv.querySelector('.upvote-button');
-            upvoteButton.addEventListener('click', () => handleUpvote(item.id, item.isFree));
+            upvoteButton.addEventListener('click', () => handleUpvote(item.id));
             upvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                handleUpvote(item.id, item.isFree);
+                handleUpvote(item.id);
             });
 
             const downvoteButton = postDiv.querySelector('.downvote-button');
-            downvoteButton.addEventListener('click', () => handleDownvote(item.id, item.isFree));
+            downvoteButton.addEventListener('click', () => handleDownvote(item.id));
             downvoteButton.addEventListener('touchend', (e) => {
                 e.preventDefault();
-                handleDownvote(item.id, item.isFree);
+                handleDownvote(item.id);
             });
 
             const commentButton = postDiv.querySelector('.comment-button');
@@ -1759,22 +1726,15 @@
                     : 'none';
             });
 
-            loadComments(item.id, getItemType(item));
+            loadComments(item.id);
 
             return postDiv;
         }
 
-        // Helper function to determine the type of item
-        function getItemType(item) {
-            if (item.isFree) return 'free';
-            if (item.isBlind) return 'blind';
-            return 'post';
-        }
-
-        async function handleUpvote(itemId, isFree) {
+        async function handleUpvote(itemId) {
             try {
                 const token = await auth0Client.getTokenSilently();
-                const endpoint = isFree ? `/api/free/${itemId}/upvote` : `/api/posts/${itemId}/upvote`;
+                const endpoint = `/api/posts/${itemId}/upvote`;
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -1794,19 +1754,16 @@
                 if (upvoteCountElement) {
                     upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
                 }
-
-                // Remove this line to prevent page reload
-                // await loadCombinedFeed();
                 
             } catch (error) {
                 console.error('Error handling upvote:', error);
             }
         }
 
-        async function handleDownvote(itemId, isFree) {
+        async function handleDownvote(itemId) {
             try {
                 const token = await auth0Client.getTokenSilently();
-                const endpoint = isFree ? `/api/free/${itemId}/downvote` : `/api/posts/${itemId}/downvote`;
+                const endpoint = `/api/posts/${itemId}/downvote`;
                 
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -1826,25 +1783,22 @@
                 if (upvoteCountElement) {
                     upvoteCountElement.textContent = `${updatedItem.upvotes} Upvotes`;
                 }
-
-                // Remove this line to prevent page reload
-                // await loadCombinedFeed();
                 
             } catch (error) {
                 console.error('Error handling downvote:', error);
             }
         }
 
-        async function loadComments(postId, postType = 'post') {  // Keep the postType parameter
+        async function loadComments(postId) {
             try {
-                const response = await fetch(`/api/posts/${postId}/comments?type=${postType}`);
+                const response = await fetch(`/api/posts/${postId}/comments`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const comments = await response.json();
                 
                 const commentsContainer = document.getElementById(`comments-${postId}`);
-                if (commentsContainer) {  // Keep the null check
+                if (commentsContainer) {
                     commentsContainer.innerHTML = comments.map(comment => `
                         <div class="comment">
                             <span class="comment-user">${comment.username}</span>
@@ -1857,17 +1811,12 @@
             }
         }
 
-        async function submitComment(event, postId, postType) {
+        async function submitComment(event, postId) {
             event.preventDefault();
-            
-            if (!postType) {
-                console.error('Post type not specified');
-                return;
-            }
 
             const commentInput = document.querySelector(`#comment-input-${postId}`);
             if (!commentInput) {
-                console.error(`Comment input not found for ${postType} ${postId}`);
+                console.error(`Comment input not found for post ${postId}`);
                 return;
             }
 
@@ -1888,8 +1837,7 @@
                     postId,
                     commentText,
                     userEmail: user.email,
-                    userId: user.sub,
-                    postType
+                    userId: user.sub
                 });
 
                 const response = await fetch('/api/comments', {
@@ -1900,8 +1848,7 @@
                     },
                     body: JSON.stringify({
                         post_id: parseInt(postId),
-                        comment: commentText,
-                        post_type: postType
+                        comment: commentText
                     })
                 });
 
@@ -1912,7 +1859,7 @@
 
                 // Clear input and refresh comments
                 commentInput.value = '';
-                await loadComments(postId, postType);
+                await loadComments(postId);
 
                 const commentForm = document.querySelector(`#comments-${postId}`).nextElementSibling;
                 if (commentForm && commentForm.classList.contains('comment-form')) {
@@ -1932,7 +1879,7 @@
             }
         }
 
-        async function handleMessage(itemId, recipientId, itemType) {
+        async function handleMessage(itemId, recipientId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
                     alert('Please log in to send messages');
@@ -1953,7 +1900,7 @@
                         recipient_id: recipientId,
                         message: message,
                         reference_id: itemId,
-                        reference_type: itemType
+                        reference_type: 'post'
                     })
                 });
 

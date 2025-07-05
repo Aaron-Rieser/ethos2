@@ -447,12 +447,6 @@
                 <a href="/map.html">Choose my location</a>
             </nav>
 
-            <div class="post-type-buttons">
-                <button id="postButton" class="type-button active">Post</button>
-                <button id="freeButton" class="type-button">Free</button>
-                <button id="blindButton" class="type-button">Blind</button>
-            </div>
-        
             <form id="postForm">
                 <div class="form-group">
                     <label for="title">Title:</label>
@@ -474,51 +468,6 @@
                 <div id="errorMessage" class="error-message" style="display: none;"></div>
                 <div id="loadingIndicator" style="display: none;">Uploading your post...</div>
             </form>
-
-            <form id="freeForm" style="display: none;">
-                <div class="form-group">
-                    <label for="freeTitle">Title:</label>
-                    <input type="text" id="freeTitle" name="title" required maxlength="255">
-                </div>
-                
-                <div class="form-group">
-                    <label for="post">Post:</label>
-                    <textarea id="post" name="post"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="image">Image (optional):</label>
-                    <input type="file" id="image" name="image" accept="image/*">
-                </div>
-                
-                <button type="submit">Submit Giveaway</button>
-                
-                <div id="freeErrorMessage" class="error-message" style="display: none;"></div>
-                <div id="freeLoadingIndicator" style="display: none;">Uploading your giveaway...</div>
-            </form>
-
-            <form id="blindForm" style="display: none;">
-            
-                <div class="form-group">
-                    <label for="blindTitle">Title:</label>
-                    <input type="text" id="blindTitle" name="title" required maxlength="255">
-                </div>
-                
-                <div class="form-group">
-                    <label for="post">Description:</label>
-                    <textarea id="post" name="post"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="image">Image (optional):</label>
-                    <input type="file" id="image" name="image" accept="image/*">
-                </div>
-                
-                <button type="submit">Submit Blind</button>
-                
-                <div id="blindErrorMessage" class="error-message" style="display: none;"></div>
-                <div id="blindLoadingIndicator" style="display: none;">Posting your Blind item...</div>
-            </form>
         </div>
     </main>
 
@@ -537,46 +486,7 @@
             console.log('Location will be included with post');
         }
 
-        // Get form elements
-        const postButton = document.getElementById('postButton');
-        const freeButton = document.getElementById('freeButton');
-        const blindButton = document.getElementById('blindButton');
-        const postForm = document.getElementById('postForm');
-        const freeForm = document.getElementById('freeForm');
-        const blindForm = document.getElementById('blindForm');
-
-        // Set initial state and handle toggles
-        postButton.classList.add('active');
-        postForm.style.display = 'block';
-        freeForm.style.display = 'none';
-        blindForm.style.display = 'none';
-
-        postButton.addEventListener('click', function() {
-            postButton.classList.add('active');
-            freeButton.classList.remove('active');
-            blindButton.classList.remove('active');
-            postForm.style.display = 'block';
-            freeForm.style.display = 'none';
-            blindForm.style.display = 'none';
-        });
-
-        freeButton.addEventListener('click', function() {
-            freeButton.classList.add('active');
-            postButton.classList.remove('active');
-            blindButton.classList.remove('active');
-            postForm.style.display = 'none';
-            freeForm.style.display = 'block';
-            blindForm.style.display = 'none';
-        });
-
-        blindButton.addEventListener('click', function() {
-            blindButton.classList.add('active');
-            postButton.classList.remove('active');
-            freeButton.classList.remove('active');
-            postForm.style.display = 'none';
-            freeForm.style.display = 'none';
-            blindForm.style.display = 'block';
-        });
+        // Form is now always visible, no toggling needed
     });
 
     async function checkBroadcasts() {
@@ -626,8 +536,6 @@
     </script>
     
     <script src="form.js"></script>
-    <script src="freeForm.js"></script>
-    <script src="blindForm.js"></script>
 
     <div class="bottom-nav">
         <a href="feed.html" class="nav-btn">Home</a>
