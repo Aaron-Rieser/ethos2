@@ -2330,10 +2330,6 @@
             const searchResults = document.getElementById('search-results');
             const searchResultsHeader = document.getElementById('search-results-header');
             const searchResultsToggle = document.getElementById('search-results-toggle');
-            const expandedPost = document.getElementById('expanded-post');
-            const expandedPostTitle = document.getElementById('expanded-post-title');
-            const expandedPostContent = document.getElementById('expanded-post-content');
-            const expandedPostMeta = document.getElementById('expanded-post-meta');
             
             try {
                 // Fetch full post data
@@ -2346,23 +2342,21 @@
                 searchResults.classList.add('collapsed');
                 searchResultsToggle.classList.add('expanded');
                 
-                // Display expanded post
-                expandedPostTitle.textContent = post.title || 'Untitled';
-                expandedPostContent.textContent = post.post || post.description || '';
-                expandedPostMeta.innerHTML = `
-                    by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
-                    ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
-                        ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
+                // Create expanded post content dynamically
+                searchResults.innerHTML = `
+                    <div class="expanded-post visible">
+                        <h3 class="expanded-post-title">${post.title || 'Untitled'}</h3>
+                        <div class="expanded-post-content">${post.post || post.description || ''}</div>
+                        <div class="expanded-post-meta">
+                            by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}
+                            ${post.latitude && post.longitude && !isNaN(parseFloat(post.latitude)) && !isNaN(parseFloat(post.longitude)) ? 
+                                ` • 📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}` : ''}
+                        </div>
+                        <div class="expanded-post-actions">
+                            <button class="back-to-results" onclick="displayModalSearchResults(window.currentSearchResults, window.currentSearchTerm)">Back to Results</button>
+                        </div>
+                    </div>
                 `;
-                
-                // Store current post ID for navigation
-                window.currentExpandedPostId = postId;
-                
-                // Show expanded post
-                expandedPost.classList.add('visible');
-                
-                // Scroll to expanded post
-                expandedPost.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 
             } catch (error) {
                 console.error('Error expanding post:', error);
@@ -2519,14 +2513,6 @@
                     }
                 });
             }
-
-            if (backToResults) {
-                backToResults.addEventListener('click', collapseResults);
-            }
-
-            if (viewInFeed) {
-                viewInFeed.addEventListener('click', viewPostFromModal);
-            }
         });
     </script>
 
@@ -2557,13 +2543,7 @@
             
             <!-- Expanded Post View -->
             <div class="expanded-post" id="expanded-post">
-                <div class="expanded-post-title" id="expanded-post-title"></div>
-                <div class="expanded-post-content" id="expanded-post-content"></div>
-                <div class="expanded-post-meta" id="expanded-post-meta"></div>
-                <div class="expanded-post-actions">
-                    <button class="back-to-results" id="back-to-results">Back to Results</button>
-                    <button id="view-in-feed">View in Feed</button>
-                </div>
+                <!-- Content will be dynamically created -->
             </div>
         </div>
     </div>
