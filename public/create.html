@@ -10,7 +10,7 @@
     <title>gumshoe</title>
 
     <style>
-        /* Simple Retro Futurist Styling */
+        /* CSS Variables */
         :root {
             --primary-blue: #3388ff;
             --dark-blue: #2c6bb6;
@@ -22,7 +22,7 @@
             --dark-bg: #1a1a1a;
             --darker-bg: #0f0f0f;
         }
-
+        
         /* Base Typography */
         body {
             background: var(--dark-bg);
@@ -213,86 +213,217 @@
             padding: 16px 32px;
             border: none;
             border-radius: 8px;
-            cursor: pointer;
-            margin-top: 30px;
             font-size: 1.1em;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+            width: 100%;
+            margin-top: 20px;
         }
 
         button[type="submit"]:hover {
             background: var(--dark-blue);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+            box-shadow: 0 4px 12px rgba(51, 136, 255, 0.3);
         }
 
         button[type="submit"]:active {
             transform: translateY(0);
         }
 
-        button:disabled {
-            background: var(--text-light);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Enhanced Error Messages */
+        /* Error Message */
         .error-message {
-            color: #dc2626;
-            margin: 20px 0;
-            padding: 16px 20px;
-            background: #fef2f2;
-            border-radius: 8px;
-            border-left: 4px solid #dc2626;
-            font-family: 'Source Serif Pro', serif;
-            font-size: 0.95em;
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
-        }
-
-        /* Enhanced Auth Container */
-        .auth-container {
-            padding: 12px 20px;
-            margin-bottom: 20px;
-            text-align: right;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .auth-container button {
-            padding: 8px 16px;
-            margin-left: 10px;
-            border: 1px solid var(--color-vintage-blue);
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid #dc2626;
+            color: #fca5a5;
+            padding: 12px 16px;
             border-radius: 6px;
+            margin-top: 16px;
+            font-size: 0.9em;
+        }
+
+        /* Loading Indicator */
+        #loadingIndicator {
+            text-align: center;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-top: 16px;
+        }
+
+        /* Location Display */
+        .location-display {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+            font-size: 0.9em;
+        }
+
+        .location-display.hidden {
+            display: none;
+        }
+
+        /* Location Selection Modal */
+        .location-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .location-modal.active {
+            display: flex;
+        }
+
+        .location-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .location-title {
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            font-size: 1.5em;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .close-location {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            font-size: 2em;
             cursor: pointer;
-            background: var(--color-cream);
-            color: var(--color-vintage-blue);
-            font-family: 'Source Serif Pro', serif;
-            transition: all 0.2s ease;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s ease;
         }
 
-        .auth-container button:hover {
-            background: var(--color-vintage-blue);
-            color: white;
+        .close-location:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        #login {
+        .location-map-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #locationMap {
+            width: 100%;
+            height: 100%;
+        }
+
+        .location-instructions {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: var(--text-dark);
+            font-size: 0.9em;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .location-selected {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             background: var(--primary-blue);
             color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 1000;
+            display: none;
         }
 
-        #logout {
-            background: var(--dark-blue);
-            color: white;
+        .location-selected.visible {
+            display: block;
         }
 
-        #userProfile {
-            margin-left: 10px;
-            font-style: italic;
-            font-family: 'Inter', system-ui, sans-serif;
+        /* User Dropdown Styles */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            min-width: 200px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .dropdown-content.show {
+            display: block !important;
+        }
+
+        .dropdown-content .user-email {
+            display: block;
+            padding: 12px 16px;
             color: var(--primary-blue);
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-style: italic;
+        }
+
+        .dropdown-content a {
+            color: var(--text-dark);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-family: 'Inter', system-ui, sans-serif;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background: rgba(51, 136, 255, 0.1);
+        }
+
+        .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-dark);
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-content button:hover {
+            background: rgba(51, 136, 255, 0.1);
         }
 
         /* Bottom Navigation */
@@ -350,70 +481,10 @@
                 font-size: 0.95em;
             }
         }
-
-        /* User Dropdown Styles */
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: var(--white);
-            min-width: 200px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            z-index: 1000;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .dropdown-content.show {
-            display: block !important;
-        }
-
-        .dropdown-content .user-email {
-            display: block;
-            padding: 12px 16px;
-            color: var(--primary-blue);
-            border-bottom: 1px solid var(--border-color);
-            font-family: 'Inter', system-ui, sans-serif;
-            font-style: italic;
-        }
-
-        .dropdown-content a {
-            color: var(--text-dark);
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-family: 'Inter', system-ui, sans-serif;
-            transition: background 0.2s ease;
-        }
-
-        .dropdown-content a:hover {
-            background: rgba(51, 136, 255, 0.1);
-        }
-
-        .dropdown-content button {
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            padding: 12px 16px;
-            cursor: pointer;
-            font-family: 'Inter', system-ui, sans-serif;
-            color: var(--text-dark);
-            transition: background 0.2s ease;
-        }
-
-        .dropdown-content button:hover {
-            background: rgba(51, 136, 255, 0.1);
-        }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
     <header class="sticky-header">
@@ -447,8 +518,13 @@
             <h2 class="form-title">Create a new post</h2>
             
             <nav class="nav-links">
-                <a href="/map.html">Choose my location</a>
+                <button type="button" id="selectLocation" class="nav-links a">Choose my location</button>
             </nav>
+
+            <!-- Location Display -->
+            <div id="locationDisplay" class="location-display hidden">
+                <strong>Selected Location:</strong> <span id="locationText">No location selected</span>
+            </div>
 
             <form id="postForm">
                 <div class="form-group">
@@ -474,9 +550,32 @@
         </div>
     </main>
 
+    <!-- Location Selection Modal -->
+    <div id="locationModal" class="location-modal">
+        <div class="location-header">
+            <h2 class="location-title">Select your location</h2>
+            <button class="close-location" onclick="closeLocationModal()">×</button>
+        </div>
+        <div class="location-map-container">
+            <div id="locationMap"></div>
+            <div class="location-instructions">
+                Click and drag the pin to select your location, then click the pin again to confirm
+            </div>
+            <button id="confirmLocation" class="location-selected" onclick="confirmLocation()">
+                Confirm Location
+            </button>
+        </div>
+    </div>
+
     <script src="neighborhoods.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
+    let locationMap;
+    let locationMarker;
+    let selectedLatLng = null;
+    let isDragging = false;
 
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize Auth0
@@ -489,8 +588,128 @@
             console.log('Location will be included with post');
         }
 
-        // Form is now always visible, no toggling needed
+        // Initialize location selection
+        document.getElementById('selectLocation').addEventListener('click', openLocationModal);
     });
+
+    function openLocationModal() {
+        const modal = document.getElementById('locationModal');
+        modal.classList.add('active');
+        
+        // Initialize map after modal is visible
+        setTimeout(() => {
+            initializeLocationMap();
+        }, 100);
+    }
+
+    function closeLocationModal() {
+        const modal = document.getElementById('locationModal');
+        modal.classList.remove('active');
+        
+        if (locationMap) {
+            locationMap.remove();
+            locationMap = null;
+            locationMarker = null;
+        }
+    }
+
+    function initializeLocationMap() {
+        // Default to Toronto coordinates
+        const defaultLat = 43.6532;
+        const defaultLng = -79.3832;
+        
+        locationMap = L.map('locationMap').setView([defaultLat, defaultLng], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(locationMap);
+
+        // Create a custom marker icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="background: #3388ff; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        // Add marker at center
+        locationMarker = L.marker([defaultLat, defaultLng], {
+            icon: customIcon,
+            draggable: true
+        }).addTo(locationMap);
+
+        // Handle marker drag events
+        locationMarker.on('dragstart', function() {
+            isDragging = true;
+            document.querySelector('.location-instructions').textContent = 'Drag the pin to your location';
+        });
+
+        locationMarker.on('drag', function() {
+            document.querySelector('.location-instructions').textContent = 'Release to place pin';
+        });
+
+        locationMarker.on('dragend', function() {
+            isDragging = false;
+            selectedLatLng = locationMarker.getLatLng();
+            document.querySelector('.location-instructions').textContent = 'Click the pin to confirm location';
+            document.getElementById('confirmLocation').classList.add('visible');
+        });
+
+        // Handle marker click to confirm
+        locationMarker.on('click', function() {
+            if (!isDragging) {
+                selectedLatLng = locationMarker.getLatLng();
+                document.querySelector('.location-instructions').textContent = 'Location selected! Click Confirm to save.';
+                document.getElementById('confirmLocation').classList.add('visible');
+            }
+        });
+
+        // Handle map click to move marker
+        locationMap.on('click', function(e) {
+            locationMarker.setLatLng(e.latlng);
+            selectedLatLng = e.latlng;
+            document.querySelector('.location-instructions').textContent = 'Click the pin to confirm location';
+            document.getElementById('confirmLocation').classList.add('visible');
+        });
+    }
+
+    function confirmLocation() {
+        if (selectedLatLng) {
+            // Store coordinates
+            localStorage.setItem('selectedLat', selectedLatLng.lat);
+            localStorage.setItem('selectedLng', selectedLatLng.lng);
+            
+            // Get location name using reverse geocoding
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${selectedLatLng.lat}&lon=${selectedLatLng.lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    let locationText = `${selectedLatLng.lat.toFixed(6)}, ${selectedLatLng.lng.toFixed(6)}`;
+                    if (data.display_name) {
+                        const parts = data.display_name.split(', ');
+                        const city = parts.find(part => 
+                            part.includes('Toronto') || 
+                            part.includes('City') || 
+                            part.includes('Town') ||
+                            part.includes('Village')
+                        );
+                        if (city) {
+                            locationText += ` (${city})`;
+                        }
+                    }
+                    
+                    document.getElementById('locationText').textContent = locationText;
+                    document.getElementById('locationDisplay').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error getting location name:', error);
+                    document.getElementById('locationText').textContent = 
+                        `${selectedLatLng.lat.toFixed(6)}, ${selectedLatLng.lng.toFixed(6)}`;
+                    document.getElementById('locationDisplay').classList.remove('hidden');
+                });
+            
+            closeLocationModal();
+        }
+    }
 
     async function checkBroadcasts() {
         try {

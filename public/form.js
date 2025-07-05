@@ -62,24 +62,35 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         const formData = new FormData();
         formData.append('user_id', user.sub);
         formData.append('email', user.email);
-        formData.append('title', document.getElementById('title').value); // Add this line
+        formData.append('title', document.getElementById('title').value);
         formData.append('post', document.getElementById('post').value);
 
         let lat = null;
         let lng = null;
 
-        // Get location if available
-        try {
-            if (navigator.geolocation) {
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
-                lat = position.coords.latitude;
-                lng = position.coords.longitude;
-                localStorage.setItem('locationPermissionGranted', 'true');
+        // Check for manually selected location first
+        const selectedLat = localStorage.getItem('selectedLat');
+        const selectedLng = localStorage.getItem('selectedLng');
+        
+        if (selectedLat && selectedLng) {
+            lat = parseFloat(selectedLat);
+            lng = parseFloat(selectedLng);
+            console.log('Using manually selected location:', lat, lng);
+        } else {
+            // Fall back to geolocation if no manual selection
+            try {
+                if (navigator.geolocation) {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
+                    lat = position.coords.latitude;
+                    lng = position.coords.longitude;
+                    localStorage.setItem('locationPermissionGranted', 'true');
+                    console.log('Using geolocation:', lat, lng);
+                }
+            } catch (error) {
+                console.log('Location not available or denied, continuing without coordinates');
             }
-        } catch (error) {
-            console.log('Location not available or denied, continuing without coordinates');
         }
 
         // Only append coordinates if they exist
@@ -113,6 +124,10 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
             throw new Error(data.details || data.error || 'Error submitting post');
         }
 
+        // Clear selected location after successful post
+        localStorage.removeItem('selectedLat');
+        localStorage.removeItem('selectedLng');
+        
         window.location.href = 'feed.html';
 
     } catch (error) {
