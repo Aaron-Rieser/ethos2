@@ -1722,7 +1722,7 @@
                     <div class="post-title">${item.title || 'Title'}</div>
                     ${item.post ? `<div class="post-text">${item.post}</div>` : ''}  
                     ${imageHtml}
-                    <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                                    
+                    <div class="post-meta">${item.username || 'Anonymous'} • ${formattedTime}</div>                                    
                     <div class="feed-footer">
                         <button class="upvote-button" data-id="${item.id}">⬆️</button>
                         <button class="downvote-button" data-id="${item.id}">⬇️</button>
