@@ -876,9 +876,26 @@
         async function loadLeaderboard() {
             try {
                 const response = await fetch('/api/posts?limit=10&order=upvotes');
-                const posts = await response.json();
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
+                const data = await response.json();
+                
+                // Check if data is an array
+                if (!Array.isArray(data)) {
+                    console.error('API response is not an array:', data);
+                    throw new Error('Invalid response format');
+                }
+                
+                const posts = data;
                 const leaderboardBody = document.getElementById('leaderboardBody');
+                
+                if (posts.length === 0) {
+                    leaderboardBody.innerHTML = '<tr><td colspan="4">No posts found</td></tr>';
+                    return;
+                }
+                
                 leaderboardBody.innerHTML = posts.map((post, index) => {
                     // Determine what to show in the 4th column
                     let contentOrImage = '';
