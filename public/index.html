@@ -875,7 +875,7 @@
         // Load leaderboard data
         async function loadLeaderboard() {
             try {
-                const response = await fetch('/api/posts?limit=10&order=upvotes');
+                const response = await fetch('/api/leaderboard');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -904,9 +904,6 @@
                         contentOrImage = post.post.length > 50 ? 
                             post.post.substring(0, 50) + '...' : 
                             post.post;
-                    } else if (post.image_url) {
-                        // Show image thumbnail
-                        contentOrImage = `<img src="${post.image_url}" alt="Post image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
                     } else {
                         contentOrImage = 'No content';
                     }
@@ -915,7 +912,7 @@
                         <tr>
                             <td>${index + 1}</td>
                             <td>${post.username || 'Anonymous'}</td>
-                            <td>${post.title || 'Untitled'}</td>
+                            <td>${post.upvotes || 0} upvotes</td>
                             <td>${contentOrImage}</td>
                         </tr>
                     `;

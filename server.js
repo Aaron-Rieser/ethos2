@@ -1443,7 +1443,6 @@ app.get('/api/map-posts', async (req, res) => {
 });
 
 app.get('/api/leaderboard', async (req, res) => {
-    console.log('=== LEADERBOARD REQUEST RECEIVED ===');
     try {
         // Simple query first to test basic functionality
         const query = `
@@ -1458,9 +1457,7 @@ app.get('/api/leaderboard', async (req, res) => {
             LIMIT 10
         `;
 
-        console.log('Executing leaderboard query...');
         const result = await pool.query(query);
-        console.log(`Leaderboard query successful, returned ${result.rows.length} rows`);
         
         // Format the response
         const leaderboard = result.rows.map(post => ({
@@ -1470,19 +1467,14 @@ app.get('/api/leaderboard', async (req, res) => {
             created_at: post.created_at
         }));
 
-        console.log('Sending leaderboard response:', leaderboard.length, 'items');
         res.json(leaderboard);
     } catch (error) {
-        console.error('=== LEADERBOARD ERROR ===');
-        console.error('Error type:', error.constructor.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
+        console.error('Error fetching leaderboard:', error);
         res.status(500).json({ 
             error: 'Error fetching leaderboard',
             details: error.message 
         });
     }
-    console.log('=== LEADERBOARD REQUEST COMPLETE ===');
 });
 
 const PORT = process.env.PORT || 3000;
