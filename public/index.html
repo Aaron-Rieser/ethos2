@@ -695,9 +695,9 @@
                     <thead>
                         <tr>
                             <th>Rank</th>
-                            <th>User</th>
-                            <th>Neighborhood</th>
-                            <th>Posts</th>
+                            <th>Username</th>
+                            <th>Post Title</th>
+                            <th>Content/Image</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboardBody">
@@ -875,20 +875,38 @@
         // Load leaderboard data
         async function loadLeaderboard() {
             try {
-                const response = await fetch('/api/leaderboard');
-                const data = await response.json();
+                const response = await fetch('/api/posts?limit=10&order=upvotes');
+                const posts = await response.json();
                 
                 const leaderboardBody = document.getElementById('leaderboardBody');
-                leaderboardBody.innerHTML = data.map((user, index) => `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${user.username}</td>
-                        <td>${user.neighbourhood}</td>
-                        <td>${user.post_count}</td>
-                    </tr>
-                `).join('');
+                leaderboardBody.innerHTML = posts.map((post, index) => {
+                    // Determine what to show in the 4th column
+                    let contentOrImage = '';
+                    if (post.post && post.post.trim()) {
+                        // Show text content (truncated)
+                        contentOrImage = post.post.length > 50 ? 
+                            post.post.substring(0, 50) + '...' : 
+                            post.post;
+                    } else if (post.image_url) {
+                        // Show image thumbnail
+                        contentOrImage = `<img src="${post.image_url}" alt="Post image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
+                    } else {
+                        contentOrImage = 'No content';
+                    }
+                    
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${post.username || 'Anonymous'}</td>
+                            <td>${post.title || 'Untitled'}</td>
+                            <td>${contentOrImage}</td>
+                        </tr>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
+                const leaderboardBody = document.getElementById('leaderboardBody');
+                leaderboardBody.innerHTML = '<tr><td colspan="4">Error loading leaderboard data</td></tr>';
             }
         }
 
