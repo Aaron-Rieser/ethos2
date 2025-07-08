@@ -689,15 +689,15 @@
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="leaderboard-title">Top Contributors</h2>
+            <h2 class="leaderboard-title">Top posts this week</h2>
             <div class="leaderboard-table-container">
                 <table class="leaderboard-table">
                     <thead>
                         <tr>
                             <th>Rank</th>
                             <th>Username</th>
-                            <th>Post Title</th>
-                            <th>Content/Image</th>
+                            <th>Upvotes</th>
+                            <th>Content</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboardBody">
@@ -899,11 +899,15 @@
                 leaderboardBody.innerHTML = posts.map((post, index) => {
                     // Determine what to show in the 4th column
                     let contentOrImage = '';
-                    if (post.post && post.post.trim()) {
-                        // Show text content (truncated)
-                        contentOrImage = post.post.length > 50 ? 
-                            post.post.substring(0, 50) + '...' : 
-                            post.post;
+                    
+                    if (post.image_url) {
+                        // If image_url exists, display the image
+                        contentOrImage = `<img src="${post.image_url}" alt="Post image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
+                    } else if (post.post && post.post.trim()) {
+                        // If no image but post content exists, show first 30 words
+                        const words = post.post.split(' ');
+                        const first30Words = words.slice(0, 30).join(' ');
+                        contentOrImage = words.length > 30 ? first30Words + '...' : first30Words;
                     } else {
                         contentOrImage = 'No content';
                     }
@@ -912,7 +916,7 @@
                         <tr>
                             <td>${index + 1}</td>
                             <td>${post.username || 'Anonymous'}</td>
-                            <td>${post.upvotes || 0} upvotes</td>
+                            <td>${post.upvotes || 0}</td>
                             <td>${contentOrImage}</td>
                         </tr>
                     `;
