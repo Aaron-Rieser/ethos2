@@ -1443,36 +1443,24 @@ app.get('/api/map-posts', async (req, res) => {
 });
 
 app.get('/api/leaderboard', async (req, res) => {
+    console.log('=== LEADERBOARD REQUEST RECEIVED ===');
     try {
-        // Get posts from last 30 days, ranked by upvotes and recency
+        // Simple query first to test basic functionality
         const query = `
-            WITH ranked_posts AS (
-                SELECT 
-                    p.*,
-                    COALESCE(a.username, p.username) as display_username,
-                    CASE 
-                        WHEN p.created_at >= NOW() - INTERVAL '24 hours' THEN 3
-                        WHEN p.created_at >= NOW() - INTERVAL '7 days' THEN 2
-                        WHEN p.created_at >= NOW() - INTERVAL '30 days' THEN 1
-                        ELSE 0
-                    END as time_weight
-                FROM posts p
-                LEFT JOIN accounts a ON p.user_id = a.auth0_id
-                WHERE p.created_at >= NOW() - INTERVAL '30 days'
-            )
             SELECT 
-                display_username as username,
+                username,
                 post,
                 upvotes,
                 created_at
-            FROM ranked_posts
-            ORDER BY 
-                time_weight DESC,
-                upvotes DESC
+            FROM posts
+            WHERE created_at >= NOW() - INTERVAL '30 days'
+            ORDER BY upvotes DESC, created_at DESC
             LIMIT 10
         `;
 
+        console.log('Executing leaderboard query...');
         const result = await pool.query(query);
+        console.log(`Leaderboard query successful, returned ${result.rows.length} rows`);
         
         // Format the response
         const leaderboard = result.rows.map(post => ({
@@ -1482,14 +1470,19 @@ app.get('/api/leaderboard', async (req, res) => {
             created_at: post.created_at
         }));
 
+        console.log('Sending leaderboard response:', leaderboard.length, 'items');
         res.json(leaderboard);
     } catch (error) {
-        console.error('Error fetching leaderboard:', error);
+        console.error('=== LEADERBOARD ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
         res.status(500).json({ 
             error: 'Error fetching leaderboard',
             details: error.message 
         });
     }
+    console.log('=== LEADERBOARD REQUEST COMPLETE ===');
 });
 
 const PORT = process.env.PORT || 3000;
