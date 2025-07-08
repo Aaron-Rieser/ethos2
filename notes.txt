@@ -1,49 +1,34 @@
 
 Persistent login challenges 
-- Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
-
+- Missing refresh token for login/logout. 
+- Hard login/logout now in but isn't there a better way to do this? We want more time 
+Range finder gone
+- When you come from Map, can't change range 
 Modal x shift over 
 Map black bar 
- 
-Black space on map 
-New consistent footer 
-Search mobile UI 
-Range finder gone
-
+Search popup and create, fields extending random 
+Modal add ll functions to it 
 Email or text notifications 
-When you come from Map, can't change range 
-Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
-- remove the 'scroll for' button instead add a 'click' for 
-- popup on mobile needs to be no bigger then the screen area 
-- need a differentiator between POPUP and placing LOCATION - this is missing 
-On mobile, posts are staying up better but need to be more sticky (time limit?) for UI
+Better place location UI 
+Better map and post UI 
 Like UI - better
-New format, recommendations, questions (and posts? Gripes? History?)
-- ensure likes work and they show on map
+Add back in weather and highway alerts
 Delete post feature 
-Persistent location issues on chrome/ etc. debug all location
-Manual select location on map
-- Treat page with NO location allowed? Default to manual
-Feed on black, or incorporate more gumshoe text?
+No location posts? Think through 
+Banned list 
 Route to real site 
 Multiple comment design a bit smoother
-- Comment ranking logic 
+- Comment ranking logic and post sorting logic revisit 
 Add back action noises - like post message etc.
 - downvote notification and algo consideration (but not displayed)
-FUN launch feature: Rando meet? Local biz offer? Parties? Points for best of the week?
-- Challenge launch + broadcast message feed 
-Message notification design 
-Weather/traffic feeds bring back
-Add profile picture quality 
-Ensure consistent UX / Nav between all pages 
+Fun launch feature or challenge feature 
+Ensure message UI is good/ on DOS look 
+Add profile picture feature  
 - Corporate logo
 - Contact and help page 
 Content moderation tools and notification - ban lists 
-Widen posts for desktop, better look at them?
 1 account = 1 like
-MEET Wilbur, J.Borg, D.McIntyre
-Wipe all content 
-GTM plan
+GTM
 
 ----- ALL ELSE ------- 
 
