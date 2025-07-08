@@ -105,6 +105,14 @@
             width: 100%;
         }
 
+        /* Remove gap on desktop */
+        @media (min-width: 768px) {
+            #map {
+                margin-top: 0;
+                height: 100vh;
+            }
+        }
+
         .error-message {
             color: #d32f2f;
             margin: 10px 0;
@@ -1399,18 +1407,25 @@
 
         .post-modal-close {
             position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
+            top: 0;
+            right: 0;
+            background: #000;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: #666;
+            color: white;
             z-index: 1001;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 12px 0 12px;
+            font-weight: bold;
         }
 
         .post-modal-close:hover {
-            color: #333;
+            background: #333;
         }
 
         .post-modal-header {
@@ -1622,7 +1637,7 @@
     
     <header class="sticky-header">
         <div class="header-content">
-            <a href="/feed.html" style="text-decoration: none; color: inherit;">
+            <a href="/index.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
             <div class="auth-section">
@@ -2636,7 +2651,7 @@
     </div>
     
     <div class="bottom-nav">
-        <a href="feed.html" class="nav-btn">Feed view</a>
+                        <a href="feed.html" class="nav-btn">Feed</a>
         <a href="create.html" class="nav-btn">New post</a>
         <button class="nav-btn" id="searchFooterBtn" type="button">Search</button>
     </div>

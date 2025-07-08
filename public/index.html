@@ -670,18 +670,25 @@
 
         .post-modal-close {
             position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
+            top: 0;
+            right: 0;
+            background: #000;
             border: none;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
-            color: #666;
+            color: white;
             z-index: 1001;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 12px 0 12px;
+            font-weight: bold;
         }
 
         .post-modal-close:hover {
-            color: #333;
+            background: #333;
         }
 
         .post-modal-header {
