@@ -803,11 +803,14 @@
     let selectedLatLng = null;
     let isDragging = false;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         // Initialize Auth0
         if (typeof initializeAuth0 === 'function') {
-            initializeAuth0();
+            await initializeAuth0();
         }
+        
+        // Proactive token validation
+        await validateTokenBeforePosting();
         
         // Location permission check
         if (localStorage.getItem('locationPermissionGranted') === 'true') {
@@ -817,6 +820,81 @@
         // Initialize location selection
         document.getElementById('selectLocation').addEventListener('click', openLocationModal);
     });
+
+    // Proactive token validation function
+    async function validateTokenBeforePosting() {
+        try {
+            if (!auth0Client) {
+                console.log('Auth0 client not initialized');
+                return;
+            }
+
+            const isAuthenticated = await auth0Client.isAuthenticated();
+            if (!isAuthenticated) {
+                showAuthError('Please log in to create a post');
+                return;
+            }
+
+                            // Try to get a fresh token to validate it
+                try {
+                    await auth0Client.getTokenSilently({
+                        timeoutInSeconds: 86400, // 24 hours for maximum longevity
+                        cacheMode: 'on' // Use cache for better performance
+                    });
+                    console.log('Token validation successful');
+                    hideAuthError();
+                } catch (tokenError) {
+                console.error('Token validation failed:', tokenError);
+                showAuthError('Your session has expired. Please log in again to create a post.');
+                
+                // Update UI to show logged out state
+                const userCircle = document.getElementById('userInitial');
+                const loginButton = document.getElementById('login');
+                const logoutButton = document.getElementById('logout');
+                
+                if (userCircle) userCircle.style.display = 'none';
+                if (loginButton) loginButton.style.display = 'block';
+                if (logoutButton) logoutButton.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error during token validation:', error);
+            showAuthError('Authentication error. Please try logging in again.');
+        }
+    }
+
+    function showAuthError(message) {
+        // Create or update auth error message
+        let authError = document.getElementById('authError');
+        if (!authError) {
+            authError = document.createElement('div');
+            authError.id = 'authError';
+            authError.style.cssText = `
+                background: #dc2626;
+                color: white;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                text-align: center;
+                font-weight: 600;
+                border: 2px solid #fca5a5;
+            `;
+            
+            // Insert at the top of the form
+            const form = document.getElementById('postForm');
+            if (form) {
+                form.parentNode.insertBefore(authError, form);
+            }
+        }
+        authError.textContent = message;
+        authError.style.display = 'block';
+    }
+
+    function hideAuthError() {
+        const authError = document.getElementById('authError');
+        if (authError) {
+            authError.style.display = 'none';
+        }
+    }
 
     function openLocationModal() {
         const modal = document.getElementById('locationModal');

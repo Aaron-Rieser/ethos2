@@ -1,4 +1,7 @@
 
+Persistent login challenges 
+- Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
+
 Modal x shift over 
 Map black bar 
  
@@ -7,8 +10,6 @@ New consistent footer
 Search mobile UI 
 Range finder gone
 
-Consistent Login 
-Persistent login challenges 
 Email or text notifications 
 When you come from Map, can't change range 
 Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
@@ -20,7 +21,6 @@ Like UI - better
 New format, recommendations, questions (and posts? Gripes? History?)
 - ensure likes work and they show on map
 Delete post feature 
-Missing refresh token for login/logout. Persistent login issues, debug all login and create detection for a hard reset if needed
 Persistent location issues on chrome/ etc. debug all location
 Manual select location on map
 - Treat page with NO location allowed? Default to manual

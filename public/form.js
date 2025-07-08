@@ -78,20 +78,35 @@ document.getElementById('postForm').addEventListener('submit', async (e) => {
         }
     }
     
-    // Check authentication
-    let isAuthenticated = false;
+    // Proactive token validation before form submission
     try {
-        isAuthenticated = await auth0Client.isAuthenticated();
-    } catch (error) {
-        console.error('Error checking authentication:', error);
-        errorMessage.textContent = 'Error checking authentication status';
-        errorMessage.style.display = 'block';
-        return;
-    }
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        if (!isAuthenticated) {
+            errorMessage.textContent = 'Please login to post';
+            errorMessage.style.display = 'block';
+            return;
+        }
 
-    if (!isAuthenticated) {
-        errorMessage.textContent = 'Please login to post';
+        // Force fresh token validation with maximum longevity
+        await auth0Client.getTokenSilently({
+            timeoutInSeconds: 86400, // 24 hours for maximum longevity
+            cacheMode: 'on' // Use cache for better performance
+        });
+        console.log('Token validation successful for form submission');
+    } catch (tokenError) {
+        console.error('Token validation failed during form submission:', tokenError);
+        errorMessage.textContent = 'Your session has expired. Please log in again to create a post.';
         errorMessage.style.display = 'block';
+        
+        // Update UI to show logged out state
+        const userCircle = document.getElementById('userInitial');
+        const loginButton = document.getElementById('login');
+        const logoutButton = document.getElementById('logout');
+        
+        if (userCircle) userCircle.style.display = 'none';
+        if (loginButton) loginButton.style.display = 'block';
+        if (logoutButton) logoutButton.style.display = 'none';
+        
         return;
     }
     

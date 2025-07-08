@@ -1751,21 +1751,63 @@
                     viewInFeed.addEventListener('click', viewPostFromModal);
                 }
 
-                // 3. Set up create post link handlers (using querySelectorAll as in original)
+                // 3. Set up create post link handlers with proactive token validation
                 document.querySelectorAll('.create-post-link').forEach(link => {
                     link.addEventListener('click', async (e) => {
-                        if (!await auth0Client.isAuthenticated()) {
-                            e.preventDefault();
-                            const loginPrompt = document.getElementById('loginPrompt');
-                            if (loginPrompt) {
-                                loginPrompt.style.display = 'block';
-                                setTimeout(() => {
-                                    loginPrompt.style.display = 'none';
-                                }, 3000);
+                        try {
+                            if (!auth0Client) {
+                                e.preventDefault();
+                                showLoginPrompt('Authentication service not available');
+                                return;
                             }
+
+                            const isAuthenticated = await auth0Client.isAuthenticated();
+                            if (!isAuthenticated) {
+                                e.preventDefault();
+                                showLoginPrompt('Please log in to create a post');
+                                return;
+                            }
+
+                            // Proactive token validation with maximum longevity
+                            try {
+                                await auth0Client.getTokenSilently({
+                                    timeoutInSeconds: 86400, // 24 hours for maximum longevity
+                                    cacheMode: 'on' // Use cache for better performance
+                                });
+                                console.log('Token validation successful for create post link');
+                            } catch (tokenError) {
+                                console.error('Token validation failed for create post link:', tokenError);
+                                e.preventDefault();
+                                showLoginPrompt('Your session has expired. Please log in again to create a post.');
+                                
+                                // Update UI to show logged out state
+                                const userCircle = document.getElementById('userInitial');
+                                const loginButton = document.getElementById('login');
+                                const logoutButton = document.getElementById('logout');
+                                
+                                if (userCircle) userCircle.style.display = 'none';
+                                if (loginButton) loginButton.style.display = 'block';
+                                if (logoutButton) logoutButton.style.display = 'none';
+                                return;
+                            }
+                        } catch (error) {
+                            console.error('Error during create post validation:', error);
+                            e.preventDefault();
+                            showLoginPrompt('Authentication error. Please try logging in again.');
                         }
                     });
                 });
+
+                function showLoginPrompt(message) {
+                    const loginPrompt = document.getElementById('loginPrompt');
+                    if (loginPrompt) {
+                        loginPrompt.textContent = message;
+                        loginPrompt.style.display = 'block';
+                        setTimeout(() => {
+                            loginPrompt.style.display = 'none';
+                        }, 5000); // Show for 5 seconds
+                    }
+                }
 
                 // 4. Set up search toggle
                 const searchToggle = document.getElementById('searchToggle');

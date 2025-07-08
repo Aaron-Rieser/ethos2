@@ -16,7 +16,12 @@ const initializeAuth0 = async () => {
                 scope: 'openid profile email offline_access',  // Added offline_access
                 response_type: 'token id_token',  // Changed from 'code'
                 prompt: 'consent'
-            }
+            },
+            // Maximum token longevity settings
+            sessionCheckExpiryDays: 30, // Check session for 30 days
+            cacheLocation: 'localstorage', // Persistent storage
+            useRefreshTokens: true, // Enable refresh tokens for longer sessions
+            useRefreshTokensFallback: true // Fallback to refresh tokens
         });
         
         // Check if we need to handle a callback
@@ -47,10 +52,10 @@ async function validateAndRefreshToken() {
             return false;
         }
 
-        // Single token refresh attempt with better options
+        // Single token refresh attempt with maximum longevity
         try {
             await auth0Client.getTokenSilently({
-                timeoutInSeconds: 3600, // Increase timeout to 1 hour
+                timeoutInSeconds: 86400, // 24 hours for maximum longevity
                 cacheMode: 'on',  // Use cache by default
                 authorizationParams: {
                     audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
@@ -267,7 +272,10 @@ const login = async () => {
                 audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
                 response_type: 'token id_token',
                 prompt: 'login'
-            }
+            },
+            // Request maximum token longevity
+            maxAge: 86400 * 30, // 30 days in seconds
+            prompt: 'login'
         });
         console.log('Login redirect initiated');
     } catch (err) {
@@ -305,15 +313,15 @@ window.addEventListener('load', async () => {
         
         if (isAuthenticated) {
             try {
-                // Token validation with better error handling
-                await auth0Client.getTokenSilently({
-                    timeoutInSeconds: 3600, // Increase to 1 hour
-                    cacheMode: 'on',  // Use cache by default
-                    authorizationParams: {
-                        audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
-                        scope: 'openid profile email offline_access'
-                    }
-                });
+                        // Token validation with maximum longevity
+        await auth0Client.getTokenSilently({
+            timeoutInSeconds: 86400, // 24 hours for maximum longevity
+            cacheMode: 'on',  // Use cache by default
+            authorizationParams: {
+                audience: 'https://dev-g0wpwzacl04kb6eb.ca.auth0.com/api/v2/',
+                scope: 'openid profile email offline_access'
+            }
+        });
                 
                 // Start message check interval only if not already running
                 if (!messageCheckInterval) {
