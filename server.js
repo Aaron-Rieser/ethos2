@@ -1447,6 +1447,7 @@ app.get('/api/leaderboard', async (req, res) => {
         // Query including image_url for content display
         const query = `
             SELECT 
+                id,
                 username,
                 post,
                 upvotes,
@@ -1462,6 +1463,7 @@ app.get('/api/leaderboard', async (req, res) => {
         
         // Format the response
         const leaderboard = result.rows.map(post => ({
+            id: post.id,
             username: post.username || 'Anonymous',
             post: post.post,
             upvotes: post.upvotes || 0,

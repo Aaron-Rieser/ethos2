@@ -1365,7 +1365,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
 
         .post-modal-content {
@@ -1813,27 +1813,7 @@
                         <p>${post.post || 'No content available'}</p>
                     </div>
                     <div class="popup-footer">
-                        <div class="popup-stats">
-                            <button class="stat-item upvote-btn" onclick="event.stopPropagation(); handleUpvote('${post.id}')">
-                                <span class="stat-icon">⬆️</span>
-                                <span class="stat-count">${post.upvotes || 0}</span>
-                            </button>
-                            <button class="stat-item comment-btn" onclick="event.stopPropagation(); toggleComments('${post.id}')">
-                                <span class="stat-icon">💬</span>
-                                <span class="stat-count">${post.comment_count || 0}</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="comments-${post.id}" class="comments-section" style="display: none;">
-                        <div class="comments-list"></div>
-                        <div class="comment-form">
-                            <textarea placeholder="Add a comment..." rows="2"></textarea>
-                            <button onclick="event.stopPropagation(); addComment('${post.id}', this.previousElementSibling.value)">Post</button>
-                        </div>
-                    </div>
-                    <div class="scroll-indicator">
-                        <span class="scroll-arrow">↓</span>
-                        <span class="scroll-text">Scroll for comments</span>
+                        <small>Click to view full post</small>
                     </div>
                 </div>
             `;
@@ -2530,7 +2510,7 @@
                             </div>
                             ${post.image_url ? `
                                 <div class="post-modal-image">
-                                    <img src="${post.image_url}" alt="Post image" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;">
+                                    <img src="${post.image_url}" alt="Post image" style="width: 100%; border-radius: 8px;">
                                 </div>
                             ` : ''}
                             <div class="post-modal-body">
