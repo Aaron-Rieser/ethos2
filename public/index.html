@@ -625,6 +625,83 @@
             background: #2c6bb6;
         }
 
+        /* Post Modal Styles */
+        .post-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .post-modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .post-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            z-index: 1001;
+        }
+
+        .post-modal-close:hover {
+            color: #333;
+        }
+
+        .post-modal-header {
+            padding: 30px 30px 20px 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .post-modal-title {
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .post-modal-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .post-modal-image {
+            padding: 0 30px;
+            margin: 20px 0;
+        }
+
+        .post-modal-body {
+            padding: 20px 30px 30px 30px;
+        }
+
+        .post-modal-body p {
+            margin: 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .post-modal-location {
+            padding: 0 30px 20px 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
         @media (max-width: 768px) {
             .welcome-text {
                 font-size: 1.25rem;
@@ -797,7 +874,7 @@
                     const username = post.username || 'Anonymous';
                     
                     return `
-                        <div class="search-result-item" onclick="expandSearchResult('${post.id}')">
+                        <div class="search-result-item" onclick="showPostModal('${post.id}')">
                             <div class="search-result-title">${highlightSearchTerm(title, searchTerm)}</div>
                             <div class="search-result-text">${highlightSearchTerm(content.substring(0, 150), searchTerm)}${content.length > 150 ? '...' : ''}</div>
                             <div class="search-result-meta">by ${username} • ${formatDate(post.created_at)}</div>
@@ -873,6 +950,64 @@
             }
         });
 
+        // Unified post modal function
+        async function showPostModal(postId) {
+            try {
+                // Fetch full post data
+                const response = await fetch(`/api/posts/${postId}`);
+                if (!response.ok) throw new Error('Failed to fetch post');
+                
+                const post = await response.json();
+                
+                // Create modal HTML
+                const modalHTML = `
+                    <div class="post-modal-overlay" onclick="closePostModal()">
+                        <div class="post-modal-content" onclick="event.stopPropagation()">
+                            <button class="post-modal-close" onclick="closePostModal()">&times;</button>
+                            <div class="post-modal-header">
+                                <h3 class="post-modal-title">${post.title || 'Untitled'}</h3>
+                                <div class="post-modal-meta">by ${post.username || 'Anonymous'} • ${formatDate(post.created_at)}</div>
+                            </div>
+                            ${post.image_url ? `
+                                <div class="post-modal-image">
+                                    <img src="${post.image_url}" alt="Post image" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px;">
+                                </div>
+                            ` : ''}
+                            <div class="post-modal-body">
+                                <p>${post.post || 'No content available'}</p>
+                            </div>
+                            ${post.latitude && post.longitude ? `
+                                <div class="post-modal-location">
+                                    📍 ${parseFloat(post.latitude).toFixed(4)}, ${parseFloat(post.longitude).toFixed(4)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                // Add modal to page
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+                
+            } catch (error) {
+                console.error('Error showing post modal:', error);
+                alert('Error loading post details. Please try again.');
+            }
+        }
+
+        function closePostModal() {
+            const modal = document.querySelector('.post-modal-overlay');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Close modal with escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePostModal();
+            }
+        });
+
         // Load leaderboard data
         async function loadLeaderboard() {
             try {
@@ -914,7 +1049,7 @@
                     }
                     
                     return `
-                        <tr>
+                        <tr onclick="showPostModal('${post.id}')" style="cursor: pointer;">
                             <td>${index + 1}</td>
                             <td>${post.username || 'Anonymous'}</td>
                             <td>${post.upvotes || 0}</td>
