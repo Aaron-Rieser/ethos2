@@ -1,13 +1,14 @@
-Leaderboard 
+
+Modal x shift over 
+Map black bar 
+ 
 Black space on map 
 New consistent footer 
 Search mobile UI 
 Range finder gone
 
-Search on Index 
 Consistent Login 
 Persistent login challenges 
-- Fix Search UI
 Email or text notifications 
 When you come from Map, can't change range 
 Comments on map - pop down vs. Roll down. For this and all states. No trigger that you can comment 
