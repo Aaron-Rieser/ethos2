@@ -902,8 +902,8 @@
                     let contentOrImage = '';
                     
                     if (post.image_url) {
-                        // If image_url exists, display the image
-                        contentOrImage = `<img src="${post.image_url}" alt="Post image" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">`;
+                        // If image_url exists, display a horizontal crop of the image
+                        contentOrImage = `<img src="${post.image_url}" alt="Post image" style="width: 200px; height: 60px; object-fit: cover; object-position: center; border-radius: 4px;">`;
                     } else if (post.post && post.post.trim()) {
                         // If no image but post content exists, show first 30 words
                         const words = post.post.split(' ');
