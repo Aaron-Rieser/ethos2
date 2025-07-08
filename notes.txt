@@ -2,6 +2,7 @@ Leaderboard
 Black space on map 
 New consistent footer 
 Search mobile UI 
+Range finder gone
 
 Search on Index 
 Consistent Login 

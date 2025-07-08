@@ -1444,7 +1444,7 @@ app.get('/api/map-posts', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        // Get posts from last 24 hours
+        // Get posts from last 30 days, ranked by upvotes and recency
         const query = `
             WITH ranked_posts AS (
                 SELECT 
