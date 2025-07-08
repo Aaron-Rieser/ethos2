@@ -1372,10 +1372,17 @@
             background: white;
             border-radius: 12px;
             max-width: 90%;
-            max-height: 90%;
+            max-height: 90vh;
             overflow-y: auto;
             position: relative;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .post-modal-content {
+                max-width: 80%;
+                max-height: 85vh;
+            }
         }
 
         .post-modal-close {
@@ -1641,9 +1648,7 @@
         let userMarker;
         let radiusCircle;
         let userLocation;
-        let isPopupOpen = false;
-        let popupOpenTime = 0;
-        const POPUP_COOLDOWN = 5000; // 5 seconds in milliseconds
+        // Removed popup state variables - now using direct modal calls
 
         // Initialize the map centered on Toronto
         map = L.map('map').setView([43.66, -79.4460], 12.5);
@@ -1783,43 +1788,7 @@
                 popupAnchor: [0, -48]
             });
         }
-        function createPopupContent(post) {
-            // Format the date
-            const date = new Date(post.created_at);
-            const formattedTime = date.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
-
-            // Set popup state when content is created
-            isPopupOpen = true;
-            popupOpenTime = Date.now();
-
-            return `
-                <div class="map-popup" data-post-id="${post.id}" onclick="showPostModal('${post.id}')" style="cursor: pointer;">
-                    <div class="popup-header">
-                        <h3>${post.title || 'Untitled'}</h3>
-                        <small>${formattedTime}</small>
-                    </div>
-                    ${post.image_url ? `
-                        <div class="popup-image-container">
-                            <img src="${post.image_url}" class="popup-image" alt="Post image">
-                        </div>
-                    ` : ''}
-                    <div class="popup-text">
-                        <p>${post.post || 'No content available'}</p>
-                    </div>
-                    <div class="popup-footer">
-                        <small>Click to view full post</small>
-                    </div>
-                </div>
-            `;
-        }
-
-        let currentOpenPopup = null; // Add this at the top with other global variables
+        // Removed createPopupContent function - now using direct modal calls
 
         async function loadMapPosts() {
             const bounds = map.getBounds();
@@ -1863,9 +1832,7 @@
                 const maxPosts = isMobile ? 30 : 50;
                 const selectedPosts = grid.getBestPosts(maxPosts);
                 
-                // Store the currently open popup's post ID if on mobile
-                const openPopupPostId = isMobile && currentOpenPopup ? 
-                    currentOpenPopup.getLatLng().toString() : null;
+                // Removed popup preservation logic - now using direct modal calls
                 
                 // Clear existing markers and add new ones
                 postsLayer.clearLayers();
@@ -1877,18 +1844,10 @@
                         icon: createMarkerIcon(post)
                     });
                     
-                    const popup = L.popup({
-                        maxWidth: isMobile ? 250 : 300,
-                        className: 'custom-popup'
-                    }).setContent(createPopupContent(post));
-                    
-                    marker.bindPopup(popup);
-                    
-                    // Only preserve popup on mobile
-                    if (isMobile && openPopupPostId === [post.latitude, post.longitude].toString()) {
-                        marker.openPopup();
-                        currentOpenPopup = marker;
-                    }
+                    // Add click event to open modal directly
+                    marker.on('click', () => {
+                        showPostModal(post.id);
+                    });
                     
                     postsLayer.addLayer(marker);
                 });
@@ -2123,44 +2082,16 @@
             }
         }
 
-        map.on('popupopen', function(e) {
-            console.log('Popup opened');
-            isPopupOpen = true;
-            popupOpenTime = Date.now();
-            currentOpenPopup = e.popup;
-        });
-
-        map.on('popupclose', function(e) {
-            console.log('Popup closed');
-            isPopupOpen = false;
-            if (currentOpenPopup === e.popup) {
-                currentOpenPopup = null;
-            }
-        });
-
         map.on('moveend', () => {
-            if (isPopupOpen) {
-                // If popup is open, check if cooldown period has passed
-                const timeSincePopupOpen = Date.now() - popupOpenTime;
-                if (timeSincePopupOpen < POPUP_COOLDOWN) {
-                    console.log('Skipping map update - popup cooldown active');
-                    return; // Skip location update if within cooldown period
-                }
-            }
             console.log('Updating map posts');
             setTimeout(loadMapPosts, 300);
         });
+        
         map.on('click', function(e) {
             // Only handle clicks not on markers
             if (e.originalEvent.target.classList.contains('marker-preview')) {
                 return;
             }
-
-            // Close any open popup
-            if (currentOpenPopup) {
-                currentOpenPopup.closePopup();
-            }
-            isPopupOpen = false;
             
             if (userMarker) {
                 userMarker.setLatLng(e.latlng);

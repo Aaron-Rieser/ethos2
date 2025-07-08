@@ -1098,10 +1098,17 @@
             background: white;
             border-radius: 12px;
             max-width: 90%;
-            max-height: 90%;
+            max-height: 90vh;
             overflow-y: auto;
             position: relative;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .post-modal-content {
+                max-width: 80%;
+                max-height: 85vh;
+            }
         }
 
         .post-modal-close {
