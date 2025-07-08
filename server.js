@@ -1444,13 +1444,14 @@ app.get('/api/map-posts', async (req, res) => {
 
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        // Simple query first to test basic functionality
+        // Query including image_url for content display
         const query = `
             SELECT 
                 username,
                 post,
                 upvotes,
-                created_at
+                created_at,
+                image_url
             FROM posts
             WHERE created_at >= NOW() - INTERVAL '30 days'
             ORDER BY upvotes DESC, created_at DESC
@@ -1464,7 +1465,8 @@ app.get('/api/leaderboard', async (req, res) => {
             username: post.username || 'Anonymous',
             post: post.post,
             upvotes: post.upvotes || 0,
-            created_at: post.created_at
+            created_at: post.created_at,
+            image_url: post.image_url
         }));
 
         res.json(leaderboard);
