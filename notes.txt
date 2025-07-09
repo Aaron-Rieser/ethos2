@@ -1,5 +1,5 @@
 
-Modal add ll functions to it - function design to be more like mobile and compressed 
+Modal slim design like on map, but validate this on mobile 
 Persistent login challenges 
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time 

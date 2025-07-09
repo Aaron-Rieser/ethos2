@@ -90,7 +90,7 @@
             padding: 10px;
             background: transparent;
             border: 1px solid var(--border-color);
-            display: none;
+            display: block;
             color: var(--text-dark);
         }
         .clear-filter {
@@ -113,6 +113,43 @@
             text-decoration: underline;
             cursor: pointer;
             margin-left: 10px;
+        }
+
+        /* Range Slider Styles */
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .range-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
         }
         .bottom-nav {
         position: fixed;
@@ -1480,15 +1517,18 @@
                     </span>
                     <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer;">Change Range</button>
                     
-                    <div class="range-control" style="display: none; margin-top: 10px;">
-                        <input type="range" 
-                               class="range-slider" 
-                               min="1" 
-                               max="11" 
-                               value="2" 
-                               step="1">
-                        <span class="range-value">2 km</span>
-                        <button class="set-range-btn" style="margin-left: 10px; padding: 5px 10px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Set Range</button>
+                    <div class="range-control" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
+                        <div style="margin-bottom: 10px;">
+                            <input type="range" 
+                                   class="range-slider" 
+                                   min="1" 
+                                   max="11" 
+                                   value="2" 
+                                   step="1"
+                                   style="width: 200px; margin-right: 10px;">
+                            <span class="range-value" style="color: var(--text-dark); font-weight: bold;">2 km</span>
+                        </div>
+                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Set Range</button>
                     </div>
                 </div>
 
