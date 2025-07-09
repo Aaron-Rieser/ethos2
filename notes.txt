@@ -1,4 +1,5 @@
 
+Modal add ll functions to it - function design to be more like mobile and compressed 
 Persistent login challenges 
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time 
@@ -7,7 +8,6 @@ Range finder gone
 Modal x shift over 
 Map black bar 
 Search popup and create, fields extending random 
-Modal add ll functions to it 
 Email or text notifications 
 Better place location UI 
 Better map and post UI 
