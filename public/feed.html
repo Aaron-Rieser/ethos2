@@ -1799,6 +1799,15 @@
                 const rangeSlider = document.querySelector('.range-slider');
                 const rangeValue = document.querySelector('.range-value');
                 
+                console.log('Range slider elements found:', {
+                    changeRangeBtn: !!changeRangeBtn,
+                    rangeControl: !!rangeControl,
+                    postsContainer: !!postsContainer,
+                    currentRadius: !!currentRadius,
+                    rangeSlider: !!rangeSlider,
+                    rangeValue: !!rangeValue
+                });
+                
                 // Initialize with stored values
                 const storedRadius = localStorage.getItem('selectedRadius') || '2';
                 if (currentRadius) {
@@ -1814,7 +1823,10 @@
                 const setRangeBtn = rangeControl.querySelector('.set-range-btn');
                 let tempRadius = storedRadius; // Store temporary radius value
 
+                console.log('Setting up range slider event listeners');
+
                 changeRangeBtn.addEventListener('click', function() {
+                    console.log('Change range button clicked');
                     const isVisible = rangeControl.style.display === 'block';
                     rangeControl.style.display = isVisible ? 'none' : 'block';
                     if (postsContainer) {
@@ -1835,6 +1847,7 @@
                 // Handle slider input (update both displays)
                 if (rangeSlider) {
                     rangeSlider.addEventListener('input', function(e) {
+                        console.log('Slider value changed:', e.target.value);
                         const newRadius = parseInt(e.target.value);
                         if (rangeValue) rangeValue.textContent = newRadius === 11 ? 'All' : `${newRadius} km`;
                         if (currentRadius) currentRadius.textContent = newRadius === 11 ? 'All' : newRadius; // Update the filter info display
@@ -1845,6 +1858,7 @@
                 // Handle set range button click
                 if (setRangeBtn) {
                     setRangeBtn.addEventListener('click', function() {
+                        console.log('Set range button clicked, tempRadius:', tempRadius);
                         // Get current location from localStorage
                         const lat = localStorage.getItem('selectedLat');
                         const lng = localStorage.getItem('selectedLng');
@@ -1864,6 +1878,8 @@
                         changeRangeBtn.textContent = 'Change Range';
                     });
                 }
+            } else {
+                console.log('Range slider elements not found - changeRangeBtn:', !!changeRangeBtn, 'rangeControl:', !!rangeControl);
             }
 
                 // 2. Set up search modal
