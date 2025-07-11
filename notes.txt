@@ -5,6 +5,7 @@ Persistent login challenges
 - Hard login/logout now in but isn't there a better way to do this? We want more time 
 Range finder gone
 - When you come from Map, can't change range 
+Env back 
 Modal x shift over 
 Map black bar 
 Search popup and create, fields extending random 

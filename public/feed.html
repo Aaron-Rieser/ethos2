@@ -1882,6 +1882,9 @@
                 console.log('Range slider elements not found - changeRangeBtn:', !!changeRangeBtn, 'rangeControl:', !!rangeControl);
             }
 
+            // Call updateFilterDisplay to show the filter info
+            updateFilterDisplay();
+
                 // 2. Set up search modal
                 const searchFooterBtn = document.getElementById('searchFooterBtn');
                 const searchModal = document.getElementById('search-modal');
