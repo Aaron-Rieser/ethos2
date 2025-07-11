@@ -1805,6 +1805,52 @@
             margin-bottom: 0.25rem;
         }
 
+        /* Filter Info and Range Slider Styles */
+        .filter-info {
+            margin: 10px 0;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            display: block;
+            color: var(--text-dark);
+        }
+
+        /* Range Slider Styles */
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .range-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -1837,14 +1883,26 @@
     </div>
 
     <main class="main-content">
-        <div class="range-control" style="margin-top: 30px"> 
-            <input type="range" 
-                   class="range-slider" 
-                   min="1" 
-                   max="11" 
-                   value="1" 
-                   step="1">
-            <span class="range-value">1 km</span>
+        <div style="display: flex; justify-content: center; min-height: 0;">
+            <div style="text-align: center; width: 100%;">
+                <div id="filter-info" class="filter-info" style="max-width: 500px; margin: 30px auto 0 auto; border: 2px solid #fff; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 20px 0; font-family: 'Inter', Arial, sans-serif;">
+                    <span style="border: 2px solid #3388ff; padding: 5px 18px; border-radius: 7px; font-weight: bold; color: #fff; font-size: 1.2em; background: transparent; display: inline-block; font-family: 'Inter', Arial, sans-serif;">Within <span id="current-radius">2</span><span id="current-radius-unit">km</span></span>
+                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer; font-size: 1em; font-weight: 500; text-decoration: underline; font-family: 'Inter', Arial, sans-serif;">Change Range</button>
+                    <div class="range-control" style="display: none; position: absolute; left: 50%; transform: translateX(-50%); min-width: 320px; z-index: 10; background: #111; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 18px 24px; font-family: 'Inter', Arial, sans-serif;">
+                        <div style="margin-bottom: 10px;">
+                            <input type="range" 
+                                   class="range-slider" 
+                                   min="1" 
+                                   max="11" 
+                                   value="2" 
+                                   step="1"
+                                   style="width: 200px; margin-right: 10px;">
+                            <span class="range-value" style="color: #fff; font-weight: bold; font-family: 'Inter', Arial, sans-serif; font-size: 1.1em;">2 km</span>
+                        </div>
+                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Inter', Arial, sans-serif; font-size: 1em;">Set Range</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="map"></div>
     </main>
@@ -2453,6 +2511,128 @@
             const val = parseInt(e.target.value);
             document.querySelector('.range-value').textContent = val === 11 ? 'All' : `${val} km`;
         });
+
+        // Initialize range slider functionality for map
+        document.addEventListener('DOMContentLoaded', function() {
+            const changeRangeBtn = document.querySelector('.change-range-btn');
+            const rangeControl = document.querySelector('.range-control');
+            const currentRadius = document.getElementById('current-radius');
+            const rangeSlider = document.querySelector('.range-slider');
+            const rangeValue = document.querySelector('.range-value');
+            
+            console.log('Map range slider elements found:', {
+                changeRangeBtn: !!changeRangeBtn,
+                rangeControl: !!rangeControl,
+                currentRadius: !!currentRadius,
+                rangeSlider: !!rangeSlider,
+                rangeValue: !!rangeValue
+            });
+            
+            // Initialize with stored values
+            const storedRadius = localStorage.getItem('selectedRadius') || '2';
+            if (currentRadius) {
+                currentRadius.textContent = storedRadius === 'all' ? 'All' : storedRadius;
+            }
+            if (rangeSlider) {
+                rangeSlider.value = storedRadius === 'all' ? 11 : storedRadius;
+                if (rangeValue) rangeValue.textContent = storedRadius === 'all' ? 'All' : `${storedRadius} km`;
+            }
+            
+            // Toggle range control visibility
+            if (changeRangeBtn && rangeControl) {
+                const setRangeBtn = rangeControl.querySelector('.set-range-btn');
+                let tempRadius = storedRadius; // Store temporary radius value
+
+                console.log('Setting up map range slider event listeners');
+
+                changeRangeBtn.addEventListener('click', function() {
+                    console.log('Change range button clicked on map');
+                    const isVisible = rangeControl.style.display === 'block';
+                    rangeControl.style.display = isVisible ? 'none' : 'block';
+                    
+                    // Update button text
+                    changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
+                    
+                    // Reset slider to current radius when opening
+                    if (!isVisible) {
+                        tempRadius = currentRadius.textContent === 'All' ? 'all' : currentRadius.textContent;
+                        rangeSlider.value = tempRadius === 'all' ? 11 : tempRadius;
+                        rangeValue.textContent = tempRadius === 'all' ? 'All' : `${tempRadius} km`;
+                    }
+                });
+                
+                // Handle slider input (update both displays and map circle)
+                if (rangeSlider) {
+                    rangeSlider.addEventListener('input', function(e) {
+                        console.log('Map slider value changed:', e.target.value);
+                        const newRadius = parseInt(e.target.value);
+                        if (rangeValue) rangeValue.textContent = newRadius === 11 ? 'All' : `${newRadius} km`;
+                        if (currentRadius) currentRadius.textContent = newRadius === 11 ? 'All' : newRadius;
+                        tempRadius = newRadius === 11 ? 'all' : newRadius;
+                        
+                        // Update map circle in real-time
+                        updateMapRadius(newRadius === 11 ? 'all' : newRadius);
+                    });
+                }
+                
+                // Handle set range button click
+                if (setRangeBtn) {
+                    setRangeBtn.addEventListener('click', function() {
+                        console.log('Set range button clicked on map, tempRadius:', tempRadius);
+                        
+                        // Store the new radius
+                        localStorage.setItem('selectedRadius', tempRadius);
+                        
+                        // Update map circle
+                        updateMapRadius(tempRadius);
+                        
+                        // Hide the range control
+                        rangeControl.style.display = 'none';
+                        changeRangeBtn.textContent = 'Change Range';
+                    });
+                }
+            } else {
+                console.log('Map range slider elements not found - changeRangeBtn:', !!changeRangeBtn, 'rangeControl:', !!rangeControl);
+            }
+        });
+
+        // Function to update map radius circle
+        function updateMapRadius(radius) {
+            if (!userLocation) {
+                console.log('No user location available for radius update');
+                return;
+            }
+            
+            const [lat, lng] = userLocation;
+            
+            // Remove existing radius circle
+            if (radiusCircle) {
+                map.removeLayer(radiusCircle);
+            }
+            
+            if (radius === 'all') {
+                // For "All", show a very large circle covering most of Canada
+                radiusCircle = L.circle([lat, lng], {
+                    color: '#3388ff',
+                    fillColor: '#3388ff',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    radius: 5000000 // 5000 km - covers most of Canada
+                }).addTo(map);
+            } else {
+                // For specific radius, show normal circle
+                const radiusKm = parseInt(radius);
+                radiusCircle = L.circle([lat, lng], {
+                    color: '#3388ff',
+                    fillColor: '#3388ff',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    radius: radiusKm * 1000 // Convert km to meters
+                }).addTo(map);
+            }
+            
+            console.log('Updated map radius to:', radius);
+        }
 
         // Initialize location when page loads
         window.onload = function() {
