@@ -152,23 +152,71 @@
             text-align: center;
         }
 
-        /* Responsive font sizes for range slider */
+        /* Header range display styles */
+        .range-display {
+            position: relative;
+        }
+
+        .range-display:hover #header-radius {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #header-range-dropdown {
+            margin-top: 10px;
+        }
+
+        /* Custom range slider styling */
+        #header-range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #header-range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #3388ff;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        #header-range-slider::-webkit-slider-track {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #555;
+        }
+
+        #header-range-slider::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: #555;
+        }
+
+        /* Responsive font sizes for header range */
         @media (max-width: 768px) {
-            .filter-info span,
-            .filter-info button,
-            .range-control,
-            .range-value,
-            .set-range-btn {
+            #header-radius {
+                font-size: 14px !important;
+            }
+            #header-range-dropdown {
                 font-size: 12px !important;
             }
         }
 
         @media (min-width: 769px) {
-            .filter-info span,
-            .filter-info button,
-            .range-control,
-            .range-value,
-            .set-range-btn {
+            #header-radius {
+                font-size: 16px !important;
+            }
+            #header-range-dropdown {
                 font-size: 14px !important;
             }
         }
@@ -1502,6 +1550,27 @@
             <a href="/index.html" style="text-decoration: none; color: inherit;">
                 <h1 class="site-title">gumshoe</h1>
             </a>
+            <div class="range-display" style="margin-left: 20px; display: flex; align-items: center;">
+                <span id="header-radius" style="color: #fff; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 10px; border: 2px solid #fff; border-radius: 5px; background: transparent;">2km</span>
+                <div id="header-range-dropdown" style="display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #000000; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 12px 16px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; z-index: 1001; min-width: 320px;">
+                    <div style="margin-bottom: 8px; text-align: center;">
+                        <span style="font-weight: bold; font-size: 14px;">Adjust Range</span>
+                    </div>
+                    <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <input type="range" 
+                               id="header-range-slider" 
+                               min="1" 
+                               max="11" 
+                               value="2" 
+                               step="1"
+                               style="width: 180px; height: 6px; -webkit-appearance: none; appearance: none; background: linear-gradient(to right, #3388ff 0%, #3388ff 20%, #555 20%, #555 100%); border-radius: 3px; outline: none;">
+                        <span id="header-range-value" style="color: #fff; font-weight: bold; font-size: 14px; min-width: 50px; text-align: center;">2 km</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <button id="header-set-range-btn" style="padding: 6px 12px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 12px;">Set Range</button>
+                    </div>
+                </div>
+            </div>
             <div class="auth-section">
                 <button id="login">Log In</button>
                 <div class="user-dropdown">
@@ -1532,25 +1601,8 @@
                     Please log in to create a post
                 </div>
                 
-                <div id="filter-info" class="filter-info">
-                    <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; font-weight: bold; color: #fff;">
-                        Within <span id="current-radius">2</span><span id="current-radius-unit">km</span>
-                    </span>
-                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Change Range</button>
-                    
-                    <div class="range-control" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
-                        <div style="margin-bottom: 10px;">
-                            <input type="range" 
-                                   class="range-slider" 
-                                   min="1" 
-                                   max="11" 
-                                   value="2" 
-                                   step="1"
-                                   style="width: 200px; margin-right: 10px;">
-                            <span class="range-value" style="color: var(--text-dark); font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">2 km</span>
-                        </div>
-                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Set Range</button>
-                    </div>
+                <div id="filter-info" class="filter-info" style="display: none;">
+                    <!-- Filter info is now handled in the header -->
                 </div>
 
                 <div id="posts-container" class="posts-left-aligned">
@@ -1579,23 +1631,21 @@
                 radius = localStorage.getItem('selectedRadius') || '2';
             }
             
-            const filterInfo = document.getElementById('filter-info');
+            // Update the header radius display
+            const headerRadius = document.getElementById('header-radius');
+            if (headerRadius) {
+                headerRadius.textContent = radius === 'all' ? 'All' : `${radius}km`;
+            }
             
-            if (filterInfo) {
-                // Update the radius display
-                const currentRadius = document.getElementById('current-radius');
-                const currentRadiusUnit = document.getElementById('current-radius-unit');
-                if (currentRadius) {
-                    currentRadius.textContent = radius === 'all' ? 'All' : radius;
-                    if (currentRadiusUnit) currentRadiusUnit.textContent = radius === 'all' ? '' : 'km';
-                }
-                // Update the range slider if it exists
-                const rangeSlider = document.querySelector('.range-slider');
-                if (rangeSlider) {
-                    rangeSlider.value = radius === 'all' ? 11 : radius;
-                }
-                // Show the filter info section
-                filterInfo.style.display = 'block';
+            // Update the header range slider if it exists
+            const headerRangeSlider = document.getElementById('header-range-slider');
+            if (headerRangeSlider) {
+                headerRangeSlider.value = radius === 'all' ? 11 : radius;
+                
+                // Update slider background gradient
+                const initialRadius = radius === 'all' ? 11 : parseInt(radius);
+                const percentage = ((initialRadius - 1) / 10) * 100;
+                headerRangeSlider.style.background = `linear-gradient(to right, #3388ff 0%, #3388ff ${percentage}%, #555 ${percentage}%, #555 100%)`;
             }
         }
 
@@ -1812,96 +1862,106 @@
                 // Initialize Auth0 first
                 await initializeAuth0();
 
-                // Add range slider functionality
-                const changeRangeBtn = document.querySelector('.change-range-btn');
-                const rangeControl = document.querySelector('.range-control');
+                // Add header range slider functionality
+                const headerRadius = document.getElementById('header-radius');
+                const headerRangeDropdown = document.getElementById('header-range-dropdown');
+                const headerRangeSlider = document.getElementById('header-range-slider');
+                const headerRangeValue = document.getElementById('header-range-value');
+                const headerSetRangeBtn = document.getElementById('header-set-range-btn');
                 const postsContainer = document.getElementById('posts-container');
-                const currentRadius = document.getElementById('current-radius');
-                const rangeSlider = document.querySelector('.range-slider');
-                const rangeValue = document.querySelector('.range-value');
                 
-                console.log('Range slider elements found:', {
-                    changeRangeBtn: !!changeRangeBtn,
-                    rangeControl: !!rangeControl,
-                    postsContainer: !!postsContainer,
-                    currentRadius: !!currentRadius,
-                    rangeSlider: !!rangeSlider,
-                    rangeValue: !!rangeValue
+                console.log('Header range slider elements found:', {
+                    headerRadius: !!headerRadius,
+                    headerRangeDropdown: !!headerRangeDropdown,
+                    headerRangeSlider: !!headerRangeSlider,
+                    headerRangeValue: !!headerRangeValue,
+                    headerSetRangeBtn: !!headerSetRangeBtn
                 });
                 
                 // Initialize with stored values
                 const storedRadius = localStorage.getItem('selectedRadius') || '2';
-                if (currentRadius) {
-                    currentRadius.textContent = storedRadius === 'all' ? 'All' : storedRadius;
+                if (headerRadius) {
+                    headerRadius.textContent = storedRadius === 'all' ? 'All' : `${storedRadius}km`;
                 }
-                if (rangeSlider) {
-                    rangeSlider.value = storedRadius === 'all' ? 11 : storedRadius;
-                    if (rangeValue) rangeValue.textContent = storedRadius === 'all' ? 'All' : `${storedRadius} km`;
+                if (headerRangeSlider) {
+                    headerRangeSlider.value = storedRadius === 'all' ? 11 : storedRadius;
+                    if (headerRangeValue) headerRangeValue.textContent = storedRadius === 'all' ? 'All' : `${storedRadius} km`;
+                    
+                    // Initialize slider background gradient
+                    const initialRadius = storedRadius === 'all' ? 11 : parseInt(storedRadius);
+                    const percentage = ((initialRadius - 1) / 10) * 100;
+                    headerRangeSlider.style.background = `linear-gradient(to right, #3388ff 0%, #3388ff ${percentage}%, #555 ${percentage}%, #555 100%)`;
                 }
                 
-                // Toggle range control visibility
-                if (changeRangeBtn && rangeControl) {
-                const setRangeBtn = rangeControl.querySelector('.set-range-btn');
-                let tempRadius = storedRadius; // Store temporary radius value
+                // Toggle header range dropdown visibility
+                if (headerRadius && headerRangeDropdown) {
+                    let tempRadius = storedRadius; // Store temporary radius value
 
-                console.log('Setting up range slider event listeners');
+                    console.log('Setting up header range slider event listeners');
 
-                changeRangeBtn.addEventListener('click', function() {
-                    console.log('Change range button clicked');
-                    const isVisible = rangeControl.style.display === 'block';
-                    rangeControl.style.display = isVisible ? 'none' : 'block';
-                    if (postsContainer) {
-                        postsContainer.classList.toggle('slider-visible', !isVisible);
+                    headerRadius.addEventListener('click', function() {
+                        console.log('Header radius clicked on feed');
+                        const isVisible = headerRangeDropdown.style.display === 'block';
+                        headerRangeDropdown.style.display = isVisible ? 'none' : 'block';
+                        
+                        // Reset slider to current radius when opening
+                        if (!isVisible) {
+                            tempRadius = headerRadius.textContent === 'All' ? 'all' : headerRadius.textContent.replace('km', '');
+                            headerRangeSlider.value = tempRadius === 'all' ? 11 : tempRadius;
+                            headerRangeValue.textContent = tempRadius === 'all' ? 'All' : `${tempRadius} km`;
+                        }
+                    });
+                    
+                    // Handle slider input (update display)
+                    if (headerRangeSlider) {
+                        headerRangeSlider.addEventListener('input', function(e) {
+                            console.log('Header slider value changed:', e.target.value);
+                            const newRadius = parseInt(e.target.value);
+                            if (headerRangeValue) headerRangeValue.textContent = newRadius === 11 ? 'All' : `${newRadius} km`;
+                            tempRadius = newRadius === 11 ? 'all' : newRadius;
+                            
+                            // Update slider background gradient
+                            const percentage = ((newRadius - 1) / 10) * 100;
+                            headerRangeSlider.style.background = `linear-gradient(to right, #3388ff 0%, #3388ff ${percentage}%, #555 ${percentage}%, #555 100%)`;
+                        });
                     }
                     
-                    // Update button text
-                    changeRangeBtn.textContent = isVisible ? 'Change Range' : 'Hide Range';
-                    
-                    // Reset slider to current radius when opening
-                    if (!isVisible) {
-                        tempRadius = currentRadius.textContent === 'All' ? 'all' : currentRadius.textContent;
-                        rangeSlider.value = tempRadius === 'all' ? 11 : tempRadius;
-                        rangeValue.textContent = tempRadius === 'all' ? 'All' : `${tempRadius} km`;
+                    // Handle set range button click
+                    if (headerSetRangeBtn) {
+                        headerSetRangeBtn.addEventListener('click', function() {
+                            console.log('Header set range button clicked on feed, tempRadius:', tempRadius);
+                            
+                            // Get current location from localStorage
+                            const lat = localStorage.getItem('selectedLat');
+                            const lng = localStorage.getItem('selectedLng');
+                            
+                            if (lat && lng) {
+                                // Store the new radius
+                                localStorage.setItem('selectedRadius', tempRadius);
+                                
+                                // Update header display
+                                if (headerRadius) {
+                                    headerRadius.textContent = tempRadius === 'all' ? 'All' : `${tempRadius}km`;
+                                }
+                                
+                                // Reload feed with new radius
+                                loadCombinedFeed(lat, lng, tempRadius);
+                            }
+                            
+                            // Hide the dropdown
+                            headerRangeDropdown.style.display = 'none';
+                        });
                     }
-                });
-                
-                // Handle slider input (update both displays)
-                if (rangeSlider) {
-                    rangeSlider.addEventListener('input', function(e) {
-                        console.log('Slider value changed:', e.target.value);
-                        const newRadius = parseInt(e.target.value);
-                        if (rangeValue) rangeValue.textContent = newRadius === 11 ? 'All' : `${newRadius} km`;
-                        if (currentRadius) currentRadius.textContent = newRadius === 11 ? 'All' : newRadius; // Update the filter info display
-                        tempRadius = newRadius === 11 ? 'all' : newRadius; // Store temporary value
-                    });
-                }
-                
-                // Handle set range button click
-                if (setRangeBtn) {
-                    setRangeBtn.addEventListener('click', function() {
-                        console.log('Set range button clicked, tempRadius:', tempRadius);
-                        // Get current location from localStorage
-                        const lat = localStorage.getItem('selectedLat');
-                        const lng = localStorage.getItem('selectedLng');
-                        
-                        if (lat && lng) {
-                            // Store the new radius
-                            localStorage.setItem('selectedRadius', tempRadius);
-                            // Reload feed with new radius
-                            loadCombinedFeed(lat, lng, tempRadius);
+                    
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function(event) {
+                        if (!headerRadius.contains(event.target) && !headerRangeDropdown.contains(event.target)) {
+                            headerRangeDropdown.style.display = 'none';
                         }
-                        
-                        // Hide the range control
-                        rangeControl.style.display = 'none';
-                        if (postsContainer) {
-                            postsContainer.classList.remove('slider-visible');
-                        }
-                        changeRangeBtn.textContent = 'Change Range';
                     });
+                } else {
+                    console.log('Header range slider elements not found');
                 }
-            } else {
-                console.log('Range slider elements not found - changeRangeBtn:', !!changeRangeBtn, 'rangeControl:', !!rangeControl);
-            }
 
             // Call updateFilterDisplay to show the filter info
             updateFilterDisplay();
