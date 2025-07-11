@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="fonts.css">
+    <!-- Import Courier Prime font to match feed -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 
     <title>Neighborhood Map</title>
     
@@ -98,19 +99,17 @@
             outline: none;
         }
 
-        /* Adjust map height to account for nav bar */
+        /* Map fills the entire viewport */
         #map {
-            height: calc(100vh - 60px);
-            margin-top: 60px; /* Add this to push content below header */
+            height: 100vh;
             width: 100%;
+            position: relative;
         }
 
-        /* Remove gap on desktop */
-        @media (min-width: 768px) {
-            #map {
-                margin-top: -20px;
-                height: calc(100vh + 20px);
-            }
+        /* Main content positioning */
+        .main-content {
+            position: relative;
+            height: 100vh;
         }
 
         .error-message {
@@ -427,10 +426,10 @@
 
         @media (max-width: 768px) {
             .bottom-nav {
-                height: 50px;
+                height: 30px;
             }
             .bottom-nav .nav-btn {
-                font-size: 0.95em;
+                font-size: 0.85em;
             }
         }
 
@@ -1851,6 +1850,27 @@
             min-width: 60px;
             text-align: center;
         }
+
+        /* Responsive font sizes for range slider */
+        @media (max-width: 768px) {
+            .filter-info span,
+            .filter-info button,
+            .range-control,
+            .range-value,
+            .set-range-btn {
+                font-size: 12px !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .filter-info span,
+            .filter-info button,
+            .range-control,
+            .range-value,
+            .set-range-btn {
+                font-size: 14px !important;
+            }
+        }
     </style>
         <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
 </head>
@@ -1883,28 +1903,24 @@
     </div>
 
     <main class="main-content">
-        <div style="display: flex; justify-content: center; min-height: 0;">
-            <div style="text-align: center; width: 100%;">
-                <div id="filter-info" class="filter-info" style="max-width: 500px; margin: 30px auto 0 auto; border: 2px solid #fff; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 20px 0; font-family: 'Inter', Arial, sans-serif;">
-                    <span style="border: 2px solid #3388ff; padding: 5px 18px; border-radius: 7px; font-weight: bold; color: #fff; font-size: 1.2em; background: transparent; display: inline-block; font-family: 'Inter', Arial, sans-serif;">Within <span id="current-radius">2</span><span id="current-radius-unit">km</span></span>
-                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer; font-size: 1em; font-weight: 500; text-decoration: underline; font-family: 'Inter', Arial, sans-serif;">Change Range</button>
-                    <div class="range-control" style="display: none; position: absolute; left: 50%; transform: translateX(-50%); min-width: 320px; z-index: 10; background: #111; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 18px 24px; font-family: 'Inter', Arial, sans-serif;">
-                        <div style="margin-bottom: 10px;">
-                            <input type="range" 
-                                   class="range-slider" 
-                                   min="1" 
-                                   max="11" 
-                                   value="2" 
-                                   step="1"
-                                   style="width: 200px; margin-right: 10px;">
-                            <span class="range-value" style="color: #fff; font-weight: bold; font-family: 'Inter', Arial, sans-serif; font-size: 1.1em;">2 km</span>
-                        </div>
-                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Inter', Arial, sans-serif; font-size: 1em;">Set Range</button>
-                    </div>
+        <div id="map"></div>
+        <div id="filter-info" class="filter-info" style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); max-width: 500px; border: 2px solid #fff; border-radius: 10px; background: transparent; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 20px 0; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; z-index: 1000;">
+            <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; font-weight: bold; color: #fff;">Within <span id="current-radius">2</span><span id="current-radius-unit">km</span></span>
+            <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Change Range</button>
+            <div class="range-control" style="display: none; position: absolute; left: 50%; transform: translateX(-50%); min-width: 320px; z-index: 10; background: #000000; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 18px 24px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">
+                <div style="margin-bottom: 10px;">
+                    <input type="range" 
+                           class="range-slider" 
+                           min="1" 
+                           max="11" 
+                           value="2" 
+                           step="1"
+                           style="width: 200px; margin-right: 10px;">
+                    <span class="range-value" style="color: #fff; font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">2 km</span>
                 </div>
+                <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Set Range</button>
             </div>
         </div>
-        <div id="map"></div>
     </main>
 
     <div id="location-error" class="error-message"></div>

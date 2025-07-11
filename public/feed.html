@@ -151,6 +151,27 @@
             min-width: 60px;
             text-align: center;
         }
+
+        /* Responsive font sizes for range slider */
+        @media (max-width: 768px) {
+            .filter-info span,
+            .filter-info button,
+            .range-control,
+            .range-value,
+            .set-range-btn {
+                font-size: 12px !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .filter-info span,
+            .filter-info button,
+            .range-control,
+            .range-value,
+            .set-range-btn {
+                font-size: 14px !important;
+            }
+        }
         .bottom-nav {
         position: fixed;
         bottom: 0;
@@ -201,10 +222,10 @@
 
         @media (max-width: 768px) {
         .bottom-nav {
-            height: 50px;
+            height: 30px;
         }
         .bottom-nav .nav-btn {
-            font-size: 0.95em;
+            font-size: 0.85em;
         }
         }
 
@@ -1512,10 +1533,10 @@
                 </div>
                 
                 <div id="filter-info" class="filter-info">
-                    <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px;">
+                    <span style="border: 2px solid #3388ff; padding: 5px 10px; border-radius: 5px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; font-weight: bold; color: #fff;">
                         Within <span id="current-radius">2</span><span id="current-radius-unit">km</span>
                     </span>
-                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer;">Change Range</button>
+                    <button class="change-range-btn" style="margin-left: 10px; color: #3388ff; background: none; border: none; cursor: pointer; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Change Range</button>
                     
                     <div class="range-control" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 8px;">
                         <div style="margin-bottom: 10px;">
@@ -1526,9 +1547,9 @@
                                    value="2" 
                                    step="1"
                                    style="width: 200px; margin-right: 10px;">
-                            <span class="range-value" style="color: var(--text-dark); font-weight: bold;">2 km</span>
+                            <span class="range-value" style="color: var(--text-dark); font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">2 km</span>
                         </div>
-                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Set Range</button>
+                        <button class="set-range-btn" style="padding: 8px 16px; background: #3388ff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px;">Set Range</button>
                     </div>
                 </div>
 
