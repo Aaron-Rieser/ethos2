@@ -607,6 +607,35 @@
             color: white;
         }
 
+        /* Mobile header adjustments */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 18px; /* Smaller logo on mobile */
+            }
+            
+            .header-content {
+                padding: 0 10px; /* Reduce padding on mobile */
+            }
+            
+            /* Center the range dropdown on mobile */
+            #header-range-dropdown {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                min-width: 280px !important; /* Slightly smaller on mobile */
+                max-width: 90vw !important; /* Don't exceed viewport width */
+            }
+            
+            /* Adjust range display positioning on mobile */
+            .range-display {
+                margin-left: 10px !important; /* Less margin on mobile */
+            }
+            
+            #header-radius {
+                font-size: 14px !important; /* Smaller font on mobile */
+                padding: 3px 8px !important; /* Smaller padding */
+            }
+        }
+
         .auth-section {
             display: flex;
             align-items: center;

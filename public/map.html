@@ -1867,11 +1867,30 @@
 
         /* Responsive font sizes for header range */
         @media (max-width: 768px) {
+            .site-title {
+                font-size: 18px !important; /* Smaller logo on mobile */
+            }
+            
+            .header-content {
+                padding: 0 10px !important; /* Reduce padding on mobile */
+            }
+            
             #header-radius {
                 font-size: 14px !important;
+                padding: 3px 8px !important; /* Smaller padding */
             }
+            
             #header-range-dropdown {
                 font-size: 12px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                min-width: 280px !important; /* Slightly smaller on mobile */
+                max-width: 90vw !important; /* Don't exceed viewport width */
+            }
+            
+            /* Adjust range display positioning on mobile */
+            .range-display {
+                margin-left: 10px !important; /* Less margin on mobile */
             }
         }
 
