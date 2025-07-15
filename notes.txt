@@ -9,7 +9,6 @@ F: Corporate page with ban list, contact for help
 F: Delete post feature 
 F: Weather and highway back?
 ?: no location posts, allow?
-F: Canada only 
 F: Route to real URL 
 F: Banned list 
 F: Comment ranking logic? Likes or just plain 
