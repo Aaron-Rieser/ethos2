@@ -1,6 +1,7 @@
 
+F: Route to real URL - gumshoe
 F: Persistent login challenges 
-F: Email or text notifications
+F: Email or text notifications - start with SendGrid 
 F: Better interaction of current range and place range 
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
@@ -9,7 +10,6 @@ F: Corporate page with ban list, contact for help
 F: Delete post feature 
 F: Weather and highway back?
 ?: no location posts, allow?
-F: Route to real URL 
 F: Banned list 
 F: Comment ranking logic? Likes or just plain 
 F: leaderboard sorting logic 
@@ -35,7 +35,7 @@ D: Map black bar persists
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 0 of 45 (34+11 variance) 
+COUNTDOWN: 1 of 45 (34+11 variance) 
 
 FOLLOWS: APP 
 
