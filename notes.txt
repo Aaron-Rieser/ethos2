@@ -1,35 +1,44 @@
 
 F: Persistent login challenges 
+F: Email or text notifications
+F: Better interaction of current range and place range 
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time
-F: Corporate page with ban list, contact  
+F: Corporate page with ban list, contact for help  
+F: Delete post feature 
+F: Weather and highway back?
+?: no location posts, allow?
+F: Canada only 
+F: Route to real URL 
+F: Banned list 
+F: Comment ranking logic? Likes or just plain 
+F: leaderboard sorting logic 
+F: Downvotes in the algo?
+F: 1 account = 1 like 
+F: Ban list 
+F: Launch challenge? Broadcast messages?
+F: Profile picture app
+xF: User scores
+xF: Follow feature?
+D: Like UI
+D: Corporate logo 
+D: Corporate page: known errors - geo location
+D: Made in canada bar 
+D: Revisit messaging UI (do we need at all?) 
+D: Multiple comments 
+D: Action noise
 D: Position of range finder and drop down in mobile 
 D: Modal slim design like on map, but validate this on mobile 
 D: Modal content size 
 D: Create state - content too far 
 D: Map black bar persists 
-Email or text notifications 
-Better place location UI 
-Better map and post UI 
-Like UI - better
-Add back in weather and highway alerts
-Delete post feature 
-No location posts? Think through 
-Banned list 
-Route to real site 
-Multiple comment design a bit smoother
-- Comment ranking logic and post sorting logic revisit 
-Add back action noises - like post message etc.
-- downvote notification and algo consideration (but not displayed)
-Fun launch feature or challenge feature 
-Ensure message UI is good/ on DOS look 
-Add profile picture feature  
-- Corporate logo
-- Contact and help page 
-Content moderation tools and notification - ban lists 
-1 account = 1 like
-GTM
+GTM: Delete all text 
+GTM: ? 
+
+COUNTDOWN: 0 of 45 (34+11 variance) 
+
+FOLLOWS: APP 
 
 ----- ALL ELSE ------- 
 

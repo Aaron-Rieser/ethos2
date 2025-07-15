@@ -100,6 +100,111 @@ const { auth } = require('express-oauth2-jwt-bearer');
 app.use(express.json());
 app.use(express.static('public'));
 
+// IP Geolocation middleware for Canada-only access
+const ipCache = new Map();
+
+app.use(async (req, res, next) => {
+  // Skip geolocation for API calls to avoid blocking essential functionality
+  if (req.path.startsWith('/api/')) {
+    return next();
+  }
+  
+  // Skip geolocation for static assets
+  if (req.path.includes('.') || req.path.startsWith('/fonts/') || req.path.startsWith('/auth.js') || req.path.startsWith('/dropdown.js')) {
+    return next();
+  }
+  
+  const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
+  
+  // Check cache first
+  if (ipCache.has(clientIP)) {
+    const cached = ipCache.get(clientIP);
+    if (Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) { // 24 hour cache
+      if (cached.country === 'CA') {
+        return next();
+      } else {
+        return res.status(403).send(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Access Restricted</title>
+            <style>
+              body { 
+                font-family: 'Courier Prime', monospace; 
+                text-align: center; 
+                padding: 50px; 
+                background: #1a1a1a; 
+                color: white; 
+              }
+              .container { max-width: 600px; margin: 0 auto; }
+              h1 { color: #3388ff; }
+              .error { color: #ff6b6b; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>🌍 Access Restricted</h1>
+              <p>This service is only available in Canada.</p>
+              <p class="error">Your location: ${cached.countryName || 'Unknown'}</p>
+              <p>If you believe this is an error, please contact support.</p>
+            </div>
+          </body>
+          </html>
+        `);
+      }
+    }
+  }
+  
+  try {
+    // Use ip-api.com for geolocation (free, no API key required)
+    const response = await fetch(`http://ip-api.com/json/${clientIP}`);
+    const data = await response.json();
+    
+    // Cache the result
+    ipCache.set(clientIP, {
+      country: data.country,
+      countryName: data.countryName,
+      timestamp: Date.now()
+    });
+    
+    if (data.country === 'CA') {
+      next(); // Allow access
+    } else {
+      res.status(403).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Access Restricted</title>
+          <style>
+            body { 
+              font-family: 'Courier Prime', monospace; 
+              text-align: center; 
+              padding: 50px; 
+              background: #1a1a1a; 
+              color: white; 
+            }
+            .container { max-width: 600px; margin: 0 auto; }
+            h1 { color: #3388ff; }
+            .error { color: #ff6b6b; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🌍 Access Restricted</h1>
+            <p>This service is only available in Canada.</p>
+            <p class="error">Your location: ${data.countryName || 'Unknown'}</p>
+            <p>If you believe this is an error, please contact support.</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  } catch (error) {
+    console.log('Geolocation failed, allowing access:', error.message);
+    next(); // Allow access if geolocation fails (graceful fallback)
+  }
+});
+
 // Verify required environment variables
 const requiredEnvVars = [
     'CLOUDINARY_CLOUD_NAME',
