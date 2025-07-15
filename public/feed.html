@@ -1614,13 +1614,6 @@
         </div>
     </header>
 
-    <div id="broadcast-bar" class="broadcast-bar" style="display: none;">
-        <div class="broadcast-content">
-            <span id="broadcast-message"></span>
-            <button id="close-broadcast" class="close-broadcast">×</button>
-        </div>
-    </div>
-
     <main class="main-content">
 
         <div style="display: flex; justify-content: center; min-height: 100vh;">
@@ -2493,50 +2486,6 @@
                 alert('Failed to send message. Please try again.');
             }
         }
-        async function checkBroadcasts() {
-            try {
-                const response = await fetch('/api/broadcasts');
-                const broadcast = await response.json();
-                
-                const broadcastBar = document.getElementById('broadcast-bar');
-                const broadcastMessage = document.getElementById('broadcast-message');
-                const mainContent = document.querySelector('.main-content');
-                
-                if (broadcast) {
-                    // Check if user has dismissed this broadcast
-                    const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-                    if (!dismissedBroadcasts.includes(broadcast.id)) {
-                        broadcastMessage.textContent = broadcast.message;
-                        broadcastBar.style.display = 'block';
-                        mainContent.classList.add('has-broadcast');
-                    }
-                } else {
-                    broadcastBar.style.display = 'none';
-                    mainContent.classList.remove('has-broadcast');
-                }
-            } catch (error) {
-                console.error('Error checking broadcasts:', error);
-            }
-        }
-
-        // Add event listener for close button
-        document.getElementById('close-broadcast')?.addEventListener('click', () => {
-            const broadcastBar = document.getElementById('broadcast-bar');
-            const mainContent = document.querySelector('.main-content');
-            const broadcastId = broadcastBar.dataset.broadcastId;
-            
-            // Store dismissed broadcast ID
-            const dismissedBroadcasts = JSON.parse(localStorage.getItem('dismissedBroadcasts') || '[]');
-            dismissedBroadcasts.push(broadcastId);
-            localStorage.setItem('dismissedBroadcasts', JSON.stringify(dismissedBroadcasts));
-            
-            // Hide broadcast
-            broadcastBar.style.display = 'none';
-            mainContent.classList.remove('has-broadcast');
-        });
-
-        // Check for broadcasts when page loads
-        document.addEventListener('DOMContentLoaded', checkBroadcasts);
 
         function createFeedElement(item) {
             const feedDiv = document.createElement('div');

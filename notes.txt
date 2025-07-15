@@ -1,14 +1,14 @@
 
-Modal slim design like on map, but validate this on mobile 
-Persistent login challenges 
+F: Persistent login challenges 
+F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
-- Hard login/logout now in but isn't there a better way to do this? We want more time 
-Range finder gone
-- When you come from Map, can't change range 
-Env back 
-Modal x shift over 
-Map black bar 
-Search popup and create, fields extending random 
+- Hard login/logout now in but isn't there a better way to do this? We want more time
+F: Corporate page with ban list, contact  
+D: Position of range finder and drop down in mobile 
+D: Modal slim design like on map, but validate this on mobile 
+D: Modal content size 
+D: Create state - content too far 
+D: Map black bar persists 
 Email or text notifications 
 Better place location UI 
 Better map and post UI 
