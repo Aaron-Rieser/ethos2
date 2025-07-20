@@ -2484,7 +2484,15 @@
             
             // Change button to save/cancel
             editButton.innerHTML = '💾 Save';
-            editButton.onclick = () => saveEdit(postId, titleInput.value, textInput.value, originalTitle, originalText);
+            editButton.onclick = () => {
+                console.log('Edit button clicked, input values:', {
+                    titleInputValue: titleInput.value,
+                    textInputValue: textInput.value,
+                    originalTitle,
+                    originalText
+                });
+                saveEdit(postId, titleInput.value, textInput.value, originalTitle, originalText);
+            };
             
             // Add cancel button
             const cancelButton = document.createElement('button');
@@ -2505,6 +2513,18 @@
                     return;
                 }
 
+                // Ensure we have valid values
+                const titleValue = newTitle ? newTitle.trim() : '';
+                const textValue = newText ? newText.trim() : '';
+                
+                console.log('Saving edit with values:', { 
+                    postId, 
+                    titleValue, 
+                    textValue, 
+                    originalTitle, 
+                    originalText 
+                });
+
                 const token = await auth0Client.getTokenSilently();
                 const response = await fetch(`/api/posts/${postId}`, {
                     method: 'PUT',
@@ -2513,8 +2533,8 @@
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        title: newTitle.trim(),
-                        post: newText.trim()
+                        title: titleValue,
+                        post: textValue
                     })
                 });
 
