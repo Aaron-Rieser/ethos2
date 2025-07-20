@@ -2451,6 +2451,18 @@
                 return;
             }
             
+            // Check if we're already in edit mode
+            const existingTitleInput = postElement.querySelector('.edit-title-input');
+            const existingTextInput = postElement.querySelector('.edit-text-input');
+            
+            if (existingTitleInput && existingTextInput) {
+                console.log('Already in edit mode, preserving current values');
+                return; // Already in edit mode, don't recreate
+            }
+            
+            // Mark post as being edited
+            postElement.classList.add('editing');
+            
             // If textElement doesn't exist, create it
             if (!textElement) {
                 textElement = document.createElement('div');
@@ -2590,6 +2602,9 @@
                 if (cancelButton) {
                     cancelButton.remove();
                 }
+                
+                // Remove editing flag
+                postElement.classList.remove('editing');
 
                 alert('Post updated successfully!');
             } catch (error) {
@@ -2617,6 +2632,9 @@
             if (cancelButton) {
                 cancelButton.remove();
             }
+            
+            // Remove editing flag
+            postElement.classList.remove('editing');
         }
 
         async function submitComment(event, postId) {
