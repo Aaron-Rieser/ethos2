@@ -1,6 +1,5 @@
 
 F: update all keys and apis with domain
-F: Edit posts 
 F: Delete posts 
 F: Login notes for all functions
 F: Follow 
@@ -13,7 +12,6 @@ F: Better interaction of current range and place range
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time
-F: Corporate page with ban list, contact for help  
 F: Local host db
 F: preview or dev environment 
 F: Weather and highway back?
@@ -29,6 +27,7 @@ F: Launch challenge? Broadcast messages?
 F: Profile picture app
 xF: User scores
 D: Like UI
+D: Corporate page dropdown, consolidate all dropdown to one?
 D: Gumshoo intro how does it work in GIF (upload post, sort by location, choose etc)
 D: Edit button design
 D: Corporate logo 
@@ -46,7 +45,7 @@ D: Map black bar persists
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 2 of 45 (34+11 variance) 
+COUNTDOWN: 4 of 45 (34+11 variance) 
 
 FOLLOWS: APP 
 
