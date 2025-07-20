@@ -868,9 +868,15 @@
             margin-top: 80px;
             padding: 20px 15px;
             background: var(--dark-bg);
-            max-width: 1200px; /* Add this to constrain width on desktop */
-            margin-left: auto;
-            margin-right: auto;
+        }
+
+        /* Desktop-only constraints */
+        @media (min-width: 769px) {
+            .main-content {
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
         }
 
         /* Mobile-specific styles for full-width cards and images */
@@ -878,9 +884,6 @@
             .main-content {
                 padding: 0;
                 margin-top: 80px;
-                max-width: none; /* Override desktop constraint */
-                margin-left: 0; /* Override auto margins */
-                margin-right: 0; /* Override auto margins */
             }
 
             .post-card {
