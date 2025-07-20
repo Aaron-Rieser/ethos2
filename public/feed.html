@@ -2271,10 +2271,10 @@
             // Check if current user owns this post
             const canEdit = item.canEdit || false;
             
-            let editButton = '';
-            if (canEdit) {
-                editButton = `<button class="edit-button" data-id="${item.id}">✏️ Edit</button>`;
-            }
+                let editButton = '';
+    if (canEdit) {
+        editButton = `<button class="edit-button" data-id="${item.id}" title="Edit">✏️</button>`;
+    }
             
             postDiv.innerHTML = `
                 <div class="post-content">

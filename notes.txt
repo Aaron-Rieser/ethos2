@@ -8,6 +8,7 @@ F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 
 F: Email or text notifications - start with SendGrid 
 F: Slim footer 
+F: Image speed 
 F: Better interaction of current range and place range 
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
@@ -16,6 +17,7 @@ F: Corporate page with ban list, contact for help
 F: Local host db
 F: preview or dev environment 
 F: Weather and highway back?
+F: User activity tab 
 ?: no location posts, allow?
 F: Banned list 
 F: Comment ranking logic? Likes or just plain 
