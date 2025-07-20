@@ -701,51 +701,50 @@
             cursor: pointer;
         }
 
-        /* Post Cards - Enhanced with fun shadows and borders */
+        /* Post Cards - Restored to original styling */
         .post-card {
-            border: 2px solid #3388ff;
+            border: 1px solid #3388ff;
             margin: 10px;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04), 4px 4px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 0;
+            box-shadow: none;
             transition: all 0.3s ease;
             background: transparent;
             position: relative;
             overflow: hidden;
+            font-family: 'Courier Prime', 'Courier New', monospace;
         }
         
+        /* ASCII-style border using pseudo-elements */
         .post-card::before {
-            content: '';
+            content: '┌─────────────────────────────────────────────────────────────┐';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #3388ff, #4a90e2, #3388ff);
-            border-radius: 12px 12px 0 0;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            color: #3388ff;
+            font-size: 12px;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 1;
         }
         
-        /* Title fade effect */
         .post-card::after {
-            content: '';
+            content: '└─────────────────────────────────────────────────────────────┘';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 90px; /* Covers title area and fades out */
-            background: linear-gradient(180deg, 
-                rgba(51, 136, 255, 0.08) 0%,
-                rgba(51, 136, 255, 0.04) 30%,
-                rgba(51, 136, 255, 0.02) 60%,
-                rgba(255, 255, 255, 0) 90%,
-                rgba(255, 255, 255, 0) 100%);
+            bottom: -1px;
+            left: -1px;
+            right: -1px;
+            color: #3388ff;
+            font-size: 12px;
+            line-height: 1;
             pointer-events: none;
             z-index: 1;
         }
         
         .post-card:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 8px 32px rgba(0, 0, 0, 0.08), 6px 6px 20px rgba(0, 0, 0, 0.1);
+            transform: none;
+            box-shadow: none;
             border-color: #3388ff;
         }
 
@@ -884,7 +883,7 @@
                 border-right: none;
                 max-width: none;
                 width: 100%;
-                padding: 20px 0; /* Remove horizontal padding */
+                padding: 20px; /* Keep horizontal padding to prevent overflow */
             }
 
             .post-card::before {
@@ -900,11 +899,7 @@
                 margin-right: 0;
             }
 
-            /* Add padding back to text content */
-            .post-title, .post-text, .post-meta, .feed-footer {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
+            /* No need to add padding back since we're keeping horizontal padding */
         }
 
         /* Preserve Bottom Navigation Sixtyfour Font */
