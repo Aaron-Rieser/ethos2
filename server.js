@@ -29,11 +29,19 @@ function createPostElement(item) {
         }
     }
 
+    // Check if current user owns this post (this will be set by the client-side code)
+    const canEdit = item.canEdit || false;
+    
+    let editButton = '';
+    if (canEdit) {
+        editButton = `<button class="edit-button" data-id="${item.id}">✏️ Edit</button>`;
+    }
+
     postDiv.innerHTML = `
         <div class="post-content">
             ${dealHtml}
-            <div class="post-title">${item.title || 'Title'}</div>
-            <div class="post-text">${item.post || 'No content available'}</div>  
+            <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
+            <div class="post-text" data-editable="${canEdit}">${item.post || 'No content available'}</div>  
             ${imageHtml}
             <small>${item.username || 'Anonymous'} • ${formattedTime}</small>                    
             <div class="feed-footer">
@@ -41,6 +49,7 @@ function createPostElement(item) {
                 <button class="downvote-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">⬇️</button>
                 <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
                 <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
+                ${editButton}
                 <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
             </div>
             <div class="comments-section">
@@ -79,6 +88,12 @@ function createPostElement(item) {
             ? 'flex' 
             : 'none';
     });
+
+    // Add edit functionality only if user owns the post
+    if (canEdit) {
+        const editButton = postDiv.querySelector('.edit-button');
+        editButton.addEventListener('click', () => enableEditMode(item.id));
+    }
 
     loadComments(item.id, item.isDeal ? 'deal' : 'post');
 
@@ -464,6 +479,41 @@ app.post('/api/posts/:postId/downvote', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('Error updating downvotes for post:', error);
         res.status(500).json({ error: 'Error updating downvotes' });
+    }
+});
+
+// Edit post endpoint
+app.put('/api/posts/:postId', authenticateJWT, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { title, post } = req.body;
+        const user_id = req.auth.payload.sub;
+        
+        console.log('Edit post request:', { postId, title, post, user_id });
+        
+        // Verify ownership
+        const ownershipCheck = await pool.query(
+            'SELECT id FROM posts WHERE id = $1 AND user_id = $2',
+            [postId, user_id]
+        );
+        
+        if (ownershipCheck.rows.length === 0) {
+            console.log('Unauthorized edit attempt:', { postId, user_id });
+            return res.status(403).json({ error: 'Not authorized to edit this post' });
+        }
+        
+        // Update post
+        const result = await pool.query(
+            'UPDATE posts SET title = $1, post = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+            [title, post, postId]
+        );
+        
+        console.log('Post updated successfully:', result.rows[0]);
+        clearCacheForItem(postId, false);
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating post:', error);
+        res.status(500).json({ error: 'Error updating post' });
     }
 });
 

@@ -1776,16 +1776,29 @@
 
                 const allContent = await response.json();
 
+                // Check ownership for each post and add canEdit property
+                const currentUserId = await getCurrentUserId();
+                const postsWithEditStatus = allContent.map(item => {
+                    if (item.type === 'feed') {
+                        // Feed items are not editable
+                        return item;
+                    } else {
+                        // Check if current user owns this post
+                        const canEdit = currentUserId && item.user_id === currentUserId;
+                        return { ...item, canEdit };
+                    }
+                });
+
                 // Clear loading indicator and display content
                 postsContainer.innerHTML = '';
-                if (allContent.length === 0) {
+                if (postsWithEditStatus.length === 0) {
                     postsContainer.innerHTML = `
                         <div class="no-posts-message">
                             No posts found in this area. 
                             Try increasing your search radius or checking back later.
                         </div>`;
                 } else {
-                    allContent.forEach(item => {
+                    postsWithEditStatus.forEach(item => {
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
@@ -1864,11 +1877,18 @@
 
                 const results = await response.json();
                 
+                // Check ownership for each post and add canEdit property
+                const currentUserId = await getCurrentUserId();
+                const resultsWithEditStatus = results.map(item => {
+                    const canEdit = currentUserId && item.user_id === currentUserId;
+                    return { ...item, canEdit };
+                });
+                
                 postsContainer.innerHTML = '';
-                if (results.length === 0) {
+                if (resultsWithEditStatus.length === 0) {
                     postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
                 } else {
-                    results.forEach(item => {
+                    resultsWithEditStatus.forEach(item => {
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
@@ -2248,10 +2268,18 @@
                 ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
             
+            // Check if current user owns this post
+            const canEdit = item.canEdit || false;
+            
+            let editButton = '';
+            if (canEdit) {
+                editButton = `<button class="edit-button" data-id="${item.id}">✏️ Edit</button>`;
+            }
+            
             postDiv.innerHTML = `
                 <div class="post-content">
-                    <div class="post-title">${item.title || 'Title'}</div>
-                    ${item.post ? `<div class="post-text">${item.post}</div>` : ''}  
+                    <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
+                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${item.post}</div>` : ''}  
                     ${imageHtml}
                     <div class="post-meta">${item.username || 'Anonymous'} • ${formattedTime}</div>                                    
                     <div class="feed-footer">
@@ -2259,6 +2287,7 @@
                         <button class="downvote-button" data-id="${item.id}">⬇️</button>
                         <button class="comment-button" data-id="${item.id}">💬</button>
                         <button class="message-button" data-id="${item.id}" data-user-id="${item.user_id}">✉️</button>
+                        ${editButton}
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
@@ -2297,6 +2326,12 @@
                     ? 'flex' 
                     : 'none';
             });
+
+            // Add edit functionality only if user owns the post
+            if (canEdit) {
+                const editButton = postDiv.querySelector('.edit-button');
+                editButton.addEventListener('click', () => enableEditMode(item.id));
+            }
 
             loadComments(item.id);
 
@@ -2380,6 +2415,136 @@
                 }
             } catch (error) {
                 console.error('Error loading comments:', error);
+            }
+        }
+
+        // Edit functionality functions
+        async function getCurrentUserId() {
+            try {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    return null;
+                }
+                const user = await auth0Client.getUser();
+                return user.sub;
+            } catch (error) {
+                console.error('Error getting current user ID:', error);
+                return null;
+            }
+        }
+
+        function enableEditMode(postId) {
+            const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
+            const titleElement = postElement.querySelector('.post-title');
+            const textElement = postElement.querySelector('.post-text');
+            const editButton = postElement.querySelector('.edit-button');
+            
+            // Store original content
+            const originalTitle = titleElement.textContent;
+            const originalText = textElement.textContent;
+            
+            // Create input fields
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.value = originalTitle;
+            titleInput.className = 'edit-title-input';
+            titleInput.style.cssText = 'width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;';
+            
+            const textInput = document.createElement('textarea');
+            textInput.value = originalText;
+            textInput.className = 'edit-text-input';
+            textInput.style.cssText = 'width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; resize: vertical;';
+            
+            // Replace content with inputs
+            titleElement.innerHTML = '';
+            titleElement.appendChild(titleInput);
+            textElement.innerHTML = '';
+            textElement.appendChild(textInput);
+            
+            // Change button to save/cancel
+            editButton.innerHTML = '💾 Save';
+            editButton.onclick = () => saveEdit(postId, titleInput.value, textInput.value, originalTitle, originalText);
+            
+            // Add cancel button
+            const cancelButton = document.createElement('button');
+            cancelButton.innerHTML = '❌ Cancel';
+            cancelButton.className = 'cancel-edit-button';
+            cancelButton.style.cssText = 'margin-left: 5px; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; cursor: pointer;';
+            cancelButton.onclick = () => cancelEdit(postId, originalTitle, originalText);
+            editButton.parentNode.insertBefore(cancelButton, editButton.nextSibling);
+            
+            // Focus on title input
+            titleInput.focus();
+        }
+
+        async function saveEdit(postId, newTitle, newText, originalTitle, originalText) {
+            try {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    alert('Please log in to edit posts');
+                    return;
+                }
+
+                const token = await auth0Client.getTokenSilently();
+                const response = await fetch(`/api/posts/${postId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: newTitle.trim(),
+                        post: newText.trim()
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to update post');
+                }
+
+                // Update the display
+                const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
+                const titleElement = postElement.querySelector('.post-title');
+                const textElement = postElement.querySelector('.post-text');
+                
+                titleElement.innerHTML = newTitle.trim();
+                textElement.innerHTML = newText.trim();
+                
+                // Restore edit button
+                const editButton = postElement.querySelector('.edit-button');
+                editButton.innerHTML = '✏️ Edit';
+                editButton.onclick = () => enableEditMode(postId);
+                
+                // Remove cancel button
+                const cancelButton = postElement.querySelector('.cancel-edit-button');
+                if (cancelButton) {
+                    cancelButton.remove();
+                }
+
+                alert('Post updated successfully!');
+            } catch (error) {
+                console.error('Error saving edit:', error);
+                alert('Failed to update post: ' + error.message);
+            }
+        }
+
+        function cancelEdit(postId, originalTitle, originalText) {
+            const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
+            const titleElement = postElement.querySelector('.post-title');
+            const textElement = postElement.querySelector('.post-text');
+            const editButton = postElement.querySelector('.edit-button');
+            
+            // Restore original content
+            titleElement.innerHTML = originalTitle;
+            textElement.innerHTML = originalText;
+            
+            // Restore edit button
+            editButton.innerHTML = '✏️ Edit';
+            editButton.onclick = () => enableEditMode(postId);
+            
+            // Remove cancel button
+            const cancelButton = postElement.querySelector('.cancel-edit-button');
+            if (cancelButton) {
+                cancelButton.remove();
             }
         }
 

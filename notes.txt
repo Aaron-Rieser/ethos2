@@ -1,5 +1,9 @@
 
-F: Route to real URL - gumshoe
+F: update all keys and apis with domain
+F: Edit posts 
+F: Delete posts 
+F: Follow 
+F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 
 F: Email or text notifications - start with SendGrid 
 F: Better interaction of current range and place range 
@@ -7,7 +11,8 @@ F: Double check range works from feed to map and back, and index too
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time
 F: Corporate page with ban list, contact for help  
-F: Delete post feature 
+F: Local host db
+F: preview or dev environment 
 F: Weather and highway back?
 ?: no location posts, allow?
 F: Banned list 
@@ -19,7 +24,6 @@ F: Ban list
 F: Launch challenge? Broadcast messages?
 F: Profile picture app
 xF: User scores
-xF: Follow feature?
 D: Like UI
 D: Corporate logo 
 D: Corporate page: known errors - geo location
@@ -35,7 +39,7 @@ D: Map black bar persists
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 1 of 45 (34+11 variance) 
+COUNTDOWN: 2 of 45 (34+11 variance) 
 
 FOLLOWS: APP 
 
