@@ -105,8 +105,6 @@
             color: var(--text-light);
             font-style: italic;
         }
-
-
         .filter-info {
             margin: 10px 0;
         }
@@ -607,51 +605,7 @@
             margin: 0;
             font-size: 24px;
             color: white;
-            cursor: pointer;
         }
-
-        /* Logo Dropdown Styles */
-        .logo-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .logo-dropdown-content {
-            display: none;
-            position: absolute;
-            background: rgba(0, 0, 0, 0.9);
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1000;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            top: 100%;
-            left: 0;
-            margin-top: 5px;
-        }
-
-        .logo-dropdown-content a {
-            color: white;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            font-size: 0.9rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .logo-dropdown-content a:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .logo-dropdown-content a:first-child {
-            border-radius: 8px 8px 0 0;
-        }
-
-        .logo-dropdown-content a:last-child {
-            border-radius: 0 0 8px 8px;
-        }
-
-        /* Logo dropdown behavior is now handled by JavaScript */
 
         /* Mobile header adjustments */
         @media (max-width: 768px) {
@@ -868,9 +822,6 @@
             margin-top: 80px;
             padding: 20px 15px;
             background: var(--dark-bg);
-            max-width: 1200px; /* Add this to constrain width on desktop */
-            margin-left: auto;
-            margin-right: auto;
         }
 
         /* Mobile-specific styles for full-width cards and images */
@@ -1625,14 +1576,9 @@
 <body>
     <header class="sticky-header">
         <div class="header-content">
-            <div class="logo-dropdown">
-                <h1 class="site-title" id="logoDropdown">gumshoo</h1>
-                <div class="logo-dropdown-content">
-                    <a href="index.html">Home</a>
-                    <a href="about.html">About</a>
-                    <a href="contact.html">Contact</a>
-                </div>
-            </div>
+            <a href="/index.html" style="text-decoration: none; color: inherit;">
+                <h1 class="site-title">gumshoo</h1>
+            </a>
             <div class="range-display" style="margin-left: 20px; display: flex; align-items: center;">
                 <span id="header-radius" style="color: #fff; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 10px; border: 2px solid #fff; border-radius: 5px; background: transparent;">2km</span>
                 <div id="header-range-dropdown" style="display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #000000; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 12px 16px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; z-index: 1001; min-width: 320px;">
@@ -1681,7 +1627,7 @@
                     <!-- Filter info is now handled in the header -->
                 </div>
 
-                <div id="posts-container">
+                <div id="posts-container" class="posts-left-aligned">
                     <!-- Posts will be inserted here -->
                 </div>
             </div>
@@ -1830,29 +1776,16 @@
 
                 const allContent = await response.json();
 
-                // Check ownership for each post and add canEdit property
-                const currentUserId = await getCurrentUserId();
-                const postsWithEditStatus = allContent.map(item => {
-                    if (item.type === 'feed') {
-                        // Feed items are not editable
-                        return item;
-                    } else {
-                        // Check if current user owns this post
-                        const canEdit = currentUserId && item.user_id === currentUserId;
-                        return { ...item, canEdit };
-                    }
-                });
-
                 // Clear loading indicator and display content
                 postsContainer.innerHTML = '';
-                if (postsWithEditStatus.length === 0) {
+                if (allContent.length === 0) {
                     postsContainer.innerHTML = `
                         <div class="no-posts-message">
                             No posts found in this area. 
                             Try increasing your search radius or checking back later.
                         </div>`;
                 } else {
-                    postsWithEditStatus.forEach(item => {
+                    allContent.forEach(item => {
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
@@ -1931,18 +1864,11 @@
 
                 const results = await response.json();
                 
-                // Check ownership for each post and add canEdit property
-                const currentUserId = await getCurrentUserId();
-                const resultsWithEditStatus = results.map(item => {
-                    const canEdit = currentUserId && item.user_id === currentUserId;
-                    return { ...item, canEdit };
-                });
-                
                 postsContainer.innerHTML = '';
-                if (resultsWithEditStatus.length === 0) {
+                if (results.length === 0) {
                     postsContainer.innerHTML = '<div class="no-posts-message">No posts found matching your search</div>';
                 } else {
-                    resultsWithEditStatus.forEach(item => {
+                    results.forEach(item => {
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
@@ -2322,20 +2248,10 @@
                 ? `<img src="${item.image_url}" alt="Post image" style="max-width: 100%; margin-top: 10px;">` 
                 : '';
             
-            // Check if current user owns this post
-            const canEdit = item.canEdit || false;
-            
-                let editButton = '';
-    let deleteButton = '';
-    if (canEdit) {
-        editButton = `<button class="edit-button" data-id="${item.id}" title="Edit">✏️</button>`;
-        deleteButton = `<button class="delete-button" data-id="${item.id}" title="Delete">🗑️</button>`;
-    }
-            
             postDiv.innerHTML = `
                 <div class="post-content">
-                    <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
-                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${item.post}</div>` : ''}  
+                    <div class="post-title">${item.title || 'Title'}</div>
+                    ${item.post ? `<div class="post-text">${item.post}</div>` : ''}  
                     ${imageHtml}
                     <div class="post-meta">${item.username || 'Anonymous'} • ${formattedTime}</div>                                    
                     <div class="feed-footer">
@@ -2343,8 +2259,6 @@
                         <button class="downvote-button" data-id="${item.id}">⬇️</button>
                         <button class="comment-button" data-id="${item.id}">💬</button>
                         <button class="message-button" data-id="${item.id}" data-user-id="${item.user_id}">✉️</button>
-                        ${editButton}
-                        ${deleteButton}
                         <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
                     </div>
                     <div class="comments-section">
@@ -2384,59 +2298,9 @@
                     : 'none';
             });
 
-                // Add edit functionality only if user owns the post
-    if (canEdit) {
-        const editButton = postDiv.querySelector('.edit-button');
-        const deleteButton = postDiv.querySelector('.delete-button');
-        editButton.addEventListener('click', () => enableEditMode(item.id));
-        deleteButton.addEventListener('click', () => handleDelete(item.id));
-    }
-
             loadComments(item.id);
 
             return postDiv;
-        }
-
-        // Delete post handler
-        async function handleDelete(postId) {
-            try {
-                // Show confirmation dialog
-                if (!confirm('Are you sure you want to delete this post?')) {
-                    return;
-                }
-
-                const token = await auth0Client.getTokenSilently();
-                if (!token) {
-                    console.error('No auth token available');
-                    return;
-                }
-
-                const response = await fetch(`/api/posts/${postId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Delete failed:', errorData);
-                    alert('Failed to delete post. Please try again.');
-                    return;
-                }
-
-                // Remove the post from the DOM
-                const postElement = document.querySelector(`[data-id="${postId}"]`);
-                if (postElement) {
-                    postElement.closest('.post').remove();
-                }
-
-                console.log('Post deleted successfully');
-            } catch (error) {
-                console.error('Error deleting post:', error);
-                alert('Error deleting post. Please try again.');
-            }
         }
 
         async function handleUpvote(itemId) {
@@ -2517,225 +2381,6 @@
             } catch (error) {
                 console.error('Error loading comments:', error);
             }
-        }
-
-        // Edit functionality functions
-        async function getCurrentUserId() {
-            try {
-                if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    return null;
-                }
-                const user = await auth0Client.getUser();
-                return user.sub;
-            } catch (error) {
-                console.error('Error getting current user ID:', error);
-                return null;
-            }
-        }
-
-        function enableEditMode(postId) {
-            const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
-            if (!postElement) {
-                console.error('Post element not found for ID:', postId);
-                return;
-            }
-            
-            const titleElement = postElement.querySelector('.post-title');
-            let textElement = postElement.querySelector('.post-text');
-            const editButton = postElement.querySelector('.edit-button');
-            
-            if (!titleElement || !editButton) {
-                console.error('Required elements not found for editing:', {
-                    titleElement: !!titleElement,
-                    editButton: !!editButton
-                });
-                return;
-            }
-            
-            // Check if we're already in edit mode
-            const existingTitleInput = postElement.querySelector('.edit-title-input');
-            const existingTextInput = postElement.querySelector('.edit-text-input');
-            
-            if (existingTitleInput && existingTextInput) {
-                console.log('Already in edit mode, preserving current values');
-                return; // Already in edit mode, don't recreate
-            }
-            
-            // Mark post as being edited
-            postElement.classList.add('editing');
-            
-            // If textElement doesn't exist, create it
-            if (!textElement) {
-                textElement = document.createElement('div');
-                textElement.className = 'post-text';
-                textElement.setAttribute('data-editable', 'true');
-                // Insert after title element
-                titleElement.parentNode.insertBefore(textElement, titleElement.nextSibling);
-            }
-            
-            // Store original content
-            const originalTitle = titleElement.textContent;
-            const originalText = textElement.textContent || '';
-            
-            // Create input fields
-            const titleInput = document.createElement('input');
-            titleInput.type = 'text';
-            titleInput.value = originalTitle;
-            titleInput.className = 'edit-title-input';
-            titleInput.style.cssText = 'width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;';
-            
-            const textInput = document.createElement('textarea');
-            textInput.value = originalText;
-            textInput.className = 'edit-text-input';
-            textInput.style.cssText = 'width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; resize: vertical;';
-            
-            // Replace content with inputs
-            titleElement.innerHTML = '';
-            titleElement.appendChild(titleInput);
-            textElement.innerHTML = '';
-            textElement.appendChild(textInput);
-            
-            // Debug: Verify input fields are created properly
-            console.log('Input fields created:', {
-                titleInput: !!titleInput,
-                textInput: !!textInput,
-                titleInputValue: titleInput.value,
-                textInputValue: textInput.value,
-                originalTitle,
-                originalText
-            });
-            
-            // Change button to save/cancel
-            editButton.innerHTML = '💾 Save';
-            editButton.onclick = () => {
-                // Capture current input values
-                const currentTitleValue = titleInput.value;
-                const currentTextValue = textInput.value;
-                
-                console.log('Save button clicked, capturing current values:', {
-                    currentTitleValue,
-                    currentTextValue,
-                    originalTitle,
-                    originalText
-                });
-                
-                // Save the current values to database
-                saveEdit(postId, currentTitleValue, currentTextValue, originalTitle, originalText);
-            };
-            
-            // Add cancel button
-            const cancelButton = document.createElement('button');
-            cancelButton.innerHTML = '❌ Cancel';
-            cancelButton.className = 'cancel-edit-button';
-            cancelButton.style.cssText = 'margin-left: 5px; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; background: #f8f9fa; cursor: pointer;';
-            cancelButton.onclick = () => cancelEdit(postId, originalTitle, originalText);
-            editButton.parentNode.insertBefore(cancelButton, editButton.nextSibling);
-            
-            // Focus on title input
-            titleInput.focus();
-        }
-
-        async function saveEdit(postId, newTitle, newText, originalTitle, originalText) {
-            try {
-                if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to edit posts');
-                    return;
-                }
-
-                // Ensure we have valid values and capture what was actually typed
-                const titleValue = newTitle ? newTitle.trim() : '';
-                const textValue = newText ? newText.trim() : '';
-                
-                console.log('Saving edit with captured values:', { 
-                    postId, 
-                    titleValue, 
-                    textValue, 
-                    originalTitle, 
-                    originalText,
-                    newTitleRaw: newTitle,
-                    newTextRaw: newText
-                });
-
-                const token = await auth0Client.getTokenSilently();
-                const response = await fetch(`/api/posts/${postId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        title: titleValue,
-                        post: textValue
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to update post');
-                }
-
-                // Update the display
-                const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
-                const titleElement = postElement.querySelector('.post-title');
-                let textElement = postElement.querySelector('.post-text');
-                
-                titleElement.innerHTML = newTitle.trim();
-                
-                // If textElement doesn't exist and we have new text, create it
-                if (!textElement && newText.trim()) {
-                    textElement = document.createElement('div');
-                    textElement.className = 'post-text';
-                    textElement.setAttribute('data-editable', 'true');
-                    titleElement.parentNode.insertBefore(textElement, titleElement.nextSibling);
-                }
-                
-                if (textElement) {
-                    textElement.innerHTML = newText.trim();
-                }
-                
-                // Restore edit button
-                const editButton = postElement.querySelector('.edit-button');
-                editButton.innerHTML = '✏️';
-                editButton.onclick = () => enableEditMode(postId);
-                
-                // Remove cancel button
-                const cancelButton = postElement.querySelector('.cancel-edit-button');
-                if (cancelButton) {
-                    cancelButton.remove();
-                }
-                
-                // Remove editing flag
-                postElement.classList.remove('editing');
-
-                alert('Post updated successfully!');
-            } catch (error) {
-                console.error('Error saving edit:', error);
-                alert('Failed to update post: ' + error.message);
-            }
-        }
-
-        function cancelEdit(postId, originalTitle, originalText) {
-            const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
-            const titleElement = postElement.querySelector('.post-title');
-            const textElement = postElement.querySelector('.post-text');
-            const editButton = postElement.querySelector('.edit-button');
-            
-            // Restore original content
-            titleElement.innerHTML = originalTitle;
-            textElement.innerHTML = originalText;
-            
-            // Restore edit button
-            editButton.innerHTML = '✏️';
-            editButton.onclick = () => enableEditMode(postId);
-            
-            // Remove cancel button
-            const cancelButton = postElement.querySelector('.cancel-edit-button');
-            if (cancelButton) {
-                cancelButton.remove();
-            }
-            
-            // Remove editing flag
-            postElement.classList.remove('editing');
         }
 
         async function submitComment(event, postId) {
@@ -3532,7 +3177,7 @@
         }
     </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="auth.js"></script>
+    <script src="auth.js"></script> 
     <script src="dropdown.js"></script> 
 </body>
 </html>
