@@ -27,9 +27,11 @@ F: Launch challenge? Broadcast messages?
 F: Profile picture app
 xF: User scores
 D: Like UI
+D: Gumshoo intro how does it work in GIF (upload post, sort by location, choose etc)
 D: Edit button design
 D: Corporate logo 
 D: Corporate page: known errors - geo location
+D: Logo in nav in centre vs. Title for mobile?
 D: Made in canada bar 
 D: Revisit messaging UI (do we need at all?) 
 D: Multiple comments 

@@ -2482,16 +2482,32 @@
             textElement.innerHTML = '';
             textElement.appendChild(textInput);
             
+            // Debug: Verify input fields are created properly
+            console.log('Input fields created:', {
+                titleInput: !!titleInput,
+                textInput: !!textInput,
+                titleInputValue: titleInput.value,
+                textInputValue: textInput.value,
+                originalTitle,
+                originalText
+            });
+            
             // Change button to save/cancel
             editButton.innerHTML = '💾 Save';
             editButton.onclick = () => {
-                console.log('Edit button clicked, input values:', {
-                    titleInputValue: titleInput.value,
-                    textInputValue: textInput.value,
+                // Capture current input values
+                const currentTitleValue = titleInput.value;
+                const currentTextValue = textInput.value;
+                
+                console.log('Save button clicked, capturing current values:', {
+                    currentTitleValue,
+                    currentTextValue,
                     originalTitle,
                     originalText
                 });
-                saveEdit(postId, titleInput.value, textInput.value, originalTitle, originalText);
+                
+                // Save the current values to database
+                saveEdit(postId, currentTitleValue, currentTextValue, originalTitle, originalText);
             };
             
             // Add cancel button
@@ -2513,16 +2529,18 @@
                     return;
                 }
 
-                // Ensure we have valid values
+                // Ensure we have valid values and capture what was actually typed
                 const titleValue = newTitle ? newTitle.trim() : '';
                 const textValue = newText ? newText.trim() : '';
                 
-                console.log('Saving edit with values:', { 
+                console.log('Saving edit with captured values:', { 
                     postId, 
                     titleValue, 
                     textValue, 
                     originalTitle, 
-                    originalText 
+                    originalText,
+                    newTitleRaw: newTitle,
+                    newTextRaw: newText
                 });
 
                 const token = await auth0Client.getTokenSilently();
