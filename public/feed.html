@@ -106,18 +106,7 @@
             font-style: italic;
         }
 
-        .end-message {
-            background: rgba(51, 136, 255, 0.1);
-            border: 2px solid #3388ff;
-            color: white;
-            font-family: 'Sixtyfour', sans-serif;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-size: 1rem;
-            line-height: 1.4;
-        }
+
         .filter-info {
             margin: 10px 0;
         }
@@ -1864,16 +1853,6 @@
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
-                    
-                    // Add end of feed message
-                    const endMessage = document.createElement('div');
-                    endMessage.id = 'end-of-feed-message';
-                    endMessage.className = 'end-message';
-                    endMessage.innerHTML = `
-                        You have reached the end of the feed for this location range. 
-                        Please expand or change your location range or come back tomorrow :)
-                    `;
-                    postsContainer.appendChild(endMessage);
                 }
 
                 const currentRadius = document.getElementById('current-radius');
