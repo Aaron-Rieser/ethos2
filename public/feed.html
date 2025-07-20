@@ -2279,7 +2279,7 @@
             postDiv.innerHTML = `
                 <div class="post-content">
                     <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
-                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${item.post}</div>` : ''}  
+                    <div class="post-text" data-editable="${canEdit}">${item.post || 'No content available'}</div>  
                     ${imageHtml}
                     <div class="post-meta">${item.username || 'Anonymous'} • ${formattedTime}</div>                                    
                     <div class="feed-footer">
@@ -2434,9 +2434,23 @@
 
         function enableEditMode(postId) {
             const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
+            if (!postElement) {
+                console.error('Post element not found for ID:', postId);
+                return;
+            }
+            
             const titleElement = postElement.querySelector('.post-title');
             const textElement = postElement.querySelector('.post-text');
             const editButton = postElement.querySelector('.edit-button');
+            
+            if (!titleElement || !textElement || !editButton) {
+                console.error('Required elements not found for editing:', {
+                    titleElement: !!titleElement,
+                    textElement: !!textElement,
+                    editButton: !!editButton
+                });
+                return;
+            }
             
             // Store original content
             const originalTitle = titleElement.textContent;
