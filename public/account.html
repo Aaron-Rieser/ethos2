@@ -50,7 +50,51 @@
             margin: 0;
             font-size: 24px;
             color: white;
+            cursor: pointer;
         }
+
+        /* Logo Dropdown Styles */
+        .logo-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-dropdown-content {
+            display: none;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+        }
+
+        .logo-dropdown-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .logo-dropdown-content a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-dropdown-content a:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .logo-dropdown-content a:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Logo dropdown behavior is now handled by JavaScript */
 
         /* Mobile header adjustments */
         @media (max-width: 768px) {
@@ -388,9 +432,14 @@
 <body>
     <header class="sticky-header">
         <div class="header-content">
-            <a href="/index.html" style="text-decoration: none; color: inherit;">
-                <h1 class="site-title">gumshoo</h1>
-            </a>
+            <div class="logo-dropdown">
+                <h1 class="site-title" id="logoDropdown">gumshoo</h1>
+                <div class="logo-dropdown-content">
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About Gumshoo</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
             <div class="auth-section">
                 <button id="login">Log In</button>
                 <div class="user-dropdown">

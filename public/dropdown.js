@@ -1,28 +1,90 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait a short moment to ensure Auth0 has initialized
-    setTimeout(() => {
-        const userInitial = document.getElementById('userInitial');
-        const dropdownContent = document.querySelector('.dropdown-content');
+// Logo Dropdown Behavior
+document.addEventListener('DOMContentLoaded', function() {
+    const logoDropdowns = document.querySelectorAll('.logo-dropdown');
+    
+    logoDropdowns.forEach(dropdown => {
+        const logo = dropdown.querySelector('.site-title');
+        const dropdownContent = dropdown.querySelector('.logo-dropdown-content');
+        let isOpen = false;
+        let isMobile = window.innerWidth <= 768;
         
-        if (userInitial && dropdownContent) {
-            // Toggle dropdown when clicking user circle
-            userInitial.addEventListener('click', (e) => {
+        // Check if mobile on resize
+        window.addEventListener('resize', () => {
+            isMobile = window.innerWidth <= 768;
+        });
+        
+        if (isMobile) {
+            // Mobile behavior: click to toggle
+            logo.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                console.log('User circle clicked');
+                isOpen = !isOpen;
+                dropdownContent.style.display = isOpen ? 'block' : 'none';
+            });
+            
+            // Close on click outside
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target)) {
+                    isOpen = false;
+                    dropdownContent.style.display = 'none';
+                }
+            });
+            
+            // Close on navigation
+            dropdownContent.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A') {
+                    isOpen = false;
+                    dropdownContent.style.display = 'none';
+                }
+            });
+        } else {
+            // Desktop behavior: hover
+            let hoverTimeout;
+            
+            dropdown.addEventListener('mouseenter', () => {
+                clearTimeout(hoverTimeout);
+                dropdownContent.style.display = 'block';
+            });
+            
+            dropdown.addEventListener('mouseleave', () => {
+                hoverTimeout = setTimeout(() => {
+                    dropdownContent.style.display = 'none';
+                }, 150); // Small delay to prevent flickering
+            });
+            
+            // Keep open when hovering over dropdown content
+            dropdownContent.addEventListener('mouseenter', () => {
+                clearTimeout(hoverTimeout);
+            });
+            
+            dropdownContent.addEventListener('mouseleave', () => {
+                hoverTimeout = setTimeout(() => {
+                    dropdownContent.style.display = 'none';
+                }, 150);
+            });
+        }
+    });
+
+    // User Dropdown Behavior
+    const userDropdowns = document.querySelectorAll('.user-dropdown');
+    
+    userDropdowns.forEach(dropdown => {
+        const userCircle = dropdown.querySelector('.user-circle');
+        const dropdownContent = dropdown.querySelector('.dropdown-content');
+        
+        if (userCircle && dropdownContent) {
+            // Toggle dropdown when clicking user circle
+            userCircle.addEventListener('click', (e) => {
+                e.stopPropagation();
                 dropdownContent.classList.toggle('show');
             });
 
             // Close dropdown when clicking anywhere else
-            window.addEventListener('click', (e) => {
-                if (!userInitial.contains(e.target) && dropdownContent.classList.contains('show')) {
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target)) {
                     dropdownContent.classList.remove('show');
                 }
             });
-        } else {
-            console.log('Dropdown elements not found:', {
-                userInitial: !!userInitial,
-                dropdownContent: !!dropdownContent
-            });
         }
-    }, 1000); // Wait 1 second for Auth0 to initialize
+    });
 });

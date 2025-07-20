@@ -23,7 +23,7 @@ F: Banned list
 F: Comment ranking logic? Likes or just plain 
 F: leaderboard sorting logic 
 F: Downvotes in the algo?
-F: 1 account = 1 like 
+F: 1 account = 1 like (remove buttons for upvote/downvote/dm for posts you made urself for clean-up)
 F: Ban list 
 F: Launch challenge? Broadcast messages?
 F: Profile picture app

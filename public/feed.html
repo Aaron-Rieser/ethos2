@@ -605,7 +605,51 @@
             margin: 0;
             font-size: 24px;
             color: white;
+            cursor: pointer;
         }
+
+        /* Logo Dropdown Styles */
+        .logo-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-dropdown-content {
+            display: none;
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+        }
+
+        .logo-dropdown-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .logo-dropdown-content a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-dropdown-content a:first-child {
+            border-radius: 8px 8px 0 0;
+        }
+
+        .logo-dropdown-content a:last-child {
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Logo dropdown behavior is now handled by JavaScript */
 
         /* Mobile header adjustments */
         @media (max-width: 768px) {
@@ -1576,9 +1620,14 @@
 <body>
     <header class="sticky-header">
         <div class="header-content">
-            <a href="/index.html" style="text-decoration: none; color: inherit;">
-                <h1 class="site-title">gumshoo</h1>
-            </a>
+            <div class="logo-dropdown">
+                <h1 class="site-title" id="logoDropdown">gumshoo</h1>
+                <div class="logo-dropdown-content">
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About Gumshoo</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
             <div class="range-display" style="margin-left: 20px; display: flex; align-items: center;">
                 <span id="header-radius" style="color: #fff; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 16px; font-weight: bold; cursor: pointer; padding: 5px 10px; border: 2px solid #fff; border-radius: 5px; background: transparent;">2km</span>
                 <div id="header-range-dropdown" style="display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); background: #000000; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); color: #fff; padding: 12px 16px; font-family: 'Courier Prime', 'Courier New', monospace; font-size: 14px; z-index: 1001; min-width: 320px;">
@@ -3431,7 +3480,7 @@
         }
     </script>
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="auth.js"></script> 
+    <script src="auth.js"></script>
     <script src="dropdown.js"></script> 
 </body>
 </html>
