@@ -1,8 +1,8 @@
 
-F: update all keys and apis with domain
 F: Delete posts 
 F: Login notes for all functions
 F: Follow 
+F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
 F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 
 F: Email or text notifications - start with SendGrid 
@@ -42,10 +42,11 @@ D: Modal slim design like on map, but validate this on mobile
 D: Modal content size 
 D: Create state - content too far 
 D: Map black bar persists 
+GTM: All user testing
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 4 of 45 (34+11 variance) 
+COUNTDOWN: 5 of 45 (34+11 variance) 
 
 FOLLOWS: APP 
 

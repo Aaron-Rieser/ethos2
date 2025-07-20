@@ -33,8 +33,10 @@ function createPostElement(item) {
     const canEdit = item.canEdit || false;
     
     let editButton = '';
+    let deleteButton = '';
     if (canEdit) {
         editButton = `<button class="edit-button" data-id="${item.id}" title="Edit">✏️</button>`;
+        deleteButton = `<button class="delete-button" data-id="${item.id}" title="Delete">🗑️</button>`;
     }
 
     postDiv.innerHTML = `
@@ -50,6 +52,7 @@ function createPostElement(item) {
                 <button class="comment-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}">💬</button>
                 <button class="message-button" data-id="${item.id}" data-type="${item.isDeal ? 'deal' : 'post'}" data-user-id="${item.user_id}">✉️</button>
                 ${editButton}
+                ${deleteButton}
                 <span class="upvote-count" data-id="${item.id}">${item.upvotes || 0} Upvotes</span>
             </div>
             <div class="comments-section">
@@ -92,13 +95,17 @@ function createPostElement(item) {
     // Add edit functionality only if user owns the post
     if (canEdit) {
         const editButton = postDiv.querySelector('.edit-button');
+        const deleteButton = postDiv.querySelector('.delete-button');
         editButton.addEventListener('click', () => enableEditMode(item.id));
+        deleteButton.addEventListener('click', () => handleDelete(item.id));
     }
 
     loadComments(item.id, item.isDeal ? 'deal' : 'post');
 
     return postDiv;
 }
+
+
 
 require('dotenv').config();
 
@@ -514,6 +521,37 @@ app.put('/api/posts/:postId', authenticateJWT, async (req, res) => {
     } catch (error) {
         console.error('Error updating post:', error);
         res.status(500).json({ error: 'Error updating post' });
+    }
+});
+
+// Delete post endpoint
+app.delete('/api/posts/:postId', authenticateJWT, async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const user_id = req.auth.payload.sub;
+        
+        console.log('Delete post request:', { postId, user_id });
+        
+        // Verify ownership
+        const ownershipCheck = await pool.query(
+            'SELECT id FROM posts WHERE id = $1 AND user_id = $2',
+            [postId, user_id]
+        );
+        
+        if (ownershipCheck.rows.length === 0) {
+            console.log('Unauthorized delete attempt:', { postId, user_id });
+            return res.status(403).json({ error: 'Not authorized to delete this post' });
+        }
+        
+        // Delete post
+        await pool.query('DELETE FROM posts WHERE id = $1', [postId]);
+        
+        console.log('Post deleted successfully:', postId);
+        clearCacheForItem(postId, false);
+        res.json({ success: true, message: 'Post deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting post:', error);
+        res.status(500).json({ error: 'Error deleting post' });
     }
 });
 
