@@ -2,6 +2,7 @@
 F: update all keys and apis with domain
 F: Edit posts 
 F: Delete posts 
+F: Login notes for all functions
 F: Follow 
 F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 

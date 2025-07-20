@@ -2279,7 +2279,7 @@
             postDiv.innerHTML = `
                 <div class="post-content">
                     <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
-                    <div class="post-text" data-editable="${canEdit}">${item.post || 'No content available'}</div>  
+                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${item.post}</div>` : ''}  
                     ${imageHtml}
                     <div class="post-meta">${item.username || 'Anonymous'} • ${formattedTime}</div>                                    
                     <div class="feed-footer">
@@ -2440,21 +2440,29 @@
             }
             
             const titleElement = postElement.querySelector('.post-title');
-            const textElement = postElement.querySelector('.post-text');
+            let textElement = postElement.querySelector('.post-text');
             const editButton = postElement.querySelector('.edit-button');
             
-            if (!titleElement || !textElement || !editButton) {
+            if (!titleElement || !editButton) {
                 console.error('Required elements not found for editing:', {
                     titleElement: !!titleElement,
-                    textElement: !!textElement,
                     editButton: !!editButton
                 });
                 return;
             }
             
+            // If textElement doesn't exist, create it
+            if (!textElement) {
+                textElement = document.createElement('div');
+                textElement.className = 'post-text';
+                textElement.setAttribute('data-editable', 'true');
+                // Insert after title element
+                titleElement.parentNode.insertBefore(textElement, titleElement.nextSibling);
+            }
+            
             // Store original content
             const originalTitle = titleElement.textContent;
-            const originalText = textElement.textContent;
+            const originalText = textElement.textContent || '';
             
             // Create input fields
             const titleInput = document.createElement('input');
@@ -2518,10 +2526,21 @@
                 // Update the display
                 const postElement = document.querySelector(`[data-id="${postId}"]`).closest('.post');
                 const titleElement = postElement.querySelector('.post-title');
-                const textElement = postElement.querySelector('.post-text');
+                let textElement = postElement.querySelector('.post-text');
                 
                 titleElement.innerHTML = newTitle.trim();
-                textElement.innerHTML = newText.trim();
+                
+                // If textElement doesn't exist and we have new text, create it
+                if (!textElement && newText.trim()) {
+                    textElement = document.createElement('div');
+                    textElement.className = 'post-text';
+                    textElement.setAttribute('data-editable', 'true');
+                    titleElement.parentNode.insertBefore(textElement, titleElement.nextSibling);
+                }
+                
+                if (textElement) {
+                    textElement.innerHTML = newText.trim();
+                }
                 
                 // Restore edit button
                 const editButton = postElement.querySelector('.edit-button');
