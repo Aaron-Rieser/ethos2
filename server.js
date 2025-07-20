@@ -34,7 +34,7 @@ function createPostElement(item) {
     
     let editButton = '';
     if (canEdit) {
-        editButton = `<button class="edit-button" data-id="${item.id}">✏️ Edit</button>`;
+        editButton = `<button class="edit-button" data-id="${item.id}" title="Edit">✏️</button>`;
     }
 
     postDiv.innerHTML = `
