@@ -1,5 +1,4 @@
 
-F: Delete posts 
 F: Login notes for all functions
 F: Follow 
 F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
@@ -8,6 +7,7 @@ F: Persistent login challenges
 F: Email or text notifications - start with SendGrid 
 F: Slim footer 
 F: Image speed 
+F: When you get to bottom of a location feed - prompt to update location
 F: Better interaction of current range and place range 
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
@@ -18,7 +18,6 @@ F: Weather and highway back?
 F: User activity tab 
 ?: no location posts, allow?
 F: Banned list 
-F: Comment ranking logic? Likes or just plain 
 F: leaderboard sorting logic 
 F: Downvotes in the algo?
 F: 1 account = 1 like (remove buttons for upvote/downvote/dm for posts you made urself for clean-up)
@@ -27,12 +26,13 @@ F: Launch challenge? Broadcast messages?
 F: Profile picture app
 xF: User scores
 D: Like UI
-D: Corporate page dropdown, consolidate all dropdown to one?
+D: Drop-down design - Corporate page dropdown, consolidate all dropdown to one?
 D: Gumshoo intro how does it work in GIF (upload post, sort by location, choose etc)
 D: Edit button design
 D: Corporate logo 
 D: Corporate page: known errors - geo location
 D: Logo in nav in centre vs. Title for mobile?
+D: Comment input design
 D: Made in canada bar 
 D: Revisit messaging UI (do we need at all?) 
 D: Multiple comments 
@@ -46,9 +46,15 @@ GTM: All user testing
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 5 of 45 (34+11 variance) 
+COUNTDOWN: 6 of 45 (34+11 variance) 
 
-FOLLOWS: APP 
+FOLLOWS: 
+
+F: APP 
+F: Comment ranking logic 
+
+
+
 
 ----- ALL ELSE ------- 
 
