@@ -1,4 +1,7 @@
 
+removed:                 padding: 20px 0; /* Remove horizontal padding */
+From .post-card in mobile styles
+
 F: Login notes for all functions
 F: Follow 
 F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
