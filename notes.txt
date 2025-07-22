@@ -1,5 +1,4 @@
 MONDAY
-F: Login notes for all functions
 F: Email or text notifications - start with SendGrid 
 F: When you get to bottom of a location feed - prompt to update location
 MAKE APP?
@@ -49,10 +48,11 @@ D: Modal content size
 D: Create state - content too far 
 D: Map black bar persists 
 GTM: All user testing
+GTM: Throttle spend on railway and other credit card services
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 6 of 45 (34+11 variance) 
+COUNTDOWN: 8 of 45 (34+11 variance) 
 
 FOLLOWS: 
 

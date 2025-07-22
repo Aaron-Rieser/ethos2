@@ -1973,6 +1973,12 @@
                         const postElement = createPostElement(item);
                         postsContainer.appendChild(postElement);
                     });
+                    
+                    // Add end-of-feed message
+                    const endMessage = document.createElement('div');
+                    endMessage.style.cssText = 'text-align: center; padding: 20px; color: var(--text-dark); font-family: "Sixtyfour", monospace; font-size: 14px;';
+                    endMessage.textContent = 'No more posts in this range. Adjust your range or location to see more posts';
+                    postsContainer.appendChild(endMessage);
                 }
 
                 const currentRadius = document.getElementById('current-radius');
