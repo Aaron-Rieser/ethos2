@@ -1,25 +1,27 @@
-
-removed:                 padding: 20px 0; /* Remove horizontal padding */
-From .post-card in mobile styles
-
+MONDAY
 F: Login notes for all functions
+F: Email or text notifications - start with SendGrid 
+F: When you get to bottom of a location feed - prompt to update location
+MAKE APP?
+
+TUESDAY
+
 F: Follow 
+F: Multer vulnerability 
 F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
 F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 
-F: Email or text notifications - start with SendGrid 
 F: Slim footer 
 F: Image speed 
-F: When you get to bottom of a location feed - prompt to update location
 F: Better interaction of current range and place range 
 F: Double check range works from feed to map and back, and index too 
 - Missing refresh token for login/logout. 
 - Hard login/logout now in but isn't there a better way to do this? We want more time
-F: Local host db
 F: preview or dev environment 
 F: Weather and highway back?
 F: User activity tab 
 ?: no location posts, allow?
+F: username change, and user image
 F: Banned list 
 F: leaderboard sorting logic 
 F: Downvotes in the algo?

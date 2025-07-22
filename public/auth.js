@@ -392,12 +392,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             createPostLink.addEventListener('click', async (e) => {
                 if (!await auth0Client.isAuthenticated()) {
                     e.preventDefault();
-                    const loginPrompt = document.getElementById('loginPrompt');
-                    if (loginPrompt) {
-                        loginPrompt.style.display = 'block';
-                        setTimeout(() => {
-                            loginPrompt.style.display = 'none';
-                        }, 3000);
+                    // Use the new popup system if available, otherwise fall back to inline
+                    if (typeof window.showLoginPopup === 'function') {
+                        window.showLoginPopup('create a post');
+                    } else {
+                        const loginPrompt = document.getElementById('loginPrompt');
+                        if (loginPrompt) {
+                            loginPrompt.style.display = 'block';
+                            setTimeout(() => {
+                                loginPrompt.style.display = 'none';
+                            }, 3000);
+                        }
                     }
                 }
             });

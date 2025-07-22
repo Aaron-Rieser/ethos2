@@ -356,26 +356,47 @@ app.post('/api/account', authenticateJWT, async (req, res) => {
 });
 
 async function ensureUserAccount(user_id, email) {
+    console.log('=== ENSURE USER ACCOUNT DEBUG ===');
+    console.log('Input parameters:', { user_id, email });
+    
     if (!email) {
+        console.error('No email found in token payload');
         throw new Error('No email found in token payload');
     }
     if (!user_id) {
+        console.error('No user_id provided');
         throw new Error('No user_id provided');
     }
 
     try {
         const username = email.split('@')[0];
-        const result = await pool.query(
-            `INSERT INTO accounts (auth0_id, email, username) 
+        console.log('Generated username:', username);
+        
+        const query = `INSERT INTO accounts (auth0_id, email, username) 
              VALUES ($1, $2, $3) 
              ON CONFLICT (auth0_id) 
              DO UPDATE SET email = $2, username = $3
-             RETURNING username`,
-            [user_id, email, username]
-        );
+             RETURNING username`;
+        
+        console.log('Executing query:', query);
+        console.log('Query parameters:', [user_id, email, username]);
+        
+        const result = await pool.query(query, [user_id, email, username]);
+        
+        console.log('Query result:', result.rows);
+        console.log('Returning username:', result.rows[0]?.username);
+        console.log('=== END ENSURE USER ACCOUNT DEBUG ===');
+        
         return result.rows[0].username;
     } catch (error) {
-        console.error('Error ensuring user account:', error);
+        console.error('=== ENSURE USER ACCOUNT ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        console.error('Error detail:', error.detail);
+        console.error('Error constraint:', error.constraint);
+        console.error('Full error object:', error);
+        console.error('=== END ENSURE USER ACCOUNT ERROR ===');
         throw new Error('Failed to create/update user account');
     }
 }

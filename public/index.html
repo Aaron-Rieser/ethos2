@@ -98,6 +98,65 @@
             border-radius: 0 0 8px 8px;
         }
 
+        /* Login Popup Styles */
+        .login-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-popup {
+            background: var(--dark-bg);
+            border: 2px solid var(--primary-blue);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 300px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-popup-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-popup-message {
+            color: var(--text-dark);
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .login-popup-close {
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .login-popup-close:hover {
+            background: rgba(51, 136, 255, 0.1);
+        }
+
         /* Logo dropdown behavior is now handled by JavaScript */
 
         /* Mobile header adjustments */
@@ -1316,7 +1375,7 @@
         async function handleModalUpvote(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to upvote');
+                    showLoginPopup('upvote');
                     return;
                 }
 
@@ -1344,7 +1403,7 @@
         async function handleModalDownvote(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to downvote');
+                    showLoginPopup('downvote');
                     return;
                 }
 
@@ -1369,7 +1428,12 @@
             }
         }
 
-        function toggleModalComment(postId) {
+        async function toggleModalComment(postId) {
+            if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                showLoginPopup('comment');
+                return;
+            }
+            
             const commentSection = document.getElementById(`modal-comment-${postId}`);
             const messageSection = document.getElementById(`modal-message-${postId}`);
             
@@ -1381,7 +1445,12 @@
             }
         }
 
-        function toggleModalMessage(postId, userId) {
+        async function toggleModalMessage(postId, userId) {
+            if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                showLoginPopup('send a message');
+                return;
+            }
+            
             const messageSection = document.getElementById(`modal-message-${postId}`);
             const commentSection = document.getElementById(`modal-comment-${postId}`);
             
@@ -1396,7 +1465,7 @@
         async function submitModalComment(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to comment');
+                    showLoginPopup('comment');
                     return;
                 }
 
@@ -1449,7 +1518,7 @@
         async function submitModalMessage(postId, userId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to send a message');
+                    showLoginPopup('send a message');
                     return;
                 }
 
@@ -1586,6 +1655,47 @@
             }
         }
 
+        // Popup system for login prompts
+        window.showLoginPopup = function(action) {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.login-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            // Create popup HTML
+            const popupHTML = `
+                <div class="login-popup-overlay">
+                    <div class="login-popup">
+                        <div class="login-popup-content">
+                            <div class="login-popup-message">Please login to ${action}</div>
+                            <button class="login-popup-close" onclick="closeLoginPopup()">×</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add popup to page
+            document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+            // Add click-away functionality
+            const overlay = document.querySelector('.login-popup-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        closeLoginPopup();
+                    }
+                });
+            }
+        }
+
+        window.closeLoginPopup = function() {
+            const popup = document.querySelector('.login-popup-overlay');
+            if (popup) {
+                popup.remove();
+            }
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', async function() {
             if (typeof initializeAuth0 === 'function') {
@@ -1599,14 +1709,14 @@
                     try {
                         if (!auth0Client) {
                             e.preventDefault();
-                            alert('Authentication service not available');
+                            showLoginPopup('create a post');
                             return;
                         }
 
                         const isAuthenticated = await auth0Client.isAuthenticated();
                         if (!isAuthenticated) {
                             e.preventDefault();
-                            alert('Please log in to create a post');
+                            showLoginPopup('create a post');
                             return;
                         }
 
@@ -1620,7 +1730,7 @@
                         } catch (tokenError) {
                             console.error('Token validation failed for create post link:', tokenError);
                             e.preventDefault();
-                            alert('Your session has expired. Please log in again to create a post.');
+                            showLoginPopup('create a post');
                             
                             // Update UI to show logged out state
                             const userCircle = document.getElementById('userInitial');
@@ -1635,7 +1745,7 @@
                     } catch (error) {
                         console.error('Error during create post validation:', error);
                         e.preventDefault();
-                        alert('Authentication error. Please try logging in again.');
+                        showLoginPopup('create a post');
                     }
                 });
             }

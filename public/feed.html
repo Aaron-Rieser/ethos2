@@ -99,6 +99,65 @@
             cursor: pointer;
             text-decoration: underline;
         }
+
+        /* Login Popup Styles */
+        .login-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-popup {
+            background: var(--dark-bg);
+            border: 2px solid var(--primary-blue);
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 300px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-popup-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-popup-message {
+            color: var(--text-dark);
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .login-popup-close {
+            background: none;
+            border: none;
+            color: var(--primary-blue);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .login-popup-close:hover {
+            background: rgba(51, 136, 255, 0.1);
+        }
         .no-posts-message {
             text-align: center;
             padding: 20px;
@@ -1697,6 +1756,47 @@
 
     <script>
 
+        // Global popup system for login prompts (available immediately)
+        window.showLoginPopup = function(action) {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.login-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+
+            // Create popup HTML
+            const popupHTML = `
+                <div class="login-popup-overlay">
+                    <div class="login-popup">
+                        <div class="login-popup-content">
+                            <div class="login-popup-message">Please login to ${action}</div>
+                            <button class="login-popup-close" onclick="closeLoginPopup()">×</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add popup to page
+            document.body.insertAdjacentHTML('beforeend', popupHTML);
+
+            // Add click-away functionality
+            const overlay = document.querySelector('.login-popup-overlay');
+            if (overlay) {
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) {
+                        closeLoginPopup();
+                    }
+                });
+            }
+        }
+
+        window.closeLoginPopup = function() {
+            const popup = document.querySelector('.login-popup-overlay');
+            if (popup) {
+                popup.remove();
+            }
+        }
+
         // Update the filter info display
         function updateFilterDisplay() {
             // First check URL parameters
@@ -2225,6 +2325,8 @@
                     }
                 }
 
+
+
                 // 4. Set up search toggle
                 const searchToggle = document.getElementById('searchToggle');
                 const searchBox = document.getElementById('searchBox');
@@ -2384,7 +2486,11 @@
 
             const commentButton = postDiv.querySelector('.comment-button');
             const commentForm = postDiv.querySelector('.comment-form');
-            commentButton.addEventListener('click', () => {
+            commentButton.addEventListener('click', async () => {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    showLoginPopup('comment');
+                    return;
+                }
                 commentForm.style.display = commentForm.style.display === 'none' || commentForm.style.display === '' 
                     ? 'flex' 
                     : 'none';
@@ -2447,6 +2553,11 @@
 
         async function handleUpvote(itemId) {
             try {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    showLoginPopup('upvote');
+                    return;
+                }
+
                 const token = await auth0Client.getTokenSilently();
                 const endpoint = `/api/posts/${itemId}/upvote`;
                 
@@ -2476,6 +2587,11 @@
 
         async function handleDownvote(itemId) {
             try {
+                if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                    showLoginPopup('downvote');
+                    return;
+                }
+
                 const token = await auth0Client.getTokenSilently();
                 const endpoint = `/api/posts/${itemId}/downvote`;
                 
@@ -2500,6 +2616,7 @@
                 
             } catch (error) {
                 console.error('Error handling downvote:', error);
+                showLoginPopup('downvote');
             }
         }
 
@@ -2747,6 +2864,12 @@
         async function submitComment(event, postId) {
             event.preventDefault();
 
+            // Check authentication first
+            if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                showLoginPopup('comment');
+                return;
+            }
+
             const commentInput = document.querySelector(`#comment-input-${postId}`);
             if (!commentInput) {
                 console.error(`Comment input not found for post ${postId}`);
@@ -2815,7 +2938,7 @@
         async function handleMessage(itemId, recipientId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to send messages');
+                    showLoginPopup('send a message');
                     return;
                 }
 
@@ -3221,7 +3344,7 @@
         async function handleModalUpvote(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to upvote');
+                    showLoginPopup('upvote');
                     return;
                 }
 
@@ -3249,7 +3372,7 @@
         async function handleModalDownvote(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to downvote');
+                    showLoginPopup('downvote');
                     return;
                 }
 
@@ -3274,7 +3397,12 @@
             }
         }
 
-        function toggleModalComment(postId) {
+        async function toggleModalComment(postId) {
+            if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                showLoginPopup('comment');
+                return;
+            }
+            
             const commentSection = document.getElementById(`modal-comment-${postId}`);
             const messageSection = document.getElementById(`modal-message-${postId}`);
             
@@ -3286,7 +3414,12 @@
             }
         }
 
-        function toggleModalMessage(postId, userId) {
+        async function toggleModalMessage(postId, userId) {
+            if (!auth0Client || !await auth0Client.isAuthenticated()) {
+                showLoginPopup('send a message');
+                return;
+            }
+            
             const messageSection = document.getElementById(`modal-message-${postId}`);
             const commentSection = document.getElementById(`modal-comment-${postId}`);
             
@@ -3301,7 +3434,7 @@
         async function submitModalComment(postId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to comment');
+                    showLoginPopup('comment');
                     return;
                 }
 
@@ -3354,7 +3487,7 @@
         async function submitModalMessage(postId, userId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
-                    alert('Please log in to send a message');
+                    showLoginPopup('send a message');
                     return;
                 }
 
