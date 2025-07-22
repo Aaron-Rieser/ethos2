@@ -1758,11 +1758,9 @@
 
         // Global popup system for login prompts (available immediately)
         window.showLoginPopup = function(action) {
-            // Remove any existing popup
-            const existingPopup = document.querySelector('.login-popup');
-            if (existingPopup) {
-                existingPopup.remove();
-            }
+            // Remove any existing popups first
+            const existingPopups = document.querySelectorAll('.login-popup-overlay');
+            existingPopups.forEach(popup => popup.remove());
 
             // Create popup HTML
             const popupHTML = `
@@ -1779,22 +1777,35 @@
             // Add popup to page
             document.body.insertAdjacentHTML('beforeend', popupHTML);
 
-            // Add click-away functionality
+            // Add click-away functionality with proper event handling
             const overlay = document.querySelector('.login-popup-overlay');
             if (overlay) {
-                overlay.addEventListener('click', (e) => {
-                    if (e.target === overlay) {
+                // Remove any existing event listeners to prevent duplicates
+                const newOverlay = overlay.cloneNode(true);
+                overlay.parentNode.replaceChild(newOverlay, overlay);
+                
+                // Add fresh event listener
+                newOverlay.addEventListener('click', (e) => {
+                    if (e.target === newOverlay) {
                         closeLoginPopup();
                     }
                 });
+
+                // Also add event listener to the close button
+                const closeButton = newOverlay.querySelector('.login-popup-close');
+                if (closeButton) {
+                    closeButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeLoginPopup();
+                    });
+                }
             }
         }
 
         window.closeLoginPopup = function() {
-            const popup = document.querySelector('.login-popup-overlay');
-            if (popup) {
-                popup.remove();
-            }
+            const popups = document.querySelectorAll('.login-popup-overlay');
+            popups.forEach(popup => popup.remove());
         }
 
         // Update the filter info display

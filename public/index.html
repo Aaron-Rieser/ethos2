@@ -1657,11 +1657,9 @@
 
         // Popup system for login prompts
         window.showLoginPopup = function(action) {
-            // Remove any existing popup
-            const existingPopup = document.querySelector('.login-popup');
-            if (existingPopup) {
-                existingPopup.remove();
-            }
+            // Remove any existing popups first
+            const existingPopups = document.querySelectorAll('.login-popup-overlay');
+            existingPopups.forEach(popup => popup.remove());
 
             // Create popup HTML
             const popupHTML = `
@@ -1678,22 +1676,35 @@
             // Add popup to page
             document.body.insertAdjacentHTML('beforeend', popupHTML);
 
-            // Add click-away functionality
+            // Add click-away functionality with proper event handling
             const overlay = document.querySelector('.login-popup-overlay');
             if (overlay) {
-                overlay.addEventListener('click', (e) => {
-                    if (e.target === overlay) {
+                // Remove any existing event listeners to prevent duplicates
+                const newOverlay = overlay.cloneNode(true);
+                overlay.parentNode.replaceChild(newOverlay, overlay);
+                
+                // Add fresh event listener
+                newOverlay.addEventListener('click', (e) => {
+                    if (e.target === newOverlay) {
                         closeLoginPopup();
                     }
                 });
+
+                // Also add event listener to the close button
+                const closeButton = newOverlay.querySelector('.login-popup-close');
+                if (closeButton) {
+                    closeButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        closeLoginPopup();
+                    });
+                }
             }
         }
 
         window.closeLoginPopup = function() {
-            const popup = document.querySelector('.login-popup-overlay');
-            if (popup) {
-                popup.remove();
-            }
+            const popups = document.querySelectorAll('.login-popup-overlay');
+            popups.forEach(popup => popup.remove());
         }
 
         // Initialize page
@@ -1702,53 +1713,7 @@
                 await initializeAuth0();
             }
             
-            // Add proactive token validation for create post link
-            const createPostLink = document.getElementById('createPostLink');
-            if (createPostLink) {
-                createPostLink.addEventListener('click', async (e) => {
-                    try {
-                        if (!auth0Client) {
-                            e.preventDefault();
-                            showLoginPopup('create a post');
-                            return;
-                        }
-
-                        const isAuthenticated = await auth0Client.isAuthenticated();
-                        if (!isAuthenticated) {
-                            e.preventDefault();
-                            showLoginPopup('create a post');
-                            return;
-                        }
-
-                        // Proactive token validation with maximum longevity
-                        try {
-                            await auth0Client.getTokenSilently({
-                                timeoutInSeconds: 86400, // 24 hours for maximum longevity
-                                cacheMode: 'on' // Use cache for better performance
-                            });
-                            console.log('Token validation successful for create post link');
-                        } catch (tokenError) {
-                            console.error('Token validation failed for create post link:', tokenError);
-                            e.preventDefault();
-                            showLoginPopup('create a post');
-                            
-                            // Update UI to show logged out state
-                            const userCircle = document.getElementById('userInitial');
-                            const loginButton = document.getElementById('login');
-                            const logoutButton = document.getElementById('logout');
-                            
-                            if (userCircle) userCircle.style.display = 'none';
-                            if (loginButton) loginButton.style.display = 'block';
-                            if (logoutButton) logoutButton.style.display = 'none';
-                            return;
-                        }
-                    } catch (error) {
-                        console.error('Error during create post validation:', error);
-                        e.preventDefault();
-                        showLoginPopup('create a post');
-                    }
-                });
-            }
+            // Note: createPostLink is handled by auth.js to avoid duplicate event listeners
             
             loadLeaderboard();
         });
