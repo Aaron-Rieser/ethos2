@@ -1391,36 +1391,66 @@ app.get('/api/combined-feed', async (req, res) => {
         // Fetch posts with error handling
         let formattedPosts = [];
         try {
+            // Get current user ID for following check
+            let currentUserId = null;
+            if (req.auth && req.auth.payload) {
+                console.log('Checking user for follows:', req.auth.payload.sub);
+                // Check if user exists in accounts table before using for follows
+                const userCheck = await pool.query(
+                    'SELECT auth0_id FROM accounts WHERE auth0_id = $1',
+                    [req.auth.payload.sub]
+                );
+                if (userCheck.rows.length > 0) {
+                    currentUserId = req.auth.payload.sub;
+                    console.log('User found in accounts table, will check follows');
+                } else {
+                    console.log('User not found in accounts table, skipping follows check');
+                }
+            }
+
             const postsQuery = radiusInKm === 'all' ? `
                 SELECT 
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type"
+                    'post' as "type",
+                    CASE WHEN f.following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = p.user_id
             ` : `
                 SELECT 
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type"
+                    'post' as "type",
+                    CASE WHEN f.following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = p.user_id
                 WHERE (
                     6371 * acos(
-                        cos(radians($1)) * 
+                        cos(radians($2)) * 
                         cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
-                        sin(radians($1)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * 
                         sin(radians(latitude))
                     )
-                ) <= $3
+                ) <= $4
             `;
+            
             const postsResult = radiusInKm === 'all' ? 
-                await pool.query(postsQuery) : 
-                await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
-            formattedPosts = postsResult.rows.map(post => ({
+                await pool.query(postsQuery, [currentUserId || null]) : 
+                await pool.query(postsQuery, [currentUserId || null, latitude, longitude, radiusInKm]);
+            
+            // Sort by engagement score with follow multiplier
+            const sortedPosts = postsResult.rows.sort((a, b) => {
+                const scoreA = (a.upvotes || 0) * a.follow_multiplier;
+                const scoreB = (b.upvotes || 0) * b.follow_multiplier;
+                return scoreB - scoreA;
+            });
+            
+            formattedPosts = sortedPosts.map(post => ({
                 ...post,
                 isDeal: false,
                 created_at: new Date(post.created_at).toISOString()
@@ -1431,10 +1461,8 @@ app.get('/api/combined-feed', async (req, res) => {
             // Continue with other content types even if posts fail
         }
 
-        // Combine and sort by recency (only posts since deals and missed_connections tables don't exist)
-        const allContent = [...formattedPosts].sort((a, b) => 
-            new Date(b.created_at) - new Date(a.created_at)
-        );
+        // Use formatted posts directly (already sorted)
+        const allContent = [...formattedPosts];
 
         console.log(`Returning ${allContent.length} total items`);
         res.json(allContent);
@@ -1587,6 +1615,78 @@ app.get('/api/leaderboard', async (req, res) => {
             error: 'Error fetching leaderboard',
             details: error.message 
         });
+    }
+});
+
+// Follow/Unfollow user
+app.post('/api/follow/:userId', authenticateJWT, async (req, res) => {
+    try {
+        const followerId = req.auth.payload.sub;
+        const followingId = req.params.userId;
+        
+        if (followerId === followingId) {
+            return res.status(400).json({ error: 'Cannot follow yourself' });
+        }
+        
+        // Check if both users exist in accounts table
+        const userCheck = await pool.query(
+            'SELECT auth0_id FROM accounts WHERE auth0_id IN ($1, $2)',
+            [followerId, followingId]
+        );
+        
+        if (userCheck.rows.length < 2) {
+            return res.status(400).json({ error: 'One or both users not found' });
+        }
+        
+        // Check if already following
+        const existingFollow = await pool.query(
+            'SELECT * FROM follows WHERE follower_id = $1 AND following_id = $2',
+            [followerId, followingId]
+        );
+        
+        if (existingFollow.rows.length > 0) {
+            // Unfollow
+            await pool.query(
+                'DELETE FROM follows WHERE follower_id = $1 AND following_id = $2',
+                [followerId, followingId]
+            );
+            res.json({ following: false });
+        } else {
+            // Follow
+            await pool.query(
+                'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2)',
+                [followerId, followingId]
+            );
+            res.json({ following: true });
+        }
+    } catch (error) {
+        console.error('Error following/unfollowing:', error);
+        res.status(500).json({ error: 'Error following/unfollowing user' });
+    }
+});
+
+// Get user's following list
+app.get('/api/following', authenticateJWT, async (req, res) => {
+    try {
+        const userId = req.auth.payload.sub;
+        // Check if user exists in accounts table
+        const userCheck = await pool.query(
+            'SELECT auth0_id FROM accounts WHERE auth0_id = $1',
+            [userId]
+        );
+        
+        if (userCheck.rows.length === 0) {
+            return res.json([]); // Return empty array if user doesn't exist
+        }
+        
+        const result = await pool.query(
+            'SELECT following_id FROM follows WHERE follower_id = $1',
+            [userId]
+        );
+        res.json(result.rows.map(row => row.following_id));
+    } catch (error) {
+        console.error('Error getting following list:', error);
+        res.status(500).json({ error: 'Error getting following list' });
     }
 });
 
