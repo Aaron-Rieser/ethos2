@@ -10,6 +10,7 @@ MAKE APP?
 WEDNESDAY
 
 F: Follow 
+F: footer on DM page
 F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
 F: write rules on corporate page (no password, testing phase)
 F: Persistent login challenges 

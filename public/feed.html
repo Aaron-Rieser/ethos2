@@ -1929,7 +1929,7 @@
                 
                 if (response.ok) {
                     const result = await response.json();
-                    const button = event.target;
+                    const button = document.querySelector(`[data-user-id="${userId}"]`);
                     
                     if (result.following) {
                         button.textContent = 'Unfollow';

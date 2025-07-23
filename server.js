@@ -1413,34 +1413,72 @@ app.get('/api/combined-feed', async (req, res) => {
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type"
+                    'post' as "type",
+                    CASE WHEN f.auth0_following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier,
+                    (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND post_type = 'post') as comment_count
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                LEFT JOIN follows f ON f.auth0_id = $1 AND f.auth0_following_id = p.user_id
             ` : `
                 SELECT 
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type"
+                    'post' as "type",
+                    CASE WHEN f.auth0_following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier,
+                    (SELECT COUNT(*) FROM comments WHERE post_id = p.id AND post_type = 'post') as comment_count
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
+                LEFT JOIN follows f ON f.auth0_id = $1 AND f.auth0_following_id = p.user_id
                 WHERE (
                     6371 * acos(
-                        cos(radians($1)) * 
+                        cos(radians($2)) * 
                         cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($2)) + 
-                        sin(radians($1)) * 
+                        cos(radians(longitude) - radians($3)) + 
+                        sin(radians($2)) * 
                         sin(radians(latitude))
                     )
-                ) <= $3
+                ) <= $4
             `;
             
             const postsResult = radiusInKm === 'all' ? 
-                await pool.query(postsQuery) : 
-                await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
+                await pool.query(postsQuery, [currentUserId || null]) : 
+                await pool.query(postsQuery, [currentUserId || null, latitude, longitude, radiusInKm]);
             
-            // Sort by upvotes (original behavior)
-            const sortedPosts = postsResult.rows.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+            // Hybrid recency + engagement sorting
+            const sortedPosts = postsResult.rows.sort((a, b) => {
+                const now = new Date();
+                const aAge = (now - new Date(a.created_at)) / (1000 * 60 * 60); // hours
+                const bAge = (now - new Date(b.created_at)) / (1000 * 60 * 60); // hours
+                
+                // Recency boost calculation
+                const getRecencyBoost = (age, isOwnPost) => {
+                    if (isOwnPost && age <= 2) return 10; // Own posts get 10x boost for first 2 hours
+                    if (age <= 2) return 5; // Recent posts get 5x boost
+                    if (age <= 24) return 2; // Day-old posts get 2x boost
+                    return 1; // Older posts get normal boost
+                };
+                
+                const aIsOwnPost = a.user_id === currentUserId;
+                const bIsOwnPost = b.user_id === currentUserId;
+                
+                const aRecencyBoost = getRecencyBoost(aAge, aIsOwnPost);
+                const bRecencyBoost = getRecencyBoost(bAge, bIsOwnPost);
+                
+                // Engagement score calculation
+                const aEngagement = (a.upvotes || 0) + (a.comment_count || 0) * 2; // Comments worth 2x upvotes
+                const bEngagement = (b.upvotes || 0) + (b.comment_count || 0) * 2;
+                
+                // Apply follow multiplier
+                const aFinalEngagement = aEngagement * (a.follow_multiplier || 1);
+                const bFinalEngagement = bEngagement * (b.follow_multiplier || 1);
+                
+                // Final score: recency boost + engagement
+                const aScore = aRecencyBoost + aFinalEngagement;
+                const bScore = bRecencyBoost + bFinalEngagement;
+                
+                return bScore - aScore; // Higher scores first
+            });
             
             formattedPosts = sortedPosts.map(post => ({
                 ...post,
