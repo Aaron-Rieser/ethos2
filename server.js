@@ -118,6 +118,7 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
+const sgMail = require('@sendgrid/mail');
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -169,6 +170,14 @@ try {
     process.exit(1);
 }
 
+// SendGrid configuration
+if (process.env.SENDGRID_API_KEY) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    console.log('SendGrid configured');
+} else {
+    console.log('SendGrid API key not found - email notifications disabled');
+}
+
 // 4. Then storage configuration (AFTER the try-catch block)
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -188,6 +197,73 @@ const upload = multer({
 
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
+
+// Email notification functions
+async function sendFollowerEmail(recipientEmail, recipientUsername, followerUsername) {
+    if (!process.env.SENDGRID_API_KEY) {
+        console.log('SendGrid not configured, skipping email');
+        return;
+    }
+
+    try {
+        const msg = {
+            to: recipientEmail,
+            from: process.env.SENDGRID_FROM_EMAIL || 'noreply@gumshoo.ca',
+            subject: `${recipientUsername} - you have a new follower on Gumshoo!`,
+            text: `${followerUsername} has followed you\n\nClick for more local content: ${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>${followerUsername} has followed you</h2>
+                    <p>You have a new follower on Gumshoo!</p>
+                    <a href="${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}" 
+                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Click for more local content
+                    </a>
+                </div>
+            `
+        };
+
+        await sgMail.send(msg);
+        console.log(`Follower email sent to ${recipientEmail}`);
+    } catch (error) {
+        console.error('Error sending follower email:', error);
+    }
+}
+
+async function sendCommentEmail(recipientEmail, recipientUsername, commenterUsername, commentPreview, postTitle) {
+    if (!process.env.SENDGRID_API_KEY) {
+        console.log('SendGrid not configured, skipping email');
+        return;
+    }
+
+    try {
+        const msg = {
+            to: recipientEmail,
+            from: process.env.SENDGRID_FROM_EMAIL || 'noreply@gumshoo.ca',
+            subject: `${recipientUsername} - you have a new comment on your post`,
+            text: `${commenterUsername} commented: "${commentPreview}"\n\nWant to respond?\nClick for more local conversation on Gumshoo.ca: ${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>New comment on your post</h2>
+                    <p><strong>${commenterUsername}</strong> commented:</p>
+                    <blockquote style="border-left: 4px solid #007bff; padding-left: 15px; margin: 20px 0;">
+                        "${commentPreview}"
+                    </blockquote>
+                    <p>Want to respond?</p>
+                    <a href="${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}" 
+                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Click for more local conversation on Gumshoo.ca
+                    </a>
+                </div>
+            `
+        };
+
+        await sgMail.send(msg);
+        console.log(`Comment email sent to ${recipientEmail}`);
+    } catch (error) {
+        console.error('Error sending comment email:', error);
+    }
+}
 
 function clearCacheForItem(id, isDeal) {
     const itemType = isDeal ? 'deals' : 'posts';
@@ -298,6 +374,38 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
 
             await pool.query('COMMIT');
             console.log('Comment inserted successfully:', result.rows[0]);
+            
+            // Send email notification to post owner
+            try {
+                // Get post owner's email
+                const postOwnerResult = await pool.query(
+                    'SELECT user_id, title FROM posts WHERE id = $1',
+                    [post_id]
+                );
+                
+                if (postOwnerResult.rows.length > 0) {
+                    const postOwnerId = postOwnerResult.rows[0].user_id;
+                    const postTitle = postOwnerResult.rows[0].title;
+                    
+                    // Get post owner's email and username
+                    const ownerResult = await pool.query(
+                        'SELECT email, username FROM accounts WHERE auth0_id = $1',
+                        [postOwnerId]
+                    );
+                    
+                    if (ownerResult.rows.length > 0 && postOwnerId !== user_id) {
+                        const ownerEmail = ownerResult.rows[0].email;
+                        const ownerUsername = ownerResult.rows[0].username;
+                        const commentPreview = comment.length > 100 ? comment.substring(0, 100) + '...' : comment;
+                        
+                        // Send email notification
+                        await sendCommentEmail(ownerEmail, ownerUsername, username, commentPreview, postTitle);
+                    }
+                }
+            } catch (emailError) {
+                console.error('Error sending comment notification email:', emailError);
+                // Don't fail the comment if email fails
+            }
             
             res.json(result.rows[0]);
         } catch (insertError) {
@@ -1692,6 +1800,34 @@ app.post('/api/follow/:userId', authenticateJWT, async (req, res) => {
                 'INSERT INTO follows (auth0_id, auth0_following_id) VALUES ($1, $2)',
                 [followerId, followingId]
             );
+            
+            // Send email notification to followed user
+            try {
+                // Get follower's username
+                const followerResult = await pool.query(
+                    'SELECT username FROM accounts WHERE auth0_id = $1',
+                    [followerId]
+                );
+                
+                // Get followed user's email and username
+                const followedResult = await pool.query(
+                    'SELECT email, username FROM accounts WHERE auth0_id = $1',
+                    [followingId]
+                );
+                
+                if (followerResult.rows.length > 0 && followedResult.rows.length > 0) {
+                    const followerUsername = followerResult.rows[0].username;
+                    const followedEmail = followedResult.rows[0].email;
+                    const followedUsername = followedResult.rows[0].username;
+                    
+                    // Send email notification
+                    await sendFollowerEmail(followedEmail, followedUsername, followerUsername);
+                }
+            } catch (emailError) {
+                console.error('Error sending follower notification email:', emailError);
+                // Don't fail the follow if email fails
+            }
+            
             res.json({ following: true });
         }
             } catch (error) {

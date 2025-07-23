@@ -9,7 +9,6 @@ MAKE APP?
 
 WEDNESDAY
 
-F: Follow 
 F: footer on DM page
 F: AI exposed vulnerabilities: auth0 configuration, config file instead, console logs? More?
 F: write rules on corporate page (no password, testing phase)
@@ -56,7 +55,7 @@ GTM: Throttle spend on railway and other credit card services
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 9 of 45 (34+11 variance) 
+COUNTDOWN: 10 of 45 (34+11 variance) 
 
 FOLLOWS: 
 
