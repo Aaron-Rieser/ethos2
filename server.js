@@ -1630,7 +1630,7 @@ app.post('/api/follow/:userId', authenticateJWT, async (req, res) => {
         
         // Check if both users exist in accounts table
         const userCheck = await pool.query(
-            'SELECT auth0_id FROM accounts WHERE auth0_id IN ($1, $2)',
+            'SELECT auth0_id FROM accounts WHERE auth0_id = $1 OR auth0_id = $2',
             [followerId, followingId]
         );
         
@@ -1659,10 +1659,17 @@ app.post('/api/follow/:userId', authenticateJWT, async (req, res) => {
             );
             res.json({ following: true });
         }
-    } catch (error) {
-        console.error('Error following/unfollowing:', error);
-        res.status(500).json({ error: 'Error following/unfollowing user' });
-    }
+            } catch (error) {
+            console.error('Error following/unfollowing:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                detail: error.detail,
+                followerId,
+                followingId
+            });
+            res.status(500).json({ error: 'Error following/unfollowing user' });
+        }
 });
 
 // Get user's following list
@@ -1686,6 +1693,12 @@ app.get('/api/following', authenticateJWT, async (req, res) => {
         res.json(result.rows.map(row => row.following_id));
     } catch (error) {
         console.error('Error getting following list:', error);
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            detail: error.detail,
+            userId
+        });
         res.status(500).json({ error: 'Error getting following list' });
     }
 });
