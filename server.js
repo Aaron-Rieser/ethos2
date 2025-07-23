@@ -1413,42 +1413,34 @@ app.get('/api/combined-feed', async (req, res) => {
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type",
-                    CASE WHEN f.following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier
+                    'post' as "type"
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
-                LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = p.user_id
             ` : `
                 SELECT 
                     p.*, 
                     a.username,
                     false as "isDeal",
-                    'post' as "type",
-                    CASE WHEN f.following_id IS NOT NULL THEN 3 ELSE 1 END as follow_multiplier
+                    'post' as "type"
                 FROM posts p
                 LEFT JOIN accounts a ON p.user_id = a.auth0_id
-                LEFT JOIN follows f ON f.follower_id = $1 AND f.following_id = p.user_id
                 WHERE (
                     6371 * acos(
-                        cos(radians($2)) * 
+                        cos(radians($1)) * 
                         cos(radians(latitude)) * 
-                        cos(radians(longitude) - radians($3)) + 
-                        sin(radians($2)) * 
+                        cos(radians(longitude) - radians($2)) + 
+                        sin(radians($1)) * 
                         sin(radians(latitude))
                     )
-                ) <= $4
+                ) <= $3
             `;
             
             const postsResult = radiusInKm === 'all' ? 
-                await pool.query(postsQuery, [currentUserId || null]) : 
-                await pool.query(postsQuery, [currentUserId || null, latitude, longitude, radiusInKm]);
+                await pool.query(postsQuery) : 
+                await pool.query(postsQuery, [latitude, longitude, radiusInKm]);
             
-            // Sort by engagement score with follow multiplier
-            const sortedPosts = postsResult.rows.sort((a, b) => {
-                const scoreA = (a.upvotes || 0) * a.follow_multiplier;
-                const scoreB = (b.upvotes || 0) * b.follow_multiplier;
-                return scoreB - scoreA;
-            });
+            // Sort by upvotes (original behavior)
+            const sortedPosts = postsResult.rows.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
             
             formattedPosts = sortedPosts.map(post => ({
                 ...post,
@@ -1629,32 +1621,37 @@ app.post('/api/follow/:userId', authenticateJWT, async (req, res) => {
         }
         
         // Check if both users exist in accounts table
+        console.log('Checking users for follow:', { followerId, followingId });
         const userCheck = await pool.query(
             'SELECT auth0_id FROM accounts WHERE auth0_id = $1 OR auth0_id = $2',
             [followerId, followingId]
         );
         
+        console.log('User check result:', userCheck.rows);
+        console.log('User check count:', userCheck.rows.length);
+        
         if (userCheck.rows.length < 2) {
+            console.log('Not enough users found in accounts table');
             return res.status(400).json({ error: 'One or both users not found' });
         }
         
         // Check if already following
         const existingFollow = await pool.query(
-            'SELECT * FROM follows WHERE follower_id = $1 AND following_id = $2',
+            'SELECT * FROM follows WHERE auth0_id = $1 AND auth0_following_id = $2',
             [followerId, followingId]
         );
         
         if (existingFollow.rows.length > 0) {
             // Unfollow
             await pool.query(
-                'DELETE FROM follows WHERE follower_id = $1 AND following_id = $2',
+                'DELETE FROM follows WHERE auth0_id = $1 AND auth0_following_id = $2',
                 [followerId, followingId]
             );
             res.json({ following: false });
         } else {
             // Follow
             await pool.query(
-                'INSERT INTO follows (follower_id, following_id) VALUES ($1, $2)',
+                'INSERT INTO follows (auth0_id, auth0_following_id) VALUES ($1, $2)',
                 [followerId, followingId]
             );
             res.json({ following: true });
@@ -1687,10 +1684,10 @@ app.get('/api/following', authenticateJWT, async (req, res) => {
         }
         
         const result = await pool.query(
-            'SELECT following_id FROM follows WHERE follower_id = $1',
+            'SELECT auth0_following_id FROM follows WHERE auth0_id = $1',
             [userId]
         );
-        res.json(result.rows.map(row => row.following_id));
+        res.json(result.rows.map(row => row.auth0_following_id));
     } catch (error) {
         console.error('Error getting following list:', error);
         console.error('Error details:', {
