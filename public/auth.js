@@ -410,6 +410,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const userInitial = document.getElementById('userInitial');
         if (userInitial) {
+            // Mark that auth.js has handled this element
+            userInitial._authHandlerAttached = true;
+            
             userInitial.addEventListener('click', (e) => {
                 console.log('userInitial clicked');
                 e.stopPropagation();

@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // User Dropdown Behavior
+    // User Dropdown Behavior - Only add if not already handled by auth.js
     const userDropdowns = document.querySelectorAll('.user-dropdown');
     
     userDropdowns.forEach(dropdown => {
@@ -73,18 +73,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const dropdownContent = dropdown.querySelector('.dropdown-content');
         
         if (userCircle && dropdownContent) {
-            // Toggle dropdown when clicking user circle
-            userCircle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdownContent.classList.toggle('show');
-            });
+            // Check if auth.js has already set up the event listener
+            const hasAuthHandler = userCircle.onclick !== null || 
+                                 userCircle._authHandlerAttached === true;
+            
+            if (!hasAuthHandler) {
+                // Toggle dropdown when clicking user circle
+                userCircle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdownContent.classList.toggle('show');
+                });
 
-            // Close dropdown when clicking anywhere else
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target)) {
-                    dropdownContent.classList.remove('show');
-                }
-            });
+                // Close dropdown when clicking anywhere else
+                document.addEventListener('click', (e) => {
+                    if (!dropdown.contains(e.target)) {
+                        dropdownContent.classList.remove('show');
+                    }
+                });
+            }
         }
     });
 });

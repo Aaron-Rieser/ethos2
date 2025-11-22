@@ -1553,39 +1553,9 @@ app.get('/api/combined-feed', async (req, res) => {
                 await pool.query(postsQuery, [currentUserId || null]) : 
                 await pool.query(postsQuery, [currentUserId || null, latitude, longitude, radiusInKm]);
             
-            // Hybrid recency + engagement sorting
+            // Pure recency sorting - newest first
             const sortedPosts = postsResult.rows.sort((a, b) => {
-                const now = new Date();
-                const aAge = (now - new Date(a.created_at)) / (1000 * 60 * 60); // hours
-                const bAge = (now - new Date(b.created_at)) / (1000 * 60 * 60); // hours
-                
-                // Recency boost calculation
-                const getRecencyBoost = (age, isOwnPost) => {
-                    if (isOwnPost && age <= 2) return 10; // Own posts get 10x boost for first 2 hours
-                    if (age <= 2) return 5; // Recent posts get 5x boost
-                    if (age <= 24) return 2; // Day-old posts get 2x boost
-                    return 1; // Older posts get normal boost
-                };
-                
-                const aIsOwnPost = a.user_id === currentUserId;
-                const bIsOwnPost = b.user_id === currentUserId;
-                
-                const aRecencyBoost = getRecencyBoost(aAge, aIsOwnPost);
-                const bRecencyBoost = getRecencyBoost(bAge, bIsOwnPost);
-                
-                // Engagement score calculation
-                const aEngagement = (a.upvotes || 0) + (a.comment_count || 0) * 2; // Comments worth 2x upvotes
-                const bEngagement = (b.upvotes || 0) + (b.comment_count || 0) * 2;
-                
-                // Apply follow multiplier
-                const aFinalEngagement = aEngagement * (a.follow_multiplier || 1);
-                const bFinalEngagement = bEngagement * (b.follow_multiplier || 1);
-                
-                // Final score: recency boost + engagement
-                const aScore = aRecencyBoost + aFinalEngagement;
-                const bScore = bRecencyBoost + bFinalEngagement;
-                
-                return bScore - aScore; // Higher scores first
+                return new Date(b.created_at) - new Date(a.created_at);
             });
             
             formattedPosts = sortedPosts.map(post => ({

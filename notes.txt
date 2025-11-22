@@ -1,8 +1,6 @@
 TUESDAY
 F: Place location for chrome, chrome location permission, place for feed use overall w/o lctn on
-F: End of feed - confirm works on mobile 
 F: User activity tab (seen comments, no email, if not send) 
-F: Email or text notifications - start with SendGrid PLUS intro PLUS weekly 
 F: Multer vulnerability 
 
 MAKE APP?
@@ -34,6 +32,7 @@ F: Launch challenge? Broadcast messages?
 F: Profile picture app
 xF: User scores
 D: Like UI
+D: Email design, email click through 
 D: Drop-down design - Corporate page dropdown, consolidate all dropdown to one?
 D: Gumshoo intro how does it work in GIF (upload post, sort by location, choose etc)
 D: Edit button design
@@ -55,7 +54,7 @@ GTM: Throttle spend on railway and other credit card services
 GTM: Delete all text 
 GTM: ? 
 
-COUNTDOWN: 10 of 45 (34+11 variance) 
+COUNTDOWN: 12 of 45 (34+11 variance) 
 
 FOLLOWS: 
 
