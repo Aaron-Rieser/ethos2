@@ -854,6 +854,25 @@
             letter-spacing: 0;
         }
 
+        /* YouTube embed styles */
+        .youtube-embed {
+            margin: 15px 0;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        .youtube-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         /* Images */
         .post-card img {
             max-width: 100%;
@@ -2525,6 +2544,18 @@
             }
         });
 
+        // Convert YouTube links to embeds
+        function convertYouTubeLinks(text) {
+            if (!text) return text;
+            
+            // Match YouTube URLs (youtube.com/watch?v=, youtu.be/, youtube.com/embed/)
+            const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:m\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\?[^\s]*)?/g;
+            
+            return text.replace(youtubeRegex, (match, videoId) => {
+                return `<div class="youtube-embed"><iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+            });
+        }
+
         // Create post element function, updated jan 29 for free
         function createPostElement(item) {
             const postDiv = document.createElement('div');
@@ -2557,7 +2588,7 @@
             postDiv.innerHTML = `
                 <div class="post-content">
                     <div class="post-title" data-editable="${canEdit}">${item.title || 'Title'}</div>
-                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${item.post}</div>` : ''}  
+                    ${item.post ? `<div class="post-text" data-editable="${canEdit}">${convertYouTubeLinks(item.post)}</div>` : ''}  
                     ${imageHtml}
                     <div class="post-meta">
                         ${item.username || 'Anonymous'} • ${formattedTime}
