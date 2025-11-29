@@ -31,6 +31,13 @@
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        * {
+            box-sizing: border-box;
         }
 
         /* Preserve Sixtyfour for titles - DO NOT CHANGE */
@@ -179,6 +186,45 @@
             .header-content {
                 padding: 0 10px !important; /* Reduce padding on mobile */
             }
+            
+            /* Remove popup box outline */
+            .form-container {
+                border: none !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                padding: 20px 15px !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                max-width: 100% !important;
+            }
+            
+            /* Reduce top spacing and move content up */
+            .main-content {
+                margin-top: 60px !important;
+                padding: 20px 15px !important;
+                align-items: flex-start !important;
+                box-sizing: border-box !important;
+                overflow-x: hidden !important;
+                width: 100% !important;
+            }
+            
+            /* Scale down title */
+            .form-title {
+                font-size: 1.2em !important;
+                margin-bottom: 20px !important;
+            }
+            
+            /* Ensure input fields stay within viewport on mobile */
+            select, input[type="text"], textarea {
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            
+            .form-group {
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
+            }
         }
 
         .auth-section {
@@ -217,12 +263,16 @@
 
         /* Form Container */
         .main-content {
-            margin-top: 80px;
+            margin-top: 60px;
             min-height: calc(100vh - 140px);
-            padding: 40px 20px;
+            padding: 30px 20px;
             display: flex;
             align-items: center;
             background: var(--dark-bg);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         .form-container {
@@ -230,19 +280,21 @@
             max-width: 600px;
             margin: 0 auto;
             background: transparent;
-            padding: 40px;
+            padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border: 2px solid var(--border-color);
+            box-sizing: border-box;
+            overflow: hidden;
         }
 
         /* Form Title */
         .form-title {
             font-size: 2em;
             font-weight: 700;
-            margin: 0 0 30px 0;
+            margin: 0 0 20px 0;
             color: var(--text-dark);
-            text-align: center;
+            text-align: left;
         }
 
         /* Form Elements */
@@ -251,6 +303,9 @@
             flex-direction: column;
             gap: 8px;
             margin-bottom: 24px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         label {
@@ -258,6 +313,7 @@
             font-weight: 600;
             color: var(--text-dark);
             margin-bottom: 4px;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
         }
 
         label::after {
@@ -267,6 +323,7 @@
             top: 0;
             color: var(--primary-blue);
             font-size: 0.8em;
+            display: none;
         }
 
         select, input[type="text"], textarea {
@@ -274,6 +331,8 @@
             border: 2px solid var(--border-color);
             border-radius: 8px;
             width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
             font-size: 1em;
             transition: all 0.2s ease;
             background: transparent;
@@ -321,6 +380,93 @@
             border-color: var(--primary-blue);
         }
 
+        /* Location Options */
+        .location-options {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .location-text {
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            color: var(--text-dark);
+            font-size: 0.7em;
+            flex: 1 1 auto;
+            min-width: 0;
+            line-height: 1.4;
+        }
+
+        .location-map-button {
+            background: var(--primary-blue);
+            color: white;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7em;
+            transition: all 0.2s ease;
+            white-space: normal;
+            word-wrap: break-word;
+            flex: 0 0 auto;
+            width: auto !important;
+            max-width: 250px;
+            min-width: 180px;
+            height: auto;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: left;
+        }
+
+        .location-map-button:hover {
+            background: var(--dark-blue);
+            transform: translateY(-1px);
+        }
+
+        /* File Input Styling */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            font-size: 1.1em;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-align: center;
+        }
+
+        .file-input-label:hover {
+            background: #ff5252;
+            transform: translateY(-1px);
+        }
+
+        .file-input-label.has-file {
+            background: #4caf50;
+        }
+
+        .file-input-label.has-file:hover {
+            background: #45a049;
+        }
+
+        .file-status {
+            display: inline-block;
+            margin-left: 10px;
+            color: #4caf50;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
+            font-size: 0.9em;
+        }
+
         /* Submit Button */
         button[type="submit"] {
             background: var(--primary-blue);
@@ -330,6 +476,7 @@
             border-radius: 8px;
             font-size: 1.1em;
             font-weight: 600;
+            font-family: 'Sixtyfour', system-ui, sans-serif;
             cursor: pointer;
             transition: all 0.2s ease;
             width: 100%;
@@ -1026,11 +1173,12 @@
 
     <main class="main-content">
         <div class="form-container">
-            <h2 class="form-title">Create a new post</h2>
+            <h2 class="form-title">Create new post</h2>
             
-            <nav class="nav-links">
-                <button type="button" id="selectLocation" class="nav-links a">Choose my location</button>
-            </nav>
+            <div class="location-options">
+                <span class="location-text">At current location</span>
+                <button type="button" id="selectLocation" class="location-map-button">Or choose location from map</button>
+            </div>
 
             <!-- Location Display -->
             <div id="locationDisplay" class="location-display hidden">
@@ -1050,7 +1198,9 @@
                 
                 <div class="form-group">
                     <label for="image">Image (optional):</label>
+                    <label for="image" class="file-input-label" id="fileInputLabel">Choose / take photo</label>
                     <input type="file" id="image" name="image" accept="image/*">
+                    <span id="fileStatus" class="file-status" style="display: none;">✓ Photo attached</span>
                 </div>
                 
                 <button type="submit">Submit</button>
@@ -1105,6 +1255,25 @@
 
         // Initialize location selection
         document.getElementById('selectLocation').addEventListener('click', openLocationModal);
+        
+        // File input change indicator
+        const fileInput = document.getElementById('image');
+        const fileLabel = document.getElementById('fileInputLabel');
+        const fileStatus = document.getElementById('fileStatus');
+        
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                // Show success indicator
+                fileLabel.classList.add('has-file');
+                fileLabel.textContent = 'Photo selected ✓';
+                fileStatus.style.display = 'inline-block';
+            } else {
+                // Reset if file is removed
+                fileLabel.classList.remove('has-file');
+                fileLabel.textContent = 'Choose / take photo';
+                fileStatus.style.display = 'none';
+            }
+        });
     });
 
     // Proactive token validation function
