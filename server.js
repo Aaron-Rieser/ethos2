@@ -463,6 +463,60 @@ app.post('/api/account', authenticateJWT, async (req, res) => {
     }
 });
 
+// Update username only (does not change auth0_id or email)
+app.put('/api/account/username', authenticateJWT, async (req, res) => {
+    try {
+        const auth0_id = req.auth.payload.sub;
+        const { username } = req.body;
+        
+        if (!username || username.trim().length === 0) {
+            return res.status(400).json({ error: 'Username cannot be empty' });
+        }
+        
+        if (username.length > 50) {
+            return res.status(400).json({ error: 'Username must be 50 characters or less' });
+        }
+        
+        const result = await pool.query(
+            `UPDATE accounts 
+             SET username = $1 
+             WHERE auth0_id = $2
+             RETURNING username`,
+            [username.trim(), auth0_id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Account not found' });
+        }
+        
+        res.json({ username: result.rows[0].username });
+    } catch (error) {
+        console.error('Error updating username:', error);
+        res.status(500).json({ error: 'Error updating username' });
+    }
+});
+
+// Get current username
+app.get('/api/account/username', authenticateJWT, async (req, res) => {
+    try {
+        const auth0_id = req.auth.payload.sub;
+        
+        const result = await pool.query(
+            'SELECT username FROM accounts WHERE auth0_id = $1',
+            [auth0_id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Account not found' });
+        }
+        
+        res.json({ username: result.rows[0].username });
+    } catch (error) {
+        console.error('Error getting username:', error);
+        res.status(500).json({ error: 'Error getting username' });
+    }
+});
+
 async function ensureUserAccount(user_id, email) {
     console.log('=== ENSURE USER ACCOUNT DEBUG ===');
     console.log('Input parameters:', { user_id, email });
