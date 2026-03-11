@@ -179,6 +179,36 @@ if (process.env.RESEND_API_KEY) {
     console.log('Resend API key not found - email notifications disabled');
 }
 
+// Simple Resend test endpoint
+app.get('/api/test-email', async (req, res) => {
+    if (!resend) {
+        return res.status(500).json({ error: 'Resend not configured (missing RESEND_API_KEY)' });
+    }
+
+    try {
+        const toAddress = process.env.TEST_EMAIL || process.env.RESEND_FROM_EMAIL || 'noreply@gumshoo.ca';
+        console.log('Sending Resend test email to:', toAddress);
+
+        const { data, error } = await resend.emails.send({
+            from: `Gumshoo <${process.env.RESEND_FROM_EMAIL || 'noreply@gumshoo.ca'}>`,
+            to: [toAddress],
+            subject: 'Gumshoo Resend test',
+            html: '<strong>It works! This is a test email from Gumshoo via Resend.</strong>'
+        });
+
+        if (error) {
+            console.error('Resend test email error:', error);
+            return res.status(400).json({ error });
+        }
+
+        console.log('Resend test email data:', data);
+        res.status(200).json({ data });
+    } catch (err) {
+        console.error('Unexpected /api/test-email error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // 4. Then storage configuration (AFTER the try-catch block)
 const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
