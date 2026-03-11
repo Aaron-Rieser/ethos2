@@ -500,7 +500,7 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
 
                         // Look up mentioned user
                         const mentionedResult = await pool.query(
-                            'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
+                            'SELECT auth0_id, email, username FROM accounts WHERE LOWER(username) = LOWER($1)',
                             [mentionedUsername]
                         );
 
@@ -758,7 +758,7 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
 
                     // Look up mentioned user
                     const mentionedResult = await pool.query(
-                        'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
+                        'SELECT auth0_id, email, username FROM accounts WHERE LOWER(username) = LOWER($1)',
                         [mentionedUsername]
                     );
 
@@ -2144,10 +2144,6 @@ app.get('/api/users/search', authenticateJWT, async (req, res) => {
         const currentUserId = req.auth.payload.sub;
         const q = (req.query.q || '').toString().trim();
 
-        if (!q) {
-            return res.json([]);
-        }
-
         const result = await pool.query(
             `SELECT 
                 a.auth0_id,
@@ -2157,10 +2153,10 @@ app.get('/api/users/search', authenticateJWT, async (req, res) => {
              LEFT JOIN follows f 
                 ON f.auth0_id = $1 
                AND f.auth0_following_id = a.auth0_id
-             WHERE LOWER(a.username) LIKE LOWER($2)
+             WHERE ($2 = '' OR LOWER(a.username) LIKE LOWER($2))
              ORDER BY is_following DESC, a.username ASC
              LIMIT 20`,
-            [currentUserId, q + '%']
+            [currentUserId, q ? q + '%' : '']
         );
 
         res.json(result.rows);

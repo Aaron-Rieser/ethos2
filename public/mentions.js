@@ -165,7 +165,7 @@
         activeInput = input;
 
         const fragment = findMentionFragment(input);
-        if (!fragment || !fragment.query.length) {
+        if (!fragment) {
             hideDropdown();
             return;
         }
