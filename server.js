@@ -118,7 +118,7 @@ const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { auth } = require('express-oauth2-jwt-bearer');
-const sgMail = require('@sendgrid/mail');
+const { Resend } = require('resend');
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -170,12 +170,13 @@ try {
     process.exit(1);
 }
 
-// SendGrid configuration
-if (process.env.SENDGRID_API_KEY) {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    console.log('SendGrid configured');
+// Resend configuration
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+    console.log('Resend configured');
 } else {
-    console.log('SendGrid API key not found - email notifications disabled');
+    console.log('Resend API key not found - email notifications disabled');
 }
 
 // 4. Then storage configuration (AFTER the try-catch block)
@@ -198,17 +199,31 @@ const upload = multer({
 const cache = new NodeCache({ stdTTL: 300 });
 const parser = new RSSParser();
 
+// Helper to extract @mentions from text
+function extractMentions(text) {
+    if (!text) return [];
+    const mentionRegex = /@([A-Za-z0-9._]+)/g;
+    const mentions = new Set();
+    let match;
+    while ((match = mentionRegex.exec(text)) !== null) {
+        mentions.add(match[1]);
+    }
+    return Array.from(mentions);
+}
+
 // Email notification functions
 async function sendFollowerEmail(recipientEmail, recipientUsername, followerUsername) {
-    if (!process.env.SENDGRID_API_KEY) {
-        console.log('SendGrid not configured, skipping email');
+    if (!resend) {
+        console.log('Resend not configured, skipping email');
         return;
     }
 
     try {
-        const msg = {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@gumshoo.ca';
+
+        await resend.emails.send({
             to: recipientEmail,
-            from: process.env.SENDGRID_FROM_EMAIL || 'noreply@gumshoo.ca',
+            from: fromEmail,
             subject: `${recipientUsername} - you have a new follower on Gumshoo!`,
             text: `${followerUsername} has followed you\n\nClick for more local content: ${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}`,
             html: `
@@ -221,9 +236,7 @@ async function sendFollowerEmail(recipientEmail, recipientUsername, followerUser
                     </a>
                 </div>
             `
-        };
-
-        await sgMail.send(msg);
+        });
         console.log(`Follower email sent to ${recipientEmail}`);
     } catch (error) {
         console.error('Error sending follower email:', error);
@@ -231,15 +244,17 @@ async function sendFollowerEmail(recipientEmail, recipientUsername, followerUser
 }
 
 async function sendCommentEmail(recipientEmail, recipientUsername, commenterUsername, commentPreview, postTitle) {
-    if (!process.env.SENDGRID_API_KEY) {
-        console.log('SendGrid not configured, skipping email');
+    if (!resend) {
+        console.log('Resend not configured, skipping email');
         return;
     }
 
     try {
-        const msg = {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@gumshoo.ca';
+
+        await resend.emails.send({
             to: recipientEmail,
-            from: process.env.SENDGRID_FROM_EMAIL || 'noreply@gumshoo.ca',
+            from: fromEmail,
             subject: `${recipientUsername} - you have a new comment on your post`,
             text: `${commenterUsername} commented: "${commentPreview}"\n\nWant to respond?\nClick for more local conversation on Gumshoo.ca: ${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}`,
             html: `
@@ -256,12 +271,45 @@ async function sendCommentEmail(recipientEmail, recipientUsername, commenterUser
                     </a>
                 </div>
             `
-        };
-
-        await sgMail.send(msg);
+        });
         console.log(`Comment email sent to ${recipientEmail}`);
     } catch (error) {
         console.error('Error sending comment email:', error);
+    }
+}
+
+// Mention email notification
+async function sendMentionEmail(recipientEmail, mentionedUsername, authorUsername, contentPreview) {
+    if (!resend) {
+        console.log('Resend not configured, skipping mention email');
+        return;
+    }
+
+    try {
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@gumshoo.ca';
+
+        await resend.emails.send({
+            to: recipientEmail,
+            from: fromEmail,
+            subject: 'You were mentioned on Gumshoo',
+            text: `${authorUsername} mentioned you on Gumshoo:\n\n"${contentPreview}"\n\nClick for more local conversation: ${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2>You were mentioned on Gumshoo</h2>
+                    <p><strong>${authorUsername}</strong> mentioned you:</p>
+                    <blockquote style="border-left: 4px solid #007bff; padding-left: 15px; margin: 20px 0;">
+                        "${contentPreview}"
+                    </blockquote>
+                    <a href="${process.env.GUMSHOO_URL || 'https://gumshoo.ca'}" 
+                       style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        View on Gumshoo
+                    </a>
+                </div>
+            `
+        });
+        console.log(`Mention email sent to ${recipientEmail}`);
+    } catch (error) {
+        console.error('Error sending mention email:', error);
     }
 }
 
@@ -405,6 +453,53 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
             } catch (emailError) {
                 console.error('Error sending comment notification email:', emailError);
                 // Don't fail the comment if email fails
+            }
+
+            // Handle mentions in comment
+            try {
+                const mentionedUsernames = extractMentions(comment);
+                if (mentionedUsernames.length > 0) {
+                    const commentRow = result.rows[0];
+                    const contentPreview = comment.length > 200 ? comment.substring(0, 200) + '...' : comment;
+
+                    for (const mentionedUsername of mentionedUsernames) {
+                        // Look up mentioned user
+                        const mentionedResult = await pool.query(
+                            'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
+                            [mentionedUsername]
+                        );
+
+                        if (mentionedResult.rows.length === 0) {
+                            continue; // no such user
+                        }
+
+                        const mentionedUser = mentionedResult.rows[0];
+
+                        // Skip self-mentions
+                        if (mentionedUser.auth0_id === user_id) {
+                            continue;
+                        }
+
+                        // Insert mention record
+                        await pool.query(
+                            `INSERT INTO mentions 
+                             (source_type, source_id, mentioned_user_id, triggered_by_user_id, content) 
+                             VALUES ($1, $2, $3, $4, $5)`,
+                            ['comment', commentRow.id, mentionedUser.auth0_id, user_id, contentPreview]
+                        );
+
+                        // Send mention email
+                        await sendMentionEmail(
+                            mentionedUser.email,
+                            mentionedUser.username,
+                            username,
+                            contentPreview
+                        );
+                    }
+                }
+            } catch (mentionError) {
+                console.error('Error processing mentions for comment:', mentionError);
+                // Do not fail the comment if mentions processing fails
             }
             
             res.json(result.rows[0]);
@@ -606,8 +701,57 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         ];
 
         const result = await pool.query(query, values);
-        
-        res.json(result.rows[0]);
+        const createdPost = result.rows[0];
+
+        // Handle mentions in post (title + body)
+        try {
+            const combinedText = [title, post].filter(Boolean).join(' ');
+            const mentionedUsernames = extractMentions(combinedText);
+
+            if (mentionedUsernames.length > 0) {
+                const contentPreview = combinedText.length > 200 ? combinedText.substring(0, 200) + '...' : combinedText;
+
+                for (const mentionedUsername of mentionedUsernames) {
+                    // Look up mentioned user
+                    const mentionedResult = await pool.query(
+                        'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
+                        [mentionedUsername]
+                    );
+
+                    if (mentionedResult.rows.length === 0) {
+                        continue; // no such user
+                    }
+
+                    const mentionedUser = mentionedResult.rows[0];
+
+                    // Skip self-mentions
+                    if (mentionedUser.auth0_id === user_id) {
+                        continue;
+                    }
+
+                    // Insert mention record
+                    await pool.query(
+                        `INSERT INTO mentions 
+                         (source_type, source_id, mentioned_user_id, triggered_by_user_id, content) 
+                         VALUES ($1, $2, $3, $4, $5)`,
+                        ['post', createdPost.id, mentionedUser.auth0_id, user_id, contentPreview]
+                    );
+
+                    // Send mention email
+                    await sendMentionEmail(
+                        mentionedUser.email,
+                        mentionedUser.username,
+                        username,
+                        contentPreview
+                    );
+                }
+            }
+        } catch (mentionError) {
+            console.error('Error processing mentions for post:', mentionError);
+            // Do not fail the post if mentions processing fails
+        }
+
+        res.json(createdPost);
     } catch (err) {
         console.error('Detailed error:', err);
         if (err.name === 'MulterError' && err.code === 'LIMIT_FILE_SIZE') {
@@ -1357,6 +1501,52 @@ app.get('/api/messages/unread/count', authenticateJWT, async (req, res) => {
     }
 });
 
+// Get unread mentions for current user
+app.get('/api/mentions/unread', authenticateJWT, async (req, res) => {
+    try {
+        const user_id = req.auth.payload.sub;
+
+        const result = await pool.query(
+            `SELECT m.*, a.username as author_username
+             FROM mentions m
+             JOIN accounts a ON m.triggered_by_user_id = a.auth0_id
+             WHERE m.mentioned_user_id = $1 AND m.read_at IS NULL
+             ORDER BY m.created_at DESC`,
+            [user_id]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching unread mentions:', error);
+        res.status(500).json({ error: 'Error fetching unread mentions' });
+    }
+});
+
+// Mark a mention as read
+app.post('/api/mentions/:mentionId/read', authenticateJWT, async (req, res) => {
+    try {
+        const { mentionId } = req.params;
+        const user_id = req.auth.payload.sub;
+
+        const result = await pool.query(
+            `UPDATE mentions
+             SET read_at = CURRENT_TIMESTAMP
+             WHERE id = $1 AND mentioned_user_id = $2
+             RETURNING *`,
+            [mentionId, user_id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Mention not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error marking mention as read:', error);
+        res.status(500).json({ error: 'Error marking mention as read' });
+    }
+});
+
 app.post('/api/conversations/:conversationId/mark-read', authenticateJWT, async (req, res) => {
     try {
         const { conversationId } = req.params;
@@ -1895,6 +2085,38 @@ app.get('/api/following', authenticateJWT, async (req, res) => {
             userId
         });
         res.status(500).json({ error: 'Error getting following list' });
+    }
+});
+
+// Search users for @-mention suggestions, following first
+app.get('/api/users/search', authenticateJWT, async (req, res) => {
+    try {
+        const currentUserId = req.auth.payload.sub;
+        const q = (req.query.q || '').toString().trim();
+
+        if (!q) {
+            return res.json([]);
+        }
+
+        const result = await pool.query(
+            `SELECT 
+                a.auth0_id,
+                a.username,
+                CASE WHEN f.auth0_following_id IS NOT NULL THEN 1 ELSE 0 END AS is_following
+             FROM accounts a
+             LEFT JOIN follows f 
+                ON f.auth0_id = $1 
+               AND f.auth0_following_id = a.auth0_id
+             WHERE LOWER(a.username) LIKE LOWER($2)
+             ORDER BY is_following DESC, a.username ASC
+             LIMIT 20`,
+            [currentUserId, q + '%']
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error searching users for mentions:', error);
+        res.status(500).json({ error: 'Error searching users' });
     }
 });
 
