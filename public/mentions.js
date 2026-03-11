@@ -170,6 +170,9 @@
             return;
         }
 
+        // Debug logging
+        console.log('Mention fragment detected:', fragment);
+
         // Debounce requests
         if (fetchTimeout) {
             clearTimeout(fetchTimeout);
@@ -177,6 +180,7 @@
         fetchTimeout = setTimeout(async () => {
             suggestions = await fetchSuggestions(fragment.query);
             selectedIndex = suggestions.length ? 0 : -1;
+            console.log('Mention suggestions:', suggestions);
             if (!suggestions.length) {
                 hideDropdown();
                 return;
@@ -189,6 +193,8 @@
     function attachMentionHandlers(input) {
         if (!input || input._mentionsBound) return;
         input._mentionsBound = true;
+
+        console.log('Attaching mention handlers to input:', input.id || input.className);
 
         input.addEventListener('input', handleInput);
         input.addEventListener('keydown', handleKeyDown);
@@ -203,5 +209,12 @@
 
     // Expose a function to attach mention behavior
     window.enableMentionsForInput = attachMentionHandlers;
+
+    // Automatically bind to any existing comment inputs on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = document.querySelectorAll('.comment-input, .modal-comment-input, #post');
+        inputs.forEach(attachMentionHandlers);
+        console.log('Mentions.js initialized, inputs found:', inputs.length);
+    });
 })();
 

@@ -392,6 +392,7 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
         }
         
         const username = userResult.rows[0].username;
+        console.log('Comment author username:', username);
 
         // Try to insert comment with explicit transaction
         await pool.query('BEGIN');
@@ -458,18 +459,25 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
             // Handle mentions in comment
             try {
                 const mentionedUsernames = extractMentions(comment);
+                console.log('Extracted mentions from comment:', mentionedUsernames);
+
                 if (mentionedUsernames.length > 0) {
                     const commentRow = result.rows[0];
                     const contentPreview = comment.length > 200 ? comment.substring(0, 200) + '...' : comment;
 
                     for (const mentionedUsername of mentionedUsernames) {
+                        console.log('Processing mention for username:', mentionedUsername);
+
                         // Look up mentioned user
                         const mentionedResult = await pool.query(
                             'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
                             [mentionedUsername]
                         );
 
+                        console.log('Mention lookup result:', mentionedResult.rows);
+
                         if (mentionedResult.rows.length === 0) {
+                            console.log('No account found for mentioned username:', mentionedUsername);
                             continue; // no such user
                         }
 
@@ -477,6 +485,7 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
 
                         // Skip self-mentions
                         if (mentionedUser.auth0_id === user_id) {
+                            console.log('Skipping self-mention for user:', mentionedUser.auth0_id);
                             continue;
                         }
 
@@ -487,6 +496,8 @@ app.post('/api/comments', authenticateJWT, async (req, res) => {
                              VALUES ($1, $2, $3, $4, $5)`,
                             ['comment', commentRow.id, mentionedUser.auth0_id, user_id, contentPreview]
                         );
+
+                        console.log('Inserted mention row for user:', mentionedUser.auth0_id);
 
                         // Send mention email
                         await sendMentionEmail(
@@ -707,18 +718,24 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
         try {
             const combinedText = [title, post].filter(Boolean).join(' ');
             const mentionedUsernames = extractMentions(combinedText);
+            console.log('Extracted mentions from post:', mentionedUsernames);
 
             if (mentionedUsernames.length > 0) {
                 const contentPreview = combinedText.length > 200 ? combinedText.substring(0, 200) + '...' : combinedText;
 
                 for (const mentionedUsername of mentionedUsernames) {
+                    console.log('Processing post mention for username:', mentionedUsername);
+
                     // Look up mentioned user
                     const mentionedResult = await pool.query(
                         'SELECT auth0_id, email, username FROM accounts WHERE username = $1',
                         [mentionedUsername]
                     );
 
+                    console.log('Post mention lookup result:', mentionedResult.rows);
+
                     if (mentionedResult.rows.length === 0) {
+                        console.log('No account found for mentioned username in post:', mentionedUsername);
                         continue; // no such user
                     }
 
@@ -726,6 +743,7 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
 
                     // Skip self-mentions
                     if (mentionedUser.auth0_id === user_id) {
+                        console.log('Skipping self-mention in post for user:', mentionedUser.auth0_id);
                         continue;
                     }
 
@@ -736,6 +754,8 @@ app.post('/api/posts', authenticateJWT, upload.single('image'), async (req, res)
                          VALUES ($1, $2, $3, $4, $5)`,
                         ['post', createdPost.id, mentionedUser.auth0_id, user_id, contentPreview]
                     );
+
+                    console.log('Inserted post mention row for user:', mentionedUser.auth0_id);
 
                     // Send mention email
                     await sendMentionEmail(
