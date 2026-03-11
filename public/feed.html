@@ -3192,6 +3192,15 @@
             }
         }
 
+        // Enable @mention suggestions on dynamically created comment inputs and modal comment inputs
+        document.addEventListener('input', (e) => {
+            if (e.target && (e.target.classList.contains('comment-input') || e.target.classList.contains('modal-comment-input'))) {
+                if (typeof window.enableMentionsForInput === 'function') {
+                    window.enableMentionsForInput(e.target);
+                }
+            }
+        });
+
         async function handleMessage(itemId, recipientId) {
             try {
                 if (!auth0Client || !await auth0Client.isAuthenticated()) {
@@ -3943,6 +3952,7 @@
 
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
     <script src="auth.js"></script>
+    <script src="mentions.js"></script>
     <script src="dropdown.js"></script>
     
     <script>
