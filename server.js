@@ -2138,25 +2138,20 @@ app.get('/api/following', authenticateJWT, async (req, res) => {
     }
 });
 
-// Search users for @-mention suggestions, following first
-app.get('/api/users/search', authenticateJWT, async (req, res) => {
+// Search users for @-mention suggestions
+app.get('/api/users/search', async (req, res) => {
     try {
-        const currentUserId = req.auth.payload.sub;
         const q = (req.query.q || '').toString().trim();
 
         const result = await pool.query(
             `SELECT 
-                a.auth0_id,
-                a.username,
-                CASE WHEN f.auth0_following_id IS NOT NULL THEN 1 ELSE 0 END AS is_following
-             FROM accounts a
-             LEFT JOIN follows f 
-                ON f.auth0_id = $1 
-               AND f.auth0_following_id = a.auth0_id
-             WHERE ($2 = '' OR LOWER(a.username) LIKE LOWER($2))
-             ORDER BY is_following DESC, a.username ASC
+                auth0_id,
+                username
+             FROM accounts
+             WHERE ($1 = '' OR LOWER(username) LIKE LOWER($1))
+             ORDER BY username ASC
              LIMIT 20`,
-            [currentUserId, q ? q + '%' : '']
+            [q ? q.toLowerCase() + '%' : '']
         );
 
         res.json(result.rows);

@@ -97,15 +97,7 @@
 
     async function fetchSuggestions(query) {
         try {
-            if (!window.auth0Client || !await window.auth0Client.isAuthenticated()) {
-                return [];
-            }
-            const token = await window.auth0Client.getTokenSilently();
-            const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
             if (!response.ok) {
                 console.error('Mention search failed', await response.text());
                 return [];
