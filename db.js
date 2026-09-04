@@ -3,11 +3,17 @@ const { Pool } = require('pg');
 console.log('Initializing database connection...');
 
 const isProduction = process.env.NODE_ENV === 'production';
+const productionConnectionString = process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL;
+
+if (isProduction) {
+    console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+    console.log('DATABASE_PUBLIC_URL present:', !!process.env.DATABASE_PUBLIC_URL);
+}
 
 const pool = new Pool(
     isProduction 
         ? {
-            connectionString: process.env.DATABASE_PUBLIC_URL,
+            connectionString: productionConnectionString,
             ssl: {
                 rejectUnauthorized: false
             }

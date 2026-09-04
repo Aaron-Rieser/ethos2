@@ -1,0 +1,6 @@
+# Railway/Nixpacks otherwise detects Deno from a feed-reader
+# example in node_modules and starts cliui instead of Express.
+providers = ["node"]
+
+[start]
+cmd = "node server.js"

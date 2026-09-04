@@ -1,7 +1,10 @@
 {
   "name": "ethos2",
   "version": "1.0.0",
-  "main": "db.js",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
