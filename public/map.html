@@ -2206,8 +2206,12 @@
         let userLocation;
         // Removed popup state variables - now using direct modal calls
 
+        const TORONTO_CENTER = [43.66, -79.4460];
+        const TORONTO_ZOOM = 12.5;
+        const NEARBY_POSTS_RADIUS_KM = 100;
+
         // Initialize the map centered on Toronto
-        map = L.map('map').setView([43.66, -79.4460], 12.5);
+        map = L.map('map').setView(TORONTO_CENTER, TORONTO_ZOOM);
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2644,7 +2648,32 @@
                 }
 
                 // Update the range display
-                document.querySelector('.range-value').textContent = radius === 'all' ? 'All' : `${radius} km`;
+                const rangeValue = document.querySelector('.range-value');
+                if (rangeValue) {
+                    rangeValue.textContent = radius === 'all' ? 'All' : `${radius} km`;
+                }
+            }
+        }
+
+        async function hasPostsNear(lat, lng, radiusKm) {
+            const latDelta = radiusKm / 111;
+            const lngDelta = radiusKm / (111 * Math.max(Math.cos(lat * Math.PI / 180), 0.01));
+            const boundsObj = {
+                north: lat + latDelta,
+                south: lat - latDelta,
+                east: lng + lngDelta,
+                west: lng - lngDelta
+            };
+
+            try {
+                const response = await fetch(`/api/map-posts?bounds=${encodeURIComponent(JSON.stringify(boundsObj))}`);
+                if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                const posts = await response.json();
+                return Array.isArray(posts) && posts.length > 0;
+            } catch (error) {
+                // If the check fails, stay on the user's location rather than moving them
+                console.error('Error checking for nearby posts:', error);
+                return true;
             }
         }
 
@@ -2667,8 +2696,7 @@
             showLoadingIndicator();
 
             navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    hideLoadingIndicator();
+                async function(position) {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
                     userLocation = [userLat, userLng];
@@ -2694,9 +2722,18 @@
                             </button>
                         </div>`;
                     
-                    userMarker.bindPopup(popupContent).openPopup();
+                    userMarker.bindPopup(popupContent);
                     updateRadius(1);
-                    map.setView(userLocation, 14);
+
+                    const hasNearbyPosts = await hasPostsNear(userLat, userLng, NEARBY_POSTS_RADIUS_KM);
+                    hideLoadingIndicator();
+
+                    if (hasNearbyPosts) {
+                        map.setView(userLocation, 14);
+                        userMarker.openPopup();
+                    } else {
+                        map.setView(TORONTO_CENTER, TORONTO_ZOOM);
+                    }
                 },
                 function(error) {
                     hideLoadingIndicator();
@@ -2720,7 +2757,7 @@
                     
                     showLocationError(errorMessage);
                     // Initialize map with default view if needed
-                    map.setView([43.66, -79.4460], 12.5);
+                    map.setView(TORONTO_CENTER, TORONTO_ZOOM);
                 },
                 {
                     enableHighAccuracy: true,

@@ -1241,7 +1241,7 @@
             <p class="signature">Connect with your community</p>
         </div>
 
-        <div class="leaderboard-section">
+        <div class="leaderboard-section" id="leaderboardSection" style="display: none;">
             <h2 class="leaderboard-title">Top posts this week</h2>
             <div class="leaderboard-table-container">
                 <table class="leaderboard-table">
@@ -1759,6 +1759,7 @@
 
         // Load leaderboard data
         async function loadLeaderboard() {
+            const leaderboardSection = document.getElementById('leaderboardSection');
             try {
                 const response = await fetch('/api/leaderboard');
                 if (!response.ok) {
@@ -1777,7 +1778,7 @@
                 const leaderboardBody = document.getElementById('leaderboardBody');
                 
                 if (posts.length === 0) {
-                    leaderboardBody.innerHTML = '<tr><td colspan="4">No posts found</td></tr>';
+                    leaderboardSection.style.display = 'none';
                     return;
                 }
                 
@@ -1806,10 +1807,10 @@
                         </tr>
                     `;
                 }).join('');
+                leaderboardSection.style.display = '';
             } catch (error) {
                 console.error('Error loading leaderboard:', error);
-                const leaderboardBody = document.getElementById('leaderboardBody');
-                leaderboardBody.innerHTML = '<tr><td colspan="4">Error loading leaderboard data</td></tr>';
+                leaderboardSection.style.display = 'none';
             }
         }
 
