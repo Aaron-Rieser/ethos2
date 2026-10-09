@@ -1356,6 +1356,22 @@
                 transform: translateY(-5px);
             }
         }
+        @media screen and (min-width: 769px) {
+            body {
+                margin: 0;
+            }
+            /* Slightly less than the ~59px header so the map tucks under it instead of leaving a gap */
+            .main-content {
+                padding-top: 56px;
+                height: 100vh;
+                box-sizing: border-box;
+            }
+            #map {
+                margin-top: 0;
+                height: 100%;
+            }
+        }
+
         @media screen and (max-width: 768px) {
             #map {
                 height: calc(100vh - 50px);
@@ -2209,9 +2225,18 @@
         const TORONTO_CENTER = [43.66, -79.4460];
         const TORONTO_ZOOM = 12.5;
         const NEARBY_POSTS_RADIUS_KM = 100;
+        const LOCATION_FALLBACK_MS = 10000;
 
-        // Initialize the map centered on Toronto
-        map = L.map('map').setView(TORONTO_CENTER, TORONTO_ZOOM);
+        // The view is set once, after location is resolved, so the map never renders Toronto and then jumps
+        map = L.map('map');
+        let initialViewSet = false;
+
+        function setInitialView(center, zoom) {
+            if (initialViewSet) return false;
+            initialViewSet = true;
+            map.setView(center, zoom);
+            return true;
+        }
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -2351,6 +2376,7 @@
         // Removed createPopupContent function - now using direct modal calls
 
         async function loadMapPosts() {
+            if (!initialViewSet) return;
             const bounds = map.getBounds();
             const zoomLevel = map.getZoom();
             const isMobile = window.innerWidth <= 768;
@@ -2608,9 +2634,6 @@
             }
         });
 
-        // Initial load
-        setTimeout(loadMapPosts, 1000);  
-
         function showLocationError(message) {
             const errorElement = document.getElementById('location-error');
             errorElement.textContent = message;
@@ -2685,18 +2708,27 @@
 
             if (!isSecureContext && !isLocalhost) {
                 showLocationError('This site requires HTTPS for location services');
+                setInitialView(TORONTO_CENTER, TORONTO_ZOOM);
                 return;
             }
 
             if (!navigator.geolocation) {
                 showLocationError('Geolocation is not supported by your browser');
+                setInitialView(TORONTO_CENTER, TORONTO_ZOOM);
                 return;
             }
 
             showLoadingIndicator();
 
+            // Covers an unanswered permission prompt, which the geolocation timeout doesn't
+            const fallbackTimer = setTimeout(() => {
+                hideLoadingIndicator();
+                setInitialView(TORONTO_CENTER, TORONTO_ZOOM);
+            }, LOCATION_FALLBACK_MS);
+
             navigator.geolocation.getCurrentPosition(
                 async function(position) {
+                    if (initialViewSet) return;
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
                     userLocation = [userLat, userLng];
@@ -2726,16 +2758,19 @@
                     updateRadius(1);
 
                     const hasNearbyPosts = await hasPostsNear(userLat, userLng, NEARBY_POSTS_RADIUS_KM);
+                    if (initialViewSet) return;
+                    clearTimeout(fallbackTimer);
                     hideLoadingIndicator();
 
                     if (hasNearbyPosts) {
-                        map.setView(userLocation, 14);
+                        setInitialView(userLocation, 14);
                         userMarker.openPopup();
                     } else {
-                        map.setView(TORONTO_CENTER, TORONTO_ZOOM);
+                        setInitialView(TORONTO_CENTER, TORONTO_ZOOM);
                     }
                 },
                 function(error) {
+                    clearTimeout(fallbackTimer);
                     hideLoadingIndicator();
                     let errorMessage;
                     
@@ -2756,13 +2791,12 @@
                     }
                     
                     showLocationError(errorMessage);
-                    // Initialize map with default view if needed
-                    map.setView(TORONTO_CENTER, TORONTO_ZOOM);
+                    setInitialView(TORONTO_CENTER, TORONTO_ZOOM);
                 },
                 {
                     enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    timeout: 8000,
+                    maximumAge: 60000
                 }
             );
         }
@@ -2913,10 +2947,8 @@
             console.log('Updated map radius to:', radius);
         }
 
-        // Initialize location when page loads
-        window.onload = function() {
-            getUserLocation();
-        }
+        // Resolve location right away rather than waiting for every image and font to finish loading
+        getUserLocation();
         function showFeed() {
             if (!userLocation) {
                 showLocationError('Please select a location first');
